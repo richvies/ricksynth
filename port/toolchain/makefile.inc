@@ -1,16 +1,19 @@
-FLASH := st-flash
-LINKER_DIR := port
-LINKER_SCRIPTS := link.ld
 TOOLCHAIN_BIN_PATH := /usr/local/bin
 TOOLCHAIN_PREFIX := arm-none-eabi
+LINKER_SCRIPTS := link.ld
+LINKER_DIR := port/toolchain
+FLASH := stm32flash -b230400 -v -R -i-dtr,rts,-rts:rts /dev/cu.usbserial-A50285BI
+FLASH_ERASE := $(FLASH) -E
+FLASH_READ := $(FLASH) -r
+FLASH_WRITE := $(FLASH) -w
 
-flash:
-	@echo Flashing: $(BUILD_DIR)/$(TARGET_FILE).bin
-	$(FLASH) --reset write $(BUILD_DIR)/$(TARGET_FILE).bin $(FLASH_ADDR)
+# flash:
+# 	@echo Flashing: $(BUILD_DIR)/$(TARGET_FILE).bin
+# 	$(FLASH_WRITE) $(BUILD_DIR)/$(TARGET_FILE).bin
 
-erase:
-	@echo Erasing device...
-	$(FLASH) erase
+# erase:
+# 	@echo Erasing device...
+# 	$(FLASH_ERASE)
 
 EXTRA_DEFS = \
   -DSTM32F415xx \
@@ -45,4 +48,4 @@ LDFLAGS += \
   -nostartfiles \
   --specs=nano.specs \
   --specs=nosys.specs \
-  -u _printf_float \
+  -u _printf_float

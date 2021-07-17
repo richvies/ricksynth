@@ -1,5 +1,5 @@
 EXTERN(vector_table)
-ENTRY(reset_handler)
+ENTRY(Reset_Handler)
 
 /* Generate a link error if heap and stack don't fit into RAM  */
 _min_heap_size  = 0x400;    /* required amount of heap   */
@@ -8,7 +8,7 @@ _min_stack_size = 0x400;    /* required amount of stack  */
 MEMORY
 {
     ram (rwx) : ORIGIN = 0x20000000, LENGTH = 8K
-    rom (rx) : ORIGIN = 0x08008000, LENGTH = 32K
+    rom (rx) : ORIGIN = 0x08000000, LENGTH = 32K
 }
 SECTIONS
 {

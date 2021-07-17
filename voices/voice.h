@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#ifndef VOICE_H
-#define VOICE_H
+#ifndef MODIFIER_H
+#define MODIFIER_H
 
 #include "backbone/common.h"
 

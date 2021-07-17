@@ -26,7 +26,9 @@
 # SOFTWARE.
 # ****************************************************************************/
 
-include port/build/makefile.inc
+default: all
+
+include port/toolchain/makefile.inc
 
 project ?= synth1
 target ?= app
@@ -35,9 +37,8 @@ sampleRate ?= 96000
 
 ifeq '$(project)' 'synth1'
   include app/synth1/synth1.inc
-else
-ifeq '$(project)' 'synth2'
-  include app/synth1/synth2.inc
+else ifeq '$(project)' 'synth2'
+  include app/synth2/synth2.inc
 endif
 
 TARGET_FILE = $(project)_$(target)_$(config)
@@ -56,24 +57,36 @@ OBJDUMP         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objdump'
 OBJCOPY         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE            := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-size'
 
+PYTHON			:= python3
+
 # Source
-SRCDIRS ?= \
+SRC_DIR += \
   app \
   backbone \
-  mod \
+  backbone/math \
+  backbone/peripheral \
+  backbone/system \
+  backbone/util \
+  modifiers \
   port \
+  port/backbone \
   test \
   ui \
-  voice
-CFILES ?= $(wildcard $(SRCDIRS)/*.c)
-OBJS   = $(addprefix $(OBJDIR)/, $(notdir $(CFILES:.c=.o)))
+  voices \
+  voices/generators \
+  voice/processors \
+
+C_FILES ?= $(sort $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.c)))
+C_OBJS   = $(addprefix $(OBJ_DIR)/, $(notdir $(C_FILES:.c=.o)))
 
 # So that make does not think they are intermediate files and delete them
-.SECONDARY: $(OBJS)
+.SECONDARY: $(C_OBJS)
 
-VPATH = $(SRCDIRS) $(OBJDIR) $(BINDIR)
+VPATH = $(SRC_DIR) $(OBJ_DIR) $(BUILD_DIR) $(BIN_DIR)
 
-ifeq ("$(VERBOSE)","1")
+INC_PATHS = -I./
+
+ifeq ("$(V)","1")
   NO_ECHO :=
 else
   NO_ECHO := @
@@ -109,16 +122,18 @@ export CC CFLAGS
 # Top builds recipes
 #############################################################
 
-.PHONY: all help clean check version print-
+.PHONY: all help clean check version flash print-
 
-all: $(BINDIR)/$(TARGET_FILE).elf $(BINDIR)/$(TARGET_FILE).hex $(BINDIR)/$(TARGET_FILE).bin $(BINDIR)/$(TARGET_FILE).lss $(BINDIR)/$(TARGET_FILE).list
+all: $(BIN_DIR)/$(TARGET_FILE).elf $(BIN_DIR)/$(TARGET_FILE).hex \
+	 $(BIN_DIR)/$(TARGET_FILE).bin \
+	 $(BIN_DIR)/$(TARGET_FILE).lss $(BIN_DIR)/$(TARGET_FILE).list
 	@echo ''
 	@echo 'Size:'
 	@echo '-----'
 	$(NO_ECHO)$(SIZE) $(BUILD_DIR)/$(TARGET_FILE).elf
 	@echo ''
 	@md5sum $(BUILD_DIR)/$(TARGET_FILE).bin
-	$(PYTHON) main.py $(target)
+	$(PYTHON) finalize.py $(BUILD_DIR)/$(TARGET_FILE)
 
 help:
 	@echo 'To build the main app for use in a released image:'
@@ -131,6 +146,9 @@ check:
 ifndef TOOLCHAIN_BIN_PATH
 	$(error TOOLCHAIN_BIN_PATH is undefined)
 endif
+ifndef TOOLCHAIN_PREFIX
+	$(error TOOLCHAIN_PREFIX is undefined)
+endif
 
 version:
 	@echo id = $(commit_id)
@@ -138,43 +156,6 @@ version:
 
 print-%:
 	@echo $* = $($*)
-
-#############################################################
-# File build recipes
-#############################################################
-
-%.elf: check $(OBJECTS)
-	@echo
-	@echo 'Make arguments:'
-	@echo ----------------
-	@echo 'target               = $(target) ($(config))'
-	@echo 'commit_id            = $(commit_id)'
-	@echo 'commit_log           = $(commit_log)'
-	@echo ----------------
-	@echo 'sample rate          = $(sampleRate)'
-	@echo ----------------
-	@echo
-	@echo Linking target: $(TARGET_FILE).elf
-	$(NO_ECHO)$(CC) $(CFLAGS) $(OBJECTS) -o $(BUILD_DIR)/$(TARGET_FILE).elf $(LDFLAGS)
-
-%.bin: %.elf
-	@echo Preparing: $(TARGET_FILE).bin
-	$(NO_ECHO)$(OBJCOPY) -O binary $(BUILD_DIR)/$(TARGET_FILE).elf $(BUILD_DIR)/$(TARGET_FILE).bin
-
-%.hex: %.elf
-	@echo Preparing: $(TARGET_FILE).hex
-	$(NO_ECHO)$(OBJCOPY) -O ihex $(BUILD_DIR)/$(TARGET_FILE).elf $(BUILD_DIR)/$(TARGET_FILE).hex
-
-%.o: %.c _extra.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(CC) -E $(CFLAGS) $(LDFLAGS) $(FINAL_INC_PATHS) -c -o $@.i $<
-	$(NO_ECHO)$(CC) $(CFLAGS) $(LDFLAGS) $(FINAL_INC_PATHS) -c -o $@ $<
-
-%.lss: %.elf
-	$(OBJDUMP) -h -S $< > $@
-
-%.list: %.elf
-	$(OBJDUMP) -S $< > $@
 
 # --- template for checking and saving command-line arguments ---
 define DEPENDABLE_VAR
@@ -216,7 +197,50 @@ else
   $(eval $(call DEPENDABLE_VAR,launch))
 endif
 
+#############################################################
+# File build recipes
+#############################################################
+
+%.elf: check $(C_OBJS)
+	@echo
+	@echo 'Make arguments:'
+	@echo ----------------
+	@echo 'target               = $(TARGET_FILE)'
+	@echo 'commit_id            = $(commit_id)'
+	@echo 'commit_log           = $(commit_log)'
+	@echo ----------------
+	@echo 'sample rate          = $(sampleRate)'
+	@echo ----------------
+	@echo
+	@echo Linking target: $(TARGET_FILE).elf
+	$(NO_ECHO)$(CC) $(CFLAGS) $(C_OBJS) -o $(BUILD_DIR)/$(TARGET_FILE).elf \
+	$(LDFLAGS)
+
+%.bin: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJCOPY) -O binary $(BUILD_DIR)/$(TARGET_FILE).elf \
+	$(BUILD_DIR)/$(TARGET_FILE).bin
+
+%.hex: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJCOPY) -O ihex $(BUILD_DIR)/$(TARGET_FILE).elf \
+	$(BUILD_DIR)/$(TARGET_FILE).hex
+
+$(OBJ_DIR)/%.o: %.c
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) -E $(CFLAGS) $(LDFLAGS) $(INC_PATHS) -c -o $@.i $<
+	$(NO_ECHO)$(CC) $(CFLAGS) $(LDFLAGS) $(INC_PATHS) -c -o $@ $<
+
+%.lss: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJDUMP) -h -S $< > $@
+
+%.list: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJDUMP) -S $< > $@
+
 # include header dependencies
--include $(OBJECTS:.o=.d)
+-include $(C_OBJS:.o=.d)
 
 # End of Makefile

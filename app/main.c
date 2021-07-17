@@ -33,3 +33,16 @@ int main()
 {
   return 0;
 }
+
+void __attribute__ ((section(".after_vectors"),noreturn,weak))
+_start (void)
+{
+  for (;;)
+      ;
+}
+
+void __attribute__ ((section(".after_vectors"),noreturn))
+Reset_Handler (void)
+{
+  _start();
+}
