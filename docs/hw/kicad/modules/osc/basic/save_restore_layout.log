@@ -1,0 +1,33 @@
+04-03 19:00:11 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 160:Plugin executed on: 'darwin'
+04-03 19:00:11 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 161:Plugin executed with python version: '2.7.16 (default, May 14 2020, 09:34:58) \n[GCC 4.2.1 Compatible Apple LLVM 9.0.0 (clang-900.0.39.2)]'
+04-03 19:00:11 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 162:KiCad build version: (5.1.6-0-10_14)
+04-03 19:00:11 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 163:Save/Restore Layout plugin version: 51 started
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 200:Save layout chosen
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 845:Saving the current board temporary in order to leave current layout intact
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 855:Getting schematics info
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 180:getting project hierarchy from schematics
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 182:Project hierarchy looks like:
+{u'6068B780': [u'Sheet6068B77F', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 857:Getting layout info
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 256:getting a list of all footprints on board
+04-03 19:00:12 Kicad_action_plugins.save_restore_layout.save_restore_layout 859:Updating layout info with schematics info
+04-03 19:00:14 root 53:highlighting module: u'U201'
+04-03 19:00:14 root 53:highlighting module: u'R203'
+04-03 19:00:14 root 53:highlighting module: u'R202'
+04-03 19:00:14 root 53:highlighting module: u'R201'
+04-03 19:00:14 root 53:highlighting module: u'C201'
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 941:Saving layout for level: [u'Sheet6068B77F']
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 942:Calculating hash of the layout schematics
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 946:Saving hash for files: [u'basic.sch']
+04-03 19:00:21 root 956:Source modules are: [u'U201', u'R203', u'R202', u'R201', u'C201']
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 966:Removing everything else from the layout
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 880:Removing text
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 863:Removing drawing
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 897:Removing zones
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 913:Removing tracks
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 916:Bounding box points: (67604999, 86005001, 83384999, 107115001)
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 936:Removing modules
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 985:Saving layout in temporary file
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 988:Reading layout as text
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 995:Saving layout data
+04-03 19:00:21 Kicad_action_plugins.save_restore_layout.save_restore_layout 1002:Succesfully saved the layout

@@ -32,4 +32,20 @@ SOFTWARE.
 #include "backbone/common.h"
 
 
+typedef void BUFFER;
+typedef void DATA;
+
+
+extern void    BUFF_init(void);
+extern BUFFER* BUFF_createFifo(void *arr, uint16_t n_elm, size_t sizeof_elm);
+extern BUFFER* BUFF_createLifo(void *arr, uint16_t n_elm, size_t sizeof_elm);
+extern bool    BUFF_delete(BUFFER *buf);
+
+extern bool     BUFF_push(BUFFER *buf, DATA *data);
+extern bool     BUFF_pop(BUFFER *buf, DATA **data);
+extern bool     BUFF_write(BUFFER *buf, DATA *data, uint16_t len);
+extern uint16_t BUFF_peak(BUFFER *buf, DATA **data);
+extern bool     BUFF_read(BUFFER *buf, uint16_t len);
+
+
 #endif

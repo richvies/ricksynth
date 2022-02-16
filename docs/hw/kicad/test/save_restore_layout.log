@@ -1,0 +1,47 @@
+04-03 19:00:45 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 160:Plugin executed on: 'darwin'
+04-03 19:00:45 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 161:Plugin executed with python version: '2.7.16 (default, May 14 2020, 09:34:58) \n[GCC 4.2.1 Compatible Apple LLVM 9.0.0 (clang-900.0.39.2)]'
+04-03 19:00:45 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 162:KiCad build version: (5.1.6-0-10_14)
+04-03 19:00:45 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 163:Save/Restore Layout plugin version: 51 started
+04-03 19:00:46 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 274:Restore layout chosen
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 393:Getting board info
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 395:Getting schematics info
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 180:getting project hierarchy from schematics
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 182:Project hierarchy looks like:
+{u'60689D47': [u'Sheet60689D46', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'60689DCE': [u'sheet60689DCE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 397:Getting layout info
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 256:getting a list of all footprints on board
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 399:Updating layout info with schematics info
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 739:Loading saved design
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 746:Source level is:[u'basic.sch']
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 753:Destination footprint is:u'R201'
+04-03 19:00:56 Kicad_action_plugins.save_restore_layout.save_restore_layout 754:Destination levels available are:[u'../modules/osc/basic/basic.sch']
+04-03 19:01:14 Kicad_action_plugins.save_restore_layout.action_save_restore_layout 311:Error when restoring layout
+Traceback (most recent call last):
+  File "/Users/richarddavies/Library/Preferences/kicad/scripting/Kicad_action_plugins/save_restore_layout/action_save_restore_layout.py", line 304, in Run
+    restore_layout.restore_layout(pivot_mod, layout_file)
+  File "/Users/richarddavies/Library/Preferences/kicad/scripting/Kicad_action_plugins/save_restore_layout/save_restore_layout.py", line 759, in restore_layout
+    + "does not match source hierarchy: " + repr(source_level_filename))
+LookupError: Destination hierarchy: [u'../modules/osc/basic/basic.sch']
+does not match source hierarchy: [u'basic.sch']
+04-03 19:24:03 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:24:03 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:25:56 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:25:56 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:27:19 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:27:19 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:27:19 Kicad_action_plugins.replicate_layout.replicatelayout 215:getting project hierarchy from schematics
+04-03 19:27:19 Kicad_action_plugins.replicate_layout.replicatelayout 217:Project hierarchy looks like:
+{u'60689D47': [u'Sheet60689D46', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'60689DCE': [u'sheet60689DCE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 19:27:19 Kicad_action_plugins.replicate_layout.replicatelayout 225:getting a list of all footprints on board
+04-03 19:27:45 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:27:45 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:27:45 Kicad_action_plugins.replicate_layout.replicatelayout 215:getting project hierarchy from schematics
+04-03 19:27:45 Kicad_action_plugins.replicate_layout.replicatelayout 217:Project hierarchy looks like:
+{u'60689D47': [u'Sheet60689D46', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'60689DCE': [u'sheet60689DCE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 19:27:45 Kicad_action_plugins.replicate_layout.replicatelayout 225:getting a list of all footprints on board
+04-03 19:37:13 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:37:13 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:37:13 Kicad_action_plugins.replicate_layout.replicatelayout 215:getting project hierarchy from schematics
+04-03 19:37:13 Kicad_action_plugins.replicate_layout.replicatelayout 217:Project hierarchy looks like:
+{u'60689D47': [u'Sheet60689D46', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'60689DCE': [u'sheet60689DCE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 19:37:13 Kicad_action_plugins.replicate_layout.replicatelayout 225:getting a list of all footprints on board

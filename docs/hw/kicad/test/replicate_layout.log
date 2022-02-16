@@ -1,0 +1,104 @@
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 305:Plugin executed on: 'darwin'
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 306:Plugin executed with python version: '2.7.16 (default, May 14 2020, 09:34:58) \n[GCC 4.2.1 Compatible Apple LLVM 9.0.0 (clang-900.0.39.2)]'
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 307:KiCad build version: (5.1.6-0-10_14)
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 308:Replicate layout plugin version: 70 started
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 340:Preparing replicator with R1003 as a reference
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.replicatelayout 215:getting project hierarchy from schematics
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.replicatelayout 217:Project hierarchy looks like:
+{u'6068DEE2': [u'Sheet6068DEE1', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'6068EE85': [u'Sheet6068EE84', u'/Users/richarddavies/Desktop/kicad/test/new2.sch'], u'6068B9BE': [u'sheet6068B9BE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'60689D47': [u'Sheet60689D46', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'6068F023': [u'Sheet6068F022', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch'], u'6068DC06': [u'newsheet', u'/Users/richarddavies/Desktop/kicad/test/file6068DC05.sch'], u'6068EEE7': [u'Sheet6068EEE6', u'/Users/richarddavies/Desktop/kicad/test/new222.sch'], u'6068EEB9': [u'Sheet6068EEB8', u'/Users/richarddavies/Desktop/kicad/test/new22.sch'], u'60689DCE': [u'sheet60689DCE', u'/Users/richarddavies/Desktop/kicad/modules/osc/basic/basic.sch']}
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.replicatelayout 225:getting a list of all footprints on board
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 367:source anchor footprint is u'R1003'
+Located on:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022']
+With filenames:[u'new2.sch', u'new22.sch', u'new222.sch', u'../modules/osc/basic/basic.sch']
+With sheet_id:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022']
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 371:Corresponding footprints are 
+[(u'R1003', [u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022']), (u'R603', [u'newsheet', u'Sheet6068DEE1']), (u'R403', [u'sheet6068B9BE']), (u'R303', [u'sheet60689DCE']), (u'R203', [u'Sheet60689D46'])]
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 384:Showing dialog
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 388:Pcbnew position: wx.Point(0, 20)
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 394:Display 0: wx.Rect(0, 0, 1920, 1200)
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 398:Toolbar position: wx.Point(1239, 114)
+04-03 23:34:19 Kicad_action_plugins.replicate_layout.action_replicate_layout 405:Dialog position: wx.Point(926, 114)
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068EE84', file:u'new2.sch'
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84']
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84']]
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet6068EE84']]
+04-03 23:34:23 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[]
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068EEB8', file:u'new22.sch'
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8']
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8']]
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet6068EE84', u'Sheet6068EEB8']]
+04-03 23:34:25 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[]
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068EEE6', file:u'new222.sch'
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']]
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']]
+04-03 23:34:26 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[]
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068F022', file:u'../modules/osc/basic/basic.sch'
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022']
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet6068B9BE'], [u'sheet60689DCE'], [u'Sheet60689D46']]
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet60689D46'], [u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet60689DCE'], [u'sheet6068B9BE']]
+04-03 23:34:30 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[[u'Sheet60689D46'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet60689DCE'], [u'sheet6068B9BE']]
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068EEB8', file:u'new22.sch'
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8']
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8']]
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet6068EE84', u'Sheet6068EEB8']]
+04-03 23:35:18 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[]
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068EEE6', file:u'new222.sch'
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']]
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6']]
+04-03 23:35:19 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[]
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 249:construcing a list of sheets suitable for replication on level:u'Sheet6068F022', file:u'../modules/osc/basic/basic.sch'
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 256:Source sheet path up to the level:[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022']
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 260:Footprints on the sheets:
+[u'R1003', u'R603', u'R403', u'R303', u'R203']
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 263:Footprints raw sheet ids:
+[u'/6068EE85/6068EEB9/6068EEE7/6068F023/606A4E78', u'/6068DC06/6068DEE2/606A4E78', u'/6068B9BE/606A4E78', u'/60689DCE/606A4E78', u'/60689D47/606A4E78']
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 279:All sheets to replicate:
+[[u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet6068B9BE'], [u'sheet60689DCE'], [u'Sheet60689D46']]
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 284:All sheets to replicate sorted:
+[[u'Sheet60689D46'], [u'Sheet6068EE84', u'Sheet6068EEB8', u'Sheet6068EEE6', u'Sheet6068F022'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet60689DCE'], [u'sheet6068B9BE']]
+04-03 23:35:41 Kicad_action_plugins.replicate_layout.replicatelayout 290:All sheets to replicate sorted and without source sheet:
+[[u'Sheet60689D46'], [u'newsheet', u'Sheet6068DEE1'], [u'sheet60689DCE'], [u'sheet6068B9BE']]

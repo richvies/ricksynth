@@ -1,0 +1,8 @@
+04-03 19:52:55 Kicad_action_plugins.place_footprints.action_place_footprints 414:Plugin executed on: 'darwin'
+04-03 19:52:55 Kicad_action_plugins.place_footprints.action_place_footprints 415:Plugin executed with python version: '2.7.16 (default, May 14 2020, 09:34:58) \n[GCC 4.2.1 Compatible Apple LLVM 9.0.0 (clang-900.0.39.2)]'
+04-03 19:52:55 Kicad_action_plugins.place_footprints.action_place_footprints 416:KiCad build version: (5.1.6-0-10_14)
+04-03 19:52:55 Kicad_action_plugins.place_footprints.action_place_footprints 417:Place footprints plugin version: 54 started
+04-03 19:52:56 Kicad_action_plugins.place_footprints.place_footprints 213:getting project hierarchy from schematics
+04-03 19:52:56 Kicad_action_plugins.place_footprints.place_footprints 228:getting a list of all footprints on board
+04-03 19:52:58 Kicad_action_plugins.place_footprints.place_footprints 254:construcing a list of sheets suitable for replication on level:u'Sheet60689D46', file:u'../modules/osc/basic/basic.sch'
+04-03 19:52:58 Kicad_action_plugins.place_footprints.place_footprints 287:suitable sheets are:[[u'sheet60689DCE'], [u'sheet6068B9BE']]
