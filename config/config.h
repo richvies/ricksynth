@@ -30,7 +30,7 @@ SOFTWARE.
 #define CONFIG_H
 
 
-#include "backbone/common.h"
+#include "common.h"
 
 
 #define NUM_OF_BUFFERS  8

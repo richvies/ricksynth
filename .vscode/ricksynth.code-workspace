@@ -1,0 +1,62 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"restructuredtext.confPath": "",
+		"omnisharp.autoStart": false,
+		"git-graph.maxDepthOfRepoSearch": 3,
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/bower_components": true,
+			"**/*.code-search": true,
+			"**/build/**": true,
+			"**/bin/**": true,
+			"**/docs/**": true,
+		},
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true
+		},
+		"editor.rulers": [80],
+		"python.pythonPath": "/usr/local/anaconda3/bin/python",
+		"gitlens.codeLens.enabled": false,
+		"C_Cpp.exclusionPolicy": "checkFilesAndFolders",
+		"files.trimTrailingWhitespace": true,
+		"diffEditor.ignoreTrimWhitespace": false,
+		"C_Cpp.loggingLevel": "Debug",
+		"files.associations": {
+			"*.include": "makefile",
+			"*.inc": "makefile",
+			"Doxyfile": "makefile",
+			"*.h": "c",
+			"*.lss": "asm-collection",
+			"Makefile2": "makefile",
+			"__bit_reference": "c",
+			"__functional_base": "c",
+			"algorithm": "c",
+			"atomic": "c",
+			"bitset": "c",
+			"chrono": "c",
+			"deque": "c",
+			"__memory": "c",
+			"optional": "c",
+			"functional": "c",
+			"iterator": "c",
+			"limits": "c",
+			"locale": "c",
+			"memory": "c",
+			"ratio": "c",
+			"regex": "c",
+			"system_error": "c",
+			"tuple": "c",
+			"type_traits": "c",
+			"vector": "c"
+		}
+	}
+}

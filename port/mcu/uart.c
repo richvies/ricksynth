@@ -26,5 +26,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#include "backbone/common.h"
-#include "backbone/peripheral/uart.h"
+#include "common.h"
+#include "uart.h"

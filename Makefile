@@ -28,8 +28,6 @@
 
 default: all
 
-include port/toolchain/makefile.inc
-
 project ?= synth1
 target ?= app
 config ?= debug
@@ -41,18 +39,20 @@ else ifeq '$(project)' 'synth2'
   include app/synth2/synth2.inc
 endif
 
-TARGET_FILE = $(project)_$(target)_$(config)
+TARGET = $(project)_$(target)_$(config)
 
 SHELL := bash
 MKDIR := mkdir -p
 RM := rm -rf
 
 BUILD_DIR = build
-BIN_DIR   = $(BUILD_DIR)
-OBJ_DIR   = $(BUILD_DIR)/obj
+BIN_DIR   = bin
+
+include port/make/makefile.inc
 
 # Toolchain commands
 CC              := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc'
+CPP             := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-g++'
 OBJDUMP         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objdump'
 OBJCOPY         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE            := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-size'
@@ -69,22 +69,38 @@ SRC_DIR += \
   backbone/util \
   modifiers \
   port \
-  port/backbone \
-  test \
+  port/mcu \
   ui \
   voices \
   voices/generators \
   voice/processors \
 
 C_FILES ?= $(sort $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.c)))
-C_OBJS   = $(addprefix $(OBJ_DIR)/, $(notdir $(C_FILES:.c=.o)))
+CPP_FILES ?= $(sort $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.cpp)))
+C_OBJS   = $(addprefix $(BUILD_DIR)/, $(notdir $(C_FILES:.c=.o)))
+C_OBJS   += $(addprefix $(BUILD_DIR)/, $(notdir $(CPP_FILES:.cpp=.o)))
 
 # So that make does not think they are intermediate files and delete them
 .SECONDARY: $(C_OBJS)
 
-VPATH = $(SRC_DIR) $(OBJ_DIR) $(BUILD_DIR) $(BIN_DIR)
+VPATH = $(SRC_DIR) $(BUILD_DIR) $(BUILD_DIR) $(BIN_DIR)
 
-INC_PATHS = -I./
+INC_PATHS = \
+  -I./ \
+  -I./app \
+  -I./backbone \
+  -I./backbone/math \
+  -I./backbone/system \
+  -I./backbone/util \
+  -I./config \
+  -I./mcu \
+  -I./modifiers \
+  -I./port \
+  -I./port/mcu \
+  -I./ui \
+  -I./voices \
+  -I./voices/generators \
+  -I./voice/processors
 
 ifeq ("$(V)","1")
   NO_ECHO :=
@@ -122,25 +138,28 @@ export CC CFLAGS
 # Top builds recipes
 #############################################################
 
-.PHONY: all help clean check version flash print-
+.PHONY: all help clean check version flash print- phony
 
-all: $(BIN_DIR)/$(TARGET_FILE).elf $(BIN_DIR)/$(TARGET_FILE).hex \
-	 $(BIN_DIR)/$(TARGET_FILE).bin \
-	 $(BIN_DIR)/$(TARGET_FILE).lss $(BIN_DIR)/$(TARGET_FILE).list
+all: $(BIN_DIR) $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/$(TARGET).hex \
+	 $(BIN_DIR)/$(TARGET).bin \
+	 $(BIN_DIR)/$(TARGET).lss $(BIN_DIR)/$(TARGET).list
 	@echo ''
 	@echo 'Size:'
 	@echo '-----'
-	$(NO_ECHO)$(SIZE) $(BUILD_DIR)/$(TARGET_FILE).elf
+	$(NO_ECHO)$(SIZE) $(BIN_DIR)/$(TARGET).elf
 	@echo ''
-	@md5sum $(BUILD_DIR)/$(TARGET_FILE).bin
-	$(PYTHON) finalize.py $(BUILD_DIR)/$(TARGET_FILE)
+	@md5sum $(BIN_DIR)/$(TARGET).bin
+	$(PYTHON) port/make/finalize.py $(BIN_DIR)/$(TARGET)
+
+$(BIN_DIR):
+	$(NO_ECHO)$(MKDIR) -p $(BIN_DIR)
 
 help:
 	@echo 'To build the main app for use in a released image:'
 	@echo '$$: make clean; make -j8'
 
 clean:
-	$(RM) $(BUILD_DIR)
+	$(RM) $(BUILD_DIR) $(BIN_DIR)
 
 check:
 ifndef TOOLCHAIN_BIN_PATH
@@ -167,7 +186,8 @@ $(BUILD_DIR)/$1.o: $(BUILD_DIR)/$1.arg
 $1_arg = $(call $(shell echo '$1' | tr '[:lower:]' '[:upper:]')_ARGS, $1)
 
 # compare and resave if variable != file contents
-$(BUILD_DIR)/$1.arg: $(BUILD_DIR) phony
+$(BUILD_DIR)/$1.arg: phony
+	$$(NO_ECHO)$$(MKDIR) -p $$(@D)
 	@printf "%q\n" '$$($1_arg)' > $$@.tmp; \
 	if [[ `diff -N $$@ $$@.tmp` ]]; then \
 		printf "%q\n" '$$($1_arg)' > $$@; \
@@ -175,6 +195,7 @@ $(BUILD_DIR)/$1.arg: $(BUILD_DIR) phony
 		$$($1_arg)\n' > $$@.msg; \
 		cat $$@.msg; \
 		rm -rf $$@.msg; \
+    printf "%b\n" '------------------------------------\n\n'; \
 	fi; \
 	rm -rf $$@.tmp
 endef
@@ -205,32 +226,37 @@ endif
 	@echo
 	@echo 'Make arguments:'
 	@echo ----------------
-	@echo 'target               = $(TARGET_FILE)'
+	@echo 'target               = $(TARGET)'
 	@echo 'commit_id            = $(commit_id)'
 	@echo 'commit_log           = $(commit_log)'
 	@echo ----------------
 	@echo 'sample rate          = $(sampleRate)'
 	@echo ----------------
 	@echo
-	@echo Linking target: $(TARGET_FILE).elf
-	$(NO_ECHO)$(CC) $(CFLAGS) $(C_OBJS) -o $(BUILD_DIR)/$(TARGET_FILE).elf \
-	$(LDFLAGS)
+	@echo Linking target: $(TARGET).elf
+	$(NO_ECHO)$(CC) $(CFLAGS) $(C_OBJS) -o $(BIN_DIR)/$(TARGET).elf $(LDFLAGS)
 
 %.bin: %.elf
 	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O binary $(BUILD_DIR)/$(TARGET_FILE).elf \
-	$(BUILD_DIR)/$(TARGET_FILE).bin
+	$(NO_ECHO)$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf \
+  $(BIN_DIR)/$(TARGET).bin
 
 %.hex: %.elf
 	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O ihex $(BUILD_DIR)/$(TARGET_FILE).elf \
-	$(BUILD_DIR)/$(TARGET_FILE).hex
+	$(NO_ECHO)$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).elf \
+  $(BIN_DIR)/$(TARGET).hex
 
-$(OBJ_DIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR)/_extra.arg
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(CFLAGS) $(LDFLAGS) $(INC_PATHS) -c -o $@.i $<
-	$(NO_ECHO)$(CC) $(CFLAGS) $(LDFLAGS) $(INC_PATHS) -c -o $@ $<
+	$(NO_ECHO)$(CPP) -E $(CFLAGS) $(INC_PATHS) -c -o $@.i $<
+	$(NO_ECHO)$(CPP) $< -o $@ -c $(CFLAGS) $(INC_PATHS)
+
+$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/_extra.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) -E $(CFLAGS) $(INC_PATHS) -c -o $@.i $<
+	$(NO_ECHO)$(CC) $< -o $@ -c $(CFLAGS) $(INC_PATHS)
 
 %.lss: %.elf
 	@echo Generate: $@

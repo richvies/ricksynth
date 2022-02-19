@@ -1,7 +1,7 @@
 TOOLCHAIN_BIN_PATH := /usr/local/bin
 TOOLCHAIN_PREFIX := arm-none-eabi
 LINKER_SCRIPTS := link.ld
-LINKER_DIR := port/toolchain
+LINKER_DIR := port/make
 FLASH := stm32flash -b230400 -v -R -i-dtr,rts,-rts:rts /dev/cu.usbserial-A50285BI
 FLASH_ERASE := $(FLASH) -E
 FLASH_READ := $(FLASH) -r

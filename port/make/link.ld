@@ -1,5 +1,5 @@
 EXTERN(vector_table)
-ENTRY(Reset_Handler)
+ENTRY(_start)
 
 /* Generate a link error if heap and stack don't fit into RAM  */
 _min_heap_size  = 0x400;    /* required amount of heap   */

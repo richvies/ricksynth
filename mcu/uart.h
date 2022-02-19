@@ -29,6 +29,6 @@ SOFTWARE.
 #ifndef UART_H
 #define UART_H
 
-#include "backbone/common.h"
+#include "common.h"
 
 #endif

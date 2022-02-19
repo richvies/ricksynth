@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "workspace",
+            "intelliSenseMode": "gcc-arm",
+            "cStandard": "c99",
+            "compilerPath": "/usr/local/Cellar/gcc-arm-none-eabi/20200630/bin/arm-none-eabi-gcc",
+            "includePath": [
+                "${workspaceFolder}/app/**",
+                "${workspaceFolder}/backbone/**",
+                "${workspaceFolder}/config/**",
+                "${workspaceFolder}/mcu/**",
+                "${workspaceFolder}/modifiers/**",
+                "${workspaceFolder}/port/**",
+                "${workspaceFolder}/ui/**",
+                "${workspaceFolder}/voices/**"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/app",
+                    "${workspaceFolder}/backbone",
+                    "${workspaceFolder}/config",
+                    "${workspaceFolder}/mcu",
+                    "${workspaceFolder}/modifiers",
+                    "${workspaceFolder}/port",
+                    "${workspaceFolder}/ui",
+                    "${workspaceFolder}/voices"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

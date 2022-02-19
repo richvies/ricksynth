@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#include "backbone/common.h"
-#include "backbone/util/buffer.h"
+#include "common.h"
+#include "buffer.h"
 
 
 static uint8_t test_arr[256];
@@ -41,15 +41,8 @@ int main()
   return 0;
 }
 
-void __attribute__ ((section(".after_vectors"),noreturn,weak))
-_start (void)
-{
-  for (;;)
-      ;
-}
 
-void __attribute__ ((section(".after_vectors"),noreturn))
-Reset_Handler (void)
+void _start (void)
 {
-  _start();
+  main();
 }

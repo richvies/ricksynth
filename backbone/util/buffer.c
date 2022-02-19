@@ -27,10 +27,10 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "backbone/common.h"
-#include "app/config.h"
+#include "common.h"
+#include "config.h"
 
-#include "backbone/util/buffer.h"
+#include "buffer.h"
 
 
 typedef enum type_e
@@ -115,7 +115,7 @@ bool     BUFF_push(BUFFER *buf, DATA *data)
   switch (b->type)
   {
   case TYPE_U8:
-    *(uint8_t*)(b->arr + b->head) = (uint8_t)data;
+    *(uint8_t*)(b->arr + b->head) = *(uint8_t*)data;
     break;
 
   default:

@@ -29,7 +29,7 @@ SOFTWARE.
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "backbone/common.h"
+#include "common.h"
 
 
 typedef void BUFFER;
