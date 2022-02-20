@@ -26,6 +26,10 @@
 # SOFTWARE.
 # ****************************************************************************/
 
+#############################################################
+# Project Info
+#############################################################
+
 default: all
 
 project ?= synth1
@@ -39,28 +43,52 @@ else ifeq '$(project)' 'synth2'
   include app/synth2/synth2.inc
 endif
 
-TARGET = $(project)_$(target)_$(config)
+# Get the Git commit ID and log
+dirty_flag :=
+ifneq ("$(shell git diff --shortstat | tail -n1)", "")
+  dirty_flag = +
+endif
+ifneq ("$(shell git diff --cached --shortstat | tail -n1)", "")
+  dirty_flag = +
+endif
+commit_id := $(shell git log -1 \
+  --pretty=format:'%h$(dirty_flag)')
+commit_log := "$(shell git log -1 --date=short \
+  --pretty=format:'[%h$(dirty_flag)] %ad | \"%s\"')"
 
-SHELL := bash
-MKDIR := mkdir -p
-RM := rm -rf
+COMMIT_DEFS = \
+  -DCOMMIT_ID='$(commit_id)' \
+  -DCOMMIT_LOG='$(commit_log)'
+
+TARGET = $(project)_$(target)_$(config)_$(commit_id)
+
+#############################################################
+# Make tools
+#############################################################
+
+ifeq ("$(V)","1")
+  NO_ECHO :=
+else
+  NO_ECHO := @
+endif
+
+SHELL 	:= bash
+MKDIR 	:= mkdir
+RM 			:= rm -rf
+PYTHON	:= python3
 
 BUILD_DIR = build
 BIN_DIR   = bin
 
-include port/make/makefile.inc
+#############################################################
+# top level build files & flags
+#############################################################
 
-# Toolchain commands
-CC              := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc'
-CPP             := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-g++'
-OBJDUMP         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objdump'
-OBJCOPY         := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-objcopy'
-SIZE            := '$(TOOLCHAIN_BIN_PATH)/$(TOOLCHAIN_PREFIX)-size'
+LOCAL_LIBS = port/mcu/lib/libmcu.a
+LOCAL_LIBS_DIR = $(addprefix -L, $(dir $(LOCAL_LIBS)))
+LIBS = -lc -lm -lnosys -lmcu
 
-PYTHON			:= python3
-
-# Source
-SRC_DIR += \
+SOURCE_DIR += \
   app \
   backbone \
   backbone/math \
@@ -73,19 +101,20 @@ SRC_DIR += \
   ui \
   voices \
   voices/generators \
-  voice/processors \
+  voice/processors
 
-C_FILES ?= $(sort $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.c)))
-CPP_FILES ?= $(sort $(foreach dir, $(SRC_DIR), $(wildcard $(dir)/*.cpp)))
-C_OBJS   = $(addprefix $(BUILD_DIR)/, $(notdir $(C_FILES:.c=.o)))
-C_OBJS   += $(addprefix $(BUILD_DIR)/, $(notdir $(CPP_FILES:.cpp=.o)))
+VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
+
+C_SOURCES   = $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
+CPP_SOURCES = $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.cpp)))
+OBJS    	  = $(addprefix $(BUILD_DIR)/, $(ASM_SOURCES:.s=.o))
+OBJS     	 += $(addprefix $(BUILD_DIR)/, $(C_SOURCES:.c=.o))
+OBJS    	 += $(addprefix $(BUILD_DIR)/, $(CPP_SOURCES:.cpp=.o))
 
 # So that make does not think they are intermediate files and delete them
-.SECONDARY: $(C_OBJS)
+.SECONDARY: $(OBJS)
 
-VPATH = $(SRC_DIR) $(BUILD_DIR) $(BUILD_DIR) $(BIN_DIR)
-
-INC_PATHS = \
+C_INCLUDES = \
   -I./ \
   -I./app \
   -I./backbone \
@@ -100,56 +129,78 @@ INC_PATHS = \
   -I./ui \
   -I./voices \
   -I./voices/generators \
-  -I./voice/processors
 
-ifeq ("$(V)","1")
-  NO_ECHO :=
-else
-  NO_ECHO := @
-endif
+C_FLAGS = \
+  -Og \
+  -g3 \
+  -fmessage-length=0 \
+  -fsigned-char \
+  -ffunction-sections \
+  -fdata-sections \
+  -ffreestanding \
+  -fno-builtin \
+  -fno-move-loop-invariants \
+  -Wall \
+  -Wextra \
+	-std=c99
 
-# Get the Git commit ID and log
-dirty_flag :=
-ifneq ("$(shell git diff --shortstat | tail -n1)", "")
-  # unstaged changes
-  dirty_flag = *
-endif
-ifneq ("$(shell git diff --cached --shortstat | tail -n1)", "")
-  # staged changes
-  dirty_flag = *
-endif
-commit_id := "$(shell git log -1 \
-  --pretty=format:'%h$(dirty_flag)')"
-commit_log := "$(shell git log -1 --date=short \
-  --pretty=format:'[%h$(dirty_flag)] %ad | \"%s\"')"
+C_FLAGS += $(COMMIT_DEFS)
 
-COMMIT_DEFS = \
-  -DCOMMIT_ID='$(commit_id)' \
-  -DCOMMIT_LOG='$(commit_log)' \
+LD_FLAGS = \
+  -Og \
+  -g3 \
+  $(LINKER_SCRIPTS) \
+  $(LOCAL_LIBS_DIR) \
+  $(LIBS) \
+  -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref \
+  -Wl,--gc-sections \
+  -nostartfiles
 
-CFLAGS += $(EXTRA_DEFS)
-CFLAGS += $(COMMIT_DEFS)
-# create header dependency target file for each object (.d)
-CFLAGS += -MD
+export CC C_FLAGS
 
-export CC CFLAGS
+
+#############################################################
+# Include mcu specific tools, files & definitions
+#############################################################
+
+include port/mcu/makefile.inc
 
 #############################################################
 # Top builds recipes
 #############################################################
 
-.PHONY: all help clean check version flash print- phony
+.PHONY: all mcu help clean check version flash print- phony
 
-all: $(BIN_DIR) $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/$(TARGET).hex \
-	 $(BIN_DIR)/$(TARGET).bin \
-	 $(BIN_DIR)/$(TARGET).lss $(BIN_DIR)/$(TARGET).list
+check:
+ifndef TOOLCHAIN_BIN_PATH
+	$(error TOOLCHAIN_BIN_PATH is undefined)
+endif
+ifndef TOOLCHAIN_PREFIX
+	$(error TOOLCHAIN_PREFIX is undefined)
+endif
+
+mculib:
+	make -C port/mcu -j
+
+port/mcu/lib/libmcu.a: mculib
+
+$(LOCALLIBS):
+    $(foreach folder,$(LIBSRC), $(MAKE)-C $(folder) $(MAKECMDGOALS) || exit;)
+
+all:  check \
+      $(BIN_DIR) \
+		  $(BIN_DIR)/$(TARGET).elf \
+		  $(BIN_DIR)/$(TARGET).hex \
+	    $(BIN_DIR)/$(TARGET).bin \
+	    $(BIN_DIR)/$(TARGET).lss \
+			$(BIN_DIR)/$(TARGET).list
 	@echo ''
 	@echo 'Size:'
 	@echo '-----'
 	$(NO_ECHO)$(SIZE) $(BIN_DIR)/$(TARGET).elf
 	@echo ''
 	@md5sum $(BIN_DIR)/$(TARGET).bin
-	$(PYTHON) port/make/finalize.py $(BIN_DIR)/$(TARGET)
+	$(PYTHON) finalize.py $(BIN_DIR)/$(TARGET)
 
 $(BIN_DIR):
 	$(NO_ECHO)$(MKDIR) -p $(BIN_DIR)
@@ -161,14 +212,6 @@ help:
 clean:
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
 
-check:
-ifndef TOOLCHAIN_BIN_PATH
-	$(error TOOLCHAIN_BIN_PATH is undefined)
-endif
-ifndef TOOLCHAIN_PREFIX
-	$(error TOOLCHAIN_PREFIX is undefined)
-endif
-
 version:
 	@echo id = $(commit_id)
 	@echo log = $(commit_log)
@@ -176,7 +219,70 @@ version:
 print-%:
 	@echo $* = $($*)
 
+flash:
+	@echo Flashing: $(BUILD_DIR)/$(TARGET).bin
+	$(FLASH_WRITE) $(BUILD_DIR)/$(TARGET).bin
+
+erase:
+	@echo Erasing device...
+	$(FLASH_ERASE)
+
+#############################################################
+# File build recipes
+#############################################################
+
+# include header dependencies
+-include $(OBJS:.o=.d)
+
+$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/_extra.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+$(BUILD_DIR)/%.o: %.s $(BUILD_DIR)/_extra.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(AS) $(AS_FLAGS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+$(BIN_DIR)/$(TARGET).elf: $(OBJS)
+	@echo
+	@echo 'Make arguments:'
+	@echo ----------------
+	@echo 'target               = $(TARGET)'
+	@echo 'commit_id            = $(commit_id)'
+	@echo 'commit_log           = $(commit_log)'
+	@echo ----------------
+	@echo 'sample rate          = $(sampleRate)'
+	@echo ----------------
+	@echo
+	@echo Linking target: $(TARGET).elf
+	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) -o $(BIN_DIR)/$(TARGET).elf
+
+%.bin: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf \
+  $(BIN_DIR)/$(TARGET).bin
+
+%.hex: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).elf \
+  $(BIN_DIR)/$(TARGET).hex
+
+%.lss: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJDUMP) -h -S $< > $@
+
+%.list: %.elf
+	@echo Generate: $@
+	$(NO_ECHO)$(OBJDUMP) -S $< > $@
+
+#############################################################
+# Recompile files based on command line argumets
+#############################################################
+
 # --- template for checking and saving command-line arguments ---
+
 define DEPENDABLE_VAR
 
 # make obj depend on specified arguments e.g. main.o -> main.arg
@@ -203,70 +309,11 @@ endef
 
 # create var & recipe for each set of arguments we want to track
 # prefix must match name of source file
-_EXTRA_ARGS = $(subst \#,\\\#, '$(EXTRA_DEFS) $(LDFLAGS)')
+_EXTRA_ARGS = $(subst \#,\\\#, '$(MCU_DEFS) $(LD_FLAGS)')
 $(eval $(call DEPENDABLE_VAR,_extra))
 
-# bootloader uses git commit info in main.c
-ifeq '$(target)' 'boot'
-  MAIN_ARGS = $(subst \#,\\\#, '$(COMMIT_DEFS) $(FLASH_DEFS)')
-  $(eval $(call DEPENDABLE_VAR,main))
-# app uses git commit info info in launch.c
-else
-  MAIN_ARGS = ''
-  LAUNCH_ARGS = $(subst \#,\\\#, '$(COMMIT_DEFS) $(FLASH_DEFS)')
-  $(eval $(call DEPENDABLE_VAR,main))
-  $(eval $(call DEPENDABLE_VAR,launch))
-endif
-
-#############################################################
-# File build recipes
-#############################################################
-
-%.elf: check $(C_OBJS)
-	@echo
-	@echo 'Make arguments:'
-	@echo ----------------
-	@echo 'target               = $(TARGET)'
-	@echo 'commit_id            = $(commit_id)'
-	@echo 'commit_log           = $(commit_log)'
-	@echo ----------------
-	@echo 'sample rate          = $(sampleRate)'
-	@echo ----------------
-	@echo
-	@echo Linking target: $(TARGET).elf
-	$(NO_ECHO)$(CC) $(CFLAGS) $(C_OBJS) -o $(BIN_DIR)/$(TARGET).elf $(LDFLAGS)
-
-%.bin: %.elf
-	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf \
-  $(BIN_DIR)/$(TARGET).bin
-
-%.hex: %.elf
-	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).elf \
-  $(BIN_DIR)/$(TARGET).hex
-
-$(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR)/_extra.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CPP) -E $(CFLAGS) $(INC_PATHS) -c -o $@.i $<
-	$(NO_ECHO)$(CPP) $< -o $@ -c $(CFLAGS) $(INC_PATHS)
-
-$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/_extra.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(CFLAGS) $(INC_PATHS) -c -o $@.i $<
-	$(NO_ECHO)$(CC) $< -o $@ -c $(CFLAGS) $(INC_PATHS)
-
-%.lss: %.elf
-	@echo Generate: $@
-	$(NO_ECHO)$(OBJDUMP) -h -S $< > $@
-
-%.list: %.elf
-	@echo Generate: $@
-	$(NO_ECHO)$(OBJDUMP) -S $< > $@
-
-# include header dependencies
--include $(C_OBJS:.o=.d)
+# main uses git commit info
+MAIN_ARGS = $(subst \#,\\\#, '$(COMMIT_DEFS)')
+$(eval $(call DEPENDABLE_VAR,main))
 
 # End of Makefile

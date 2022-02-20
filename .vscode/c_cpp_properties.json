@@ -27,7 +27,11 @@
                     "${workspaceFolder}/voices"
                 ],
                 "limitSymbolsToIncludedHeaders": true
-            }
+            },
+            "defines": [
+                "STM32F401xC",
+                "USE_FULL_LL_DRIVER"
+            ]
         }
     ],
     "version": 4
