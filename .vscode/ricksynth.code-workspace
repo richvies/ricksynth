@@ -30,10 +30,11 @@
 		"files.trimTrailingWhitespace": true,
 		"diffEditor.ignoreTrimWhitespace": false,
 		"C_Cpp.loggingLevel": "Debug",
+		"asm-code-lens.excludeFiles": "**/*.inc",
 		"files.associations": {
 			"*.include": "makefile",
-			"*.inc": "makefile",
 			"Doxyfile": "makefile",
+			"*.inc": "makefile",
 			"*.h": "c",
 			"*.lss": "asm-collection",
 			"Makefile2": "makefile",

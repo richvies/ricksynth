@@ -121,7 +121,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA0-WKUP     ------> ADC1_IN0
     PA4     ------> ADC1_IN4
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_4;
+    GPIO_InitStruct.Pin = POTS_Pin|DIO_AI4_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -175,7 +175,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA0-WKUP     ------> ADC1_IN0
     PA4     ------> ADC1_IN4
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|GPIO_PIN_4);
+    HAL_GPIO_DeInit(GPIOA, POTS_Pin|DIO_AI4_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
@@ -769,12 +769,12 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
     /**TIM2 GPIO Configuration
     PB10     ------> TIM2_CH3
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Pin = ExtDIO4_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(ExtDIO4_GPIO_Port, &GPIO_InitStruct);
 
     /* TIM2 interrupt Init */
     HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
@@ -796,7 +796,7 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
     PB0     ------> TIM3_CH3
     PB1     ------> TIM3_CH4
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+    GPIO_InitStruct.Pin = ExtDIO_AI1_Pin|ExtDIO_AI2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -824,7 +824,7 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
     PA2     ------> TIM5_CH3
     PA3     ------> TIM5_CH4
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
+    GPIO_InitStruct.Pin = DIO_AI1_Pin|DIO_AI2_Pin|DIO_AI3_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -918,7 +918,7 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
     /**TIM2 GPIO Configuration
     PB10     ------> TIM2_CH3
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10);
+    HAL_GPIO_DeInit(ExtDIO4_GPIO_Port, ExtDIO4_Pin);
 
     /* TIM2 interrupt DeInit */
     HAL_NVIC_DisableIRQ(TIM2_IRQn);
@@ -938,7 +938,7 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
     PB0     ------> TIM3_CH3
     PB1     ------> TIM3_CH4
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1);
+    HAL_GPIO_DeInit(GPIOB, ExtDIO_AI1_Pin|ExtDIO_AI2_Pin);
 
     /* TIM3 interrupt DeInit */
     HAL_NVIC_DisableIRQ(TIM3_IRQn);
@@ -959,7 +959,7 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
     PA2     ------> TIM5_CH3
     PA3     ------> TIM5_CH4
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
+    HAL_GPIO_DeInit(GPIOA, DIO_AI1_Pin|DIO_AI2_Pin|DIO_AI3_Pin);
 
     /* TIM5 DMA DeInit */
     HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_UPDATE]);

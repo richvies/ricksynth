@@ -27,22 +27,13 @@ SOFTWARE.
 ****************************************************************************/
 
 #include "common.h"
-#include "buffer.h"
-
-
-static uint8_t test_arr[256];
-
 
 int main()
 {
-  BUFFER *test_buf = BUFF_createFifo(test_arr, sizeof(test_arr)/sizeof(test_arr[0]), sizeof(test_arr[0]));
-  (void)test_buf;
+  while(1)
+  {
+
+  }
 
   return 0;
-}
-
-
-void _start (void)
-{
-  main();
 }

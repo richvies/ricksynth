@@ -77,18 +77,31 @@ MKDIR 	:= mkdir
 RM 			:= rm -rf
 PYTHON	:= python3
 
-BUILD_DIR = build
-BIN_DIR   = bin
+BUILD_DIR = build/
+BIN_DIR   = bin/
 
 #############################################################
-# top level build files & flags
+# Include mcu specific tools, files & definitions
 #############################################################
 
-LOCAL_LIBS = port/mcu/lib/libmcu.a
-LOCAL_LIBS_DIR = $(addprefix -L, $(dir $(LOCAL_LIBS)))
-LIBS = -lc -lm -lnosys -lmcu
+include port/mcu/makefile.inc
 
-SOURCE_DIR += \
+LOCAL_LIBS 					+= $(MCU_LIB)
+LOCAL_LIBS_MAKE_DIR += $(MCU_MAKE_DIR)
+
+#############################################################
+# libraries
+#############################################################
+
+LIBS_INCLUDE 			+= -lc -lm -lnosys
+LIBS_INCLUDE 			+= $(addprefix -l, $(subst .a,,$(subst lib,,$(notdir $(LOCAL_LIBS)))))
+LIBS_DIR_INCLUDE	:= $(addprefix -L, $(dir $(LOCAL_LIBS)))
+
+#############################################################
+# top level source files & includes
+#############################################################
+
+SOURCE_DIR = \
   app \
   backbone \
   backbone/math \
@@ -103,16 +116,8 @@ SOURCE_DIR += \
   voices/generators \
   voice/processors
 
-VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
-
-C_SOURCES   = $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
-CPP_SOURCES = $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.cpp)))
-OBJS    	  = $(addprefix $(BUILD_DIR)/, $(ASM_SOURCES:.s=.o))
-OBJS     	 += $(addprefix $(BUILD_DIR)/, $(C_SOURCES:.c=.o))
-OBJS    	 += $(addprefix $(BUILD_DIR)/, $(CPP_SOURCES:.cpp=.o))
-
-# So that make does not think they are intermediate files and delete them
-.SECONDARY: $(OBJS)
+C_SOURCES = \
+  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
 C_INCLUDES = \
   -I./ \
@@ -128,9 +133,30 @@ C_INCLUDES = \
   -I./port/mcu \
   -I./ui \
   -I./voices \
-  -I./voices/generators \
+  -I./voices/generators
+
+CPP_SOURCES = \
+  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.cpp)))
+
+OBJS	= $(addprefix $(BUILD_DIR), $(ASM_SOURCES:.s=.o))
+OBJS += $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
+OBJS += $(addprefix $(BUILD_DIR), $(CPP_SOURCES:.cpp=.o))
+# So that make does not think they are intermediate files and delete them
+.SECONDARY: $(OBJS)
+
+VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
+
+#############################################################
+# flags & definitions
+#############################################################
+
+AS_FLAGS = \
+  $(MCU_AS_FLAGS)
+
+C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
 
 C_FLAGS = \
+  $(MCU_C_FLAGS) \
   -Og \
   -g3 \
   -fmessage-length=0 \
@@ -144,32 +170,20 @@ C_FLAGS = \
   -Wextra \
 	-std=c99
 
-C_FLAGS += $(COMMIT_DEFS)
-
 LD_FLAGS = \
+  $(MCU_LD_FLAGS) \
   -Og \
   -g3 \
-  $(LINKER_SCRIPTS) \
-  $(LOCAL_LIBS_DIR) \
-  $(LIBS) \
-  -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref \
-  -Wl,--gc-sections \
-  -nostartfiles
-
-export CC C_FLAGS
-
-
-#############################################################
-# Include mcu specific tools, files & definitions
-#############################################################
-
-include port/mcu/makefile.inc
+  $(LIBS_DIR_INCLUDE) \
+  -Wl,--start-group $(LIBS_INCLUDE) -Wl,--end-group\
+  -Wl,-Map=$(BIN_DIR)$(TARGET).map,--cref \
+  -Wl,--gc-sections
 
 #############################################################
 # Top builds recipes
 #############################################################
 
-.PHONY: all mcu help clean check version flash print- phony
+.PHONY: phony check all help clean cleanall version flash erase print-
 
 check:
 ifndef TOOLCHAIN_BIN_PATH
@@ -179,31 +193,18 @@ ifndef TOOLCHAIN_PREFIX
 	$(error TOOLCHAIN_PREFIX is undefined)
 endif
 
-mculib:
-	make -C port/mcu -j
-
-port/mcu/lib/libmcu.a: mculib
-
-$(LOCALLIBS):
-    $(foreach folder,$(LIBSRC), $(MAKE)-C $(folder) $(MAKECMDGOALS) || exit;)
-
 all:  check \
-      $(BIN_DIR) \
-		  $(BIN_DIR)/$(TARGET).elf \
-		  $(BIN_DIR)/$(TARGET).hex \
-	    $(BIN_DIR)/$(TARGET).bin \
-	    $(BIN_DIR)/$(TARGET).lss \
-			$(BIN_DIR)/$(TARGET).list
-	@echo ''
-	@echo 'Size:'
-	@echo '-----'
-	$(NO_ECHO)$(SIZE) $(BIN_DIR)/$(TARGET).elf
-	@echo ''
-	@md5sum $(BIN_DIR)/$(TARGET).bin
-	$(PYTHON) finalize.py $(BIN_DIR)/$(TARGET)
-
-$(BIN_DIR):
-	$(NO_ECHO)$(MKDIR) -p $(BIN_DIR)
+		  $(BIN_DIR)$(TARGET).elf \
+		  $(BIN_DIR)$(TARGET).hex \
+	    $(BIN_DIR)$(TARGET).bin \
+	    $(BIN_DIR)$(TARGET).lss \
+			$(BIN_DIR)$(TARGET).list
+	$(PYTHON) finalize.py $(BIN_DIR)$(TARGET).bin
+	@echo
+	@echo Size:
+	@echo -----
+	$(NO_ECHO)$(SIZE) $(BIN_DIR)$(TARGET).elf
+	@echo
 
 help:
 	@echo 'To build the main app for use in a released image:'
@@ -211,6 +212,13 @@ help:
 
 clean:
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
+
+cleanall:
+	@echo
+	@echo clean main
+	$(RM) $(BUILD_DIR) $(BIN_DIR)
+	@echo
+	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'clean $(folder)'; make clean -C $(folder) -j; echo)
 
 version:
 	@echo id = $(commit_id)
@@ -220,32 +228,22 @@ print-%:
 	@echo $* = $($*)
 
 flash:
-	@echo Flashing: $(BUILD_DIR)/$(TARGET).bin
-	$(FLASH_WRITE) $(BUILD_DIR)/$(TARGET).bin
+	@echo Flashing: $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX)
+	$(MCU_WRITE) $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX) $(MCU_VERIFY)
 
 erase:
 	@echo Erasing device...
-	$(FLASH_ERASE)
+	$(MCU_ERASE)
 
 #############################################################
 # File build recipes
 #############################################################
 
-# include header dependencies
--include $(OBJS:.o=.d)
+$(LOCAL_LIBS): phony
+	@echo
+	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo)
 
-$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/_extra.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
-
-$(BUILD_DIR)/%.o: %.s $(BUILD_DIR)/_extra.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(AS) $(AS_FLAGS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
-
-$(BIN_DIR)/$(TARGET).elf: $(OBJS)
+$(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	@echo 'Make arguments:'
 	@echo ----------------
@@ -257,17 +255,32 @@ $(BIN_DIR)/$(TARGET).elf: $(OBJS)
 	@echo ----------------
 	@echo
 	@echo Linking target: $(TARGET).elf
-	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) -o $(BIN_DIR)/$(TARGET).elf
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) -o $(BIN_DIR)$(TARGET).elf
+
+$(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) -E $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+$(BUILD_DIR)%.o: %.s $(BUILD_DIR)compile.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(AS) $(AS_FLAGS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+# include header dependencies
+-include $(OBJS:.o=.d)
 
 %.bin: %.elf
 	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf \
-  $(BIN_DIR)/$(TARGET).bin
+	$(NO_ECHO)$(OBJCOPY) -O binary $(BIN_DIR)$(TARGET).elf \
+  $(BIN_DIR)$(TARGET).bin
 
 %.hex: %.elf
 	@echo Generate: $@
-	$(NO_ECHO)$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).elf \
-  $(BIN_DIR)/$(TARGET).hex
+	$(NO_ECHO)$(OBJCOPY) -O ihex $(BIN_DIR)$(TARGET).elf \
+  $(BIN_DIR)$(TARGET).hex
 
 %.lss: %.elf
 	@echo Generate: $@
@@ -286,13 +299,13 @@ $(BIN_DIR)/$(TARGET).elf: $(OBJS)
 define DEPENDABLE_VAR
 
 # make obj depend on specified arguments e.g. main.o -> main.arg
-$(BUILD_DIR)/$1.o: $(BUILD_DIR)/$1.arg
+$(BUILD_DIR)$1.o: $(BUILD_DIR)$1.arg
 
 # get related variable name e.g. main.c -> MAIN_ARGS
 $1_arg = $(call $(shell echo '$1' | tr '[:lower:]' '[:upper:]')_ARGS, $1)
 
 # compare and resave if variable != file contents
-$(BUILD_DIR)/$1.arg: phony
+$(BUILD_DIR)$1.arg: phony
 	$$(NO_ECHO)$$(MKDIR) -p $$(@D)
 	@printf "%q\n" '$$($1_arg)' > $$@.tmp; \
 	if [[ `diff -N $$@ $$@.tmp` ]]; then \
@@ -309,11 +322,12 @@ endef
 
 # create var & recipe for each set of arguments we want to track
 # prefix must match name of source file
-_EXTRA_ARGS = $(subst \#,\\\#, '$(MCU_DEFS) $(LD_FLAGS)')
-$(eval $(call DEPENDABLE_VAR,_extra))
+COMPILE_ARGS = $(subst \#,\\\#,'$(C_DEFS) $(C_FLAGS)')
+$(eval $(call DEPENDABLE_VAR,compile))
+
+LINK_ARGS = $(subst \#,\\\#,'$(LD_FLAGS)')
+$(eval $(call DEPENDABLE_VAR,link))
 
 # main uses git commit info
-MAIN_ARGS = $(subst \#,\\\#, '$(COMMIT_DEFS)')
+MAIN_ARGS = $(subst \#,\\\#,'$(COMMIT_DEFS)')
 $(eval $(call DEPENDABLE_VAR,main))
-
-# End of Makefile
