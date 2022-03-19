@@ -395,7 +395,7 @@ static uint8_t USBD_CUSTOM_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
   /* Prepare Out endpoint to receive 1st packet */
   (void)USBD_LL_PrepareReceive(pdev, CUSTOM_HID_EPOUT_ADDR, hhid->Report_buf,
-                               USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
+                               USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE);
 
   return (uint8_t)USBD_OK;
 }
@@ -702,7 +702,7 @@ uint8_t USBD_CUSTOM_HID_ReceivePacket(USBD_HandleTypeDef *pdev)
 
   /* Resume USB Out process */
   (void)USBD_LL_PrepareReceive(pdev, CUSTOM_HID_EPOUT_ADDR, hhid->Report_buf,
-                               USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
+                               USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE);
 
   return (uint8_t)USBD_OK;
 }

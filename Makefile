@@ -84,6 +84,9 @@ BIN_DIR   = bin/
 # Include mcu specific tools, files & definitions
 #############################################################
 
+MCU_INCLUDES = -I$(CURDIR)/mcu
+export MCU_INCLUDES
+
 include port/mcu/makefile.inc
 
 LOCAL_LIBS 					+= $(MCU_LIB)

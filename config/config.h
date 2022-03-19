@@ -30,11 +30,4 @@ SOFTWARE.
 #define CONFIG_H
 
 
-#include "common.h"
-
-
-#define NUM_OF_BUFFERS  8
-
-
-
 #endif

@@ -64,9 +64,9 @@ extern "C" {
 #define CUSTOM_HID_FS_BINTERVAL                      0x05U
 #endif /* CUSTOM_HID_FS_BINTERVAL */
 
-#ifndef USBD_CUSTOMHID_OUTREPORT_BUF_SIZE
-#define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE            0x02U
-#endif /* USBD_CUSTOMHID_OUTREPORT_BUF_SIZE */
+#ifndef USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE
+#define USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE            0x02U
+#endif /* USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE */
 
 #ifndef USBD_CUSTOM_HID_REPORT_DESC_SIZE
 #define USBD_CUSTOM_HID_REPORT_DESC_SIZE             163U
@@ -108,7 +108,7 @@ typedef struct _USBD_CUSTOM_HID_Itf
 
 typedef struct
 {
-  uint8_t  Report_buf[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
+  uint8_t  Report_buf[USBD_CUSTOMHID_OUTREIO_PORT_BUF_SIZE];
   uint32_t Protocol;
   uint32_t IdleState;
   uint32_t AltSetting;
