@@ -27,40 +27,11 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "board.h"
-#include "mcu.h"
+#ifndef __STARTUP_H
+#define __STARTUP_H
 
 
-/* Board layout configuration */
-#define I2C_1_SCL         PORT_PIN_TO_IO(IO_PORT_B, 6)
-#define I2C_1_SDA         PORT_PIN_TO_IO(IO_PORT_B, 7)
-#define I2C_1_PRIORITY    PRIORITY_MEDIUM
-
-#define CHIP_SPI_NSS_PIN  PORT_PIN_TO_IO(IO_PORT_A, 13)
-#define CHIP_IRQ_IO       PORT_PIN_TO_IO(IO_PORT_A, 14)
-
-#define IO_EXT_1_PIN      CHIP_IRQ_IO
+extern void START_resetHandler(void);
 
 
-/* Link pins to devices */
-IO_num_e const CHIP_spi_nss_pin = CHIP_SPI_NSS_PIN;
-
-/* IO Ports */
-io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
-{
-  {PERIPH_GPIO_A, GPIOA},
-  {PERIPH_GPIO_B, GPIOB},
-  {PERIPH_GPIO_C, GPIOC},
-};
-
-/* IO External interrupt */
-io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
-{
-  {IO_EXT_1_PIN, EXTI1_IRQn, PRIORITY_MEDIUM},
-};
-
-/* I2C */
-i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
-{
-  {PERIPH_I2C_1, I2C1, I2C_1_SDA, I2C_1_SCL, GPIO_AF4_I2C1, I2C1_EV_IRQn, I2C_1_PRIORITY, I2C1_ER_IRQn, I2C_1_PRIORITY},
-};
+#endif

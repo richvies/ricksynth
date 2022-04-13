@@ -39,6 +39,9 @@
 
 /* USER CODE END PV */
 
+#define ALT_CS_Pin GPIO_PIN_12
+#define ALT_CS_GPIO_Port GPIOA
+
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 void Error_Handler(void);
 

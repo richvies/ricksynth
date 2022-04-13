@@ -56,6 +56,10 @@ static const stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
 };
 
 
+static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch);
+static void configureHal(i2c_handle_t *h, I2C_config_t *cfg);
+
+
 bool I2C_init   (I2C_ch_e ch, I2C_config_t *cfg)
 {
   bool ret = false;
@@ -207,14 +211,14 @@ static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
 static void configureHal(i2c_handle_t *h, I2C_config_t *cfg)
 {
   h->hal.Instance              = h->hw->inst;
-  h->hal.Init->DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  h->hal.Init->DutyCycle       = I2C_DUTYCYCLE_16_9;
-  h->hal.Init->GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  h->hal.Init->ClockSpeed      = cfg->clk_speed_hz;
-  h->hal.Init->OwnAddress1     = (uint32_t)cfg->own_address&0x0000FFFF;
-  h->hal.Init->OwnAddress2     = 0;
-  h->hal.Init->AddressingMode  = address_mode_to_hal[cfg->address_mode];
-  h->hal.Init->NoStretchMode   = stretch_mode_to_hal[cfg->stretch_mode];
+  h->hal.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  h->hal.Init.DutyCycle       = I2C_DUTYCYCLE_16_9;
+  h->hal.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  h->hal.Init.ClockSpeed      = cfg->clk_speed_hz;
+  h->hal.Init.OwnAddress1     = (uint32_t)cfg->own_address&0x0000FFFF;
+  h->hal.Init.OwnAddress2     = 0;
+  h->hal.Init.AddressingMode  = address_mode_to_hal[cfg->address_mode];
+  h->hal.Init.NoStretchMode   = stretch_mode_to_hal[cfg->stretch_mode];
 }
 
 

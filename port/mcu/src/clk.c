@@ -89,5 +89,5 @@ void CLK_periphReset(periph_e periph)
 
 void CLK_periphResetAll(void)
 {
-  HAL_DeInit()
+  HAL_DeInit();
 }

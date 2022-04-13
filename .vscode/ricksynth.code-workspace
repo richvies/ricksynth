@@ -21,6 +21,7 @@
 			"**/.svn": true,
 			"**/.hg": true,
 			"**/CVS": true,
+			"**/*.i": true,
 			"**/.DS_Store": true
 		},
 		"editor.rulers": [80],

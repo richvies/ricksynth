@@ -47,9 +47,9 @@ typedef enum
   IO_MODE_GPIO,
   IO_MODE_ANALOG,
   IO_MODE_PERIPH,
-  IO_MODE_IT_POS,
-  IO_MODE_IT_NEG,
-  IO_MODE_IT_BOTH,
+  IO_MODE_IRQ_POS,
+  IO_MODE_IRQ_NEG,
+  IO_MODE_IRQ_BOTH,
   IO_NUM_OF_MODES,
 } IO_mode_e;
 
@@ -70,6 +70,12 @@ typedef enum
   IO_NUM_OF_PULL_MODES,
 } IO_pull_res_e;
 
+typedef enum
+{
+  IO_IRQ_EDGE_POS,
+  IO_IRQ_EDGE_NEG,
+} IO_irq_edge_e;
+
 
 typedef struct
 {
@@ -81,10 +87,10 @@ typedef struct
 } IO_cfg_t;
 
 
-typedef void (*IO_ext_irq_callback_fn)(IO_num_e num);
+typedef void (*IO_ext_irq_callback_fn)(IO_irq_edge_e edge);
 
 
-extern bool IO_init(void);
+extern void IO_init(void);
 extern void IO_configure(IO_num_e num, IO_cfg_t *cfg);
 extern bool IO_reset(IO_num_e num);
 

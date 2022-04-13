@@ -57,7 +57,7 @@ static const uint32_t mode_to_hal[IO_NUM_OF_MODES] =
   GPIO_MODE_IT_FALLING,
   GPIO_MODE_IT_RISING_FALLING,
 };
-static const uint32_t pullres_to_hal[IO_NUM_OF_PULL_MODES] =
+static const uint32_t pullup_to_hal[IO_NUM_OF_PULL_MODES] =
 {
   GPIO_NOPULL,
   GPIO_PULLDOWN,
@@ -90,10 +90,10 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
 {
   GPIO_InitTypeDef init;
 
-  CLK_periphEnable(ports[IO_TO_PORT(num)].periph);
+  CLK_periphEnable(io_ports_hw_info[IO_TO_PORT(num)].periph);
 
   init.Pin   = IO_TO_PIN(num);
-  init.Pull  = pullres_to_hal[cfg->pullres];
+  init.Pull  = pullup_to_hal[cfg->pullup];
   init.Speed = speed_to_hal[cfg->speed];
   init.Mode  = (dir_to_hal[cfg->dir] | mode_to_hal[cfg->mode]);
   if ((IO_MODE_PERIPH == cfg->mode)
@@ -174,16 +174,23 @@ bool IO_setExtIrqCallbackFn(IO_num_e num, IO_ext_irq_callback_fn fn)
 static void handleExtIrq(void)
 {
   uint8_t i;
-  uint16_t gpio_pin;
+  IO_num_e io_num;
+  uint16_t hal_pin;
 
-  /* ATTENTION: Handle all eventual interrupts */
-  for (i = 0; i < num_ext_irqs; i++)
+  for (i = 0; i < IO_NUM_OF_EXT_IRQ; i++)
   {
-    gpio_pin = gpio_port_pins_array[ext_irq_info_list[i].pin_num].pin;
-    if (gpio_pin == __HAL_GPIO_EXTI_GET_FLAG(gpio_pin))
+    io_num = ext_irq_info[i].hw->io_num;
+    hal_pin = IO_TO_PIN(io_num);
+
+    if (__HAL_GPIO_EXTI_GET_FLAG(hal_pin))
     {
-      /* Flag was set */
-      HAL_GPIO_EXTI_IRQHandler(gpio_pin);
+      HAL_GPIO_EXTI_IRQHandler(hal_pin);
+
+      if (ext_irq_info[i].cb != NULL)
+      {
+        // TODO get edge
+        ext_irq_info[i].cb(IO_IRQ_EDGE_POS);
+      }
     }
   }
 }
@@ -221,20 +228,3 @@ void EXTI15_10_IRQHandler(void)
   handleExtIrq();
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t gpio_pin)
-{
-  uint8_t i;
-
-  /* Search... */
-  for (i = 0; i < num_ext_irqs; i++)
-  {
-    if (gpio_pin == gpio_port_pins_array[ext_irq_info_list[i].pin_num].pin)
-    {
-      if (ext_irq_info_list[i].callback_fn != NULL)
-      {
-        ext_irq_info_list[i].callback_fn(ext_irq_info_list[i].pin_num);
-      }
-      /* ATTENTION: A 'break' could be added here to exit once found */
-    }
-  }
-}

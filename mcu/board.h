@@ -31,6 +31,10 @@ SOFTWARE.
 #define __BOARD_H
 
 
+#include "stdint.h"
+#include "stdbool.h"
+
+
 /* IO Pins */
 typedef uint16_t IO_num_e;
 

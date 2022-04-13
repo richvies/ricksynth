@@ -1,6 +1,4 @@
 # MCU Library
-MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_LIB         := $(dir $(lastword $(MAKEFILE_LIST)))lib/libmcu.a
 
 # Toolchain commands
 TOOLCHAIN_BIN_PATH  := /usr/local/bin/
@@ -14,8 +12,10 @@ OBJCOPY             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE                := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-size'
 
 # File directories
-MAL_DIR         := $(dir $(lastword $(MAKEFILE_LIST)))mal/
-LINKER_SCRIPTS  := -T $(MAL_DIR)STM32F401CCUx_FLASH.ld
+MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
+MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu.a
+MAL_DIR         := $(MCU_MAKE_DIR)mal/
+LINKER_SCRIPTS  := $(MCU_MAKE_DIR)link.ld
 
 # Useful commands
 ST_CMD            := STM32_Programmer_CLI -c port=usb1
@@ -44,6 +44,6 @@ MCU_LD_FLAGS += \
   -mthumb \
   -mfpu=fpv4-sp-d16 \
   -mfloat-abi=hard \
-  $(LINKER_SCRIPTS) \
+  -T$(LINKER_SCRIPTS) \
   --specs=nano.specs \
   --specs=nosys.specs

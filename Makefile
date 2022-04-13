@@ -86,6 +86,8 @@ BIN_DIR   = bin/
 
 MCU_INCLUDES = -I$(CURDIR)/mcu
 export MCU_INCLUDES
+MCU_BOARD		= $(CURDIR)/mcu/board.c
+export MCU_BOARD
 
 include port/mcu/makefile.inc
 
@@ -97,8 +99,6 @@ LOCAL_LIBS_MAKE_DIR += $(MCU_MAKE_DIR)
 #############################################################
 
 LIBS_INCLUDE 			+= -lc -lm -lnosys
-LIBS_INCLUDE 			+= $(addprefix -l, $(subst .a,,$(subst lib,,$(notdir $(LOCAL_LIBS)))))
-LIBS_DIR_INCLUDE	:= $(addprefix -L, $(dir $(LOCAL_LIBS)))
 
 #############################################################
 # top level source files & includes
@@ -112,8 +112,6 @@ SOURCE_DIR = \
   backbone/system \
   backbone/util \
   modifiers \
-  port \
-  port/mcu \
   ui \
   voices \
   voices/generators \
@@ -121,6 +119,9 @@ SOURCE_DIR = \
 
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
+
+C_SOURCES += \
+	mcu/_startup.c
 
 C_INCLUDES = \
   -I./ \
@@ -177,7 +178,6 @@ LD_FLAGS = \
   $(MCU_LD_FLAGS) \
   -Og \
   -g3 \
-  $(LIBS_DIR_INCLUDE) \
   -Wl,--start-group $(LIBS_INCLUDE) -Wl,--end-group\
   -Wl,-Map=$(BIN_DIR)$(TARGET).map,--cref \
   -Wl,--gc-sections
@@ -259,7 +259,7 @@ $(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	@echo Linking target: $(TARGET).elf
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) -o $(BIN_DIR)$(TARGET).elf
+	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)

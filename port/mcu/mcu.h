@@ -40,12 +40,13 @@ SOFTWARE.
 
 
 #define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
-#define IO_TO_PIN(io)               ((uint8_t)(io))
+#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
 #define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
 #define IO_TO_HAL_INST(io)          (io_ports_hw_info[IO_TO_PORT(io)].inst)
+#define IRQ_NUM_OF                  (85)
 
 
-typedef IRQn_Type   irq_num_e;
+typedef IRQn_Type irq_num_e;
 
 typedef enum
 {
@@ -56,7 +57,6 @@ typedef enum
   PRIORITY_VERY_LOW   = 15,
 } irq_priority_e;
 
-#define IRQ_NUM_OF  (85)
 
 typedef enum
 {
@@ -114,7 +114,7 @@ typedef struct
   irq_priority_e  const error_irq_priority;
 } i2c_hw_info_t;
 
-extern const i2c_hw_info_t i2c_hw_info[I2C_NUM_OF_CH];
+extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];
 
 
 #endif
