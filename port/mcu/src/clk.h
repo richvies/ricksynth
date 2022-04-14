@@ -34,6 +34,8 @@ SOFTWARE.
 #include "mcu.h"
 
 
+extern void CLK_init(void);
+extern void CLK_update(void);
 extern void CLK_periphEnable(periph_e periph);
 extern void CLK_periphReset(periph_e periph);
 extern void CLK_periphResetAll(void);

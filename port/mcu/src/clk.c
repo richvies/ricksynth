@@ -30,6 +30,73 @@ SOFTWARE.
 #include "clk.h"
 
 
+/* variables required for stm32 hal library - see mal/system_stm32f4xx.h */
+/* cortex core frequency hz */
+uint32_t SystemCoreClock = 0;
+/* RCC_CFGR possible divider values (f = f0 >> div) */
+const uint8_t AHBPrescTable[16] =
+{0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+const uint8_t  APBPrescTable[8] =
+{0, 0, 0, 0, 1, 2, 3, 4};
+
+
+static void configClocks(void);
+
+
+void CLK_init(void)
+{
+  configClocks();
+  CLK_update();
+}
+
+void CLK_update(void)
+{
+  uint32_t tmp = 0, pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
+
+  /* Get SYSCLK source -------------------------------------------------------*/
+  tmp = RCC->CFGR & RCC_CFGR_SWS;
+
+  switch (tmp)
+  {
+    case 0x00:  /* HSI used as system clock source */
+      SystemCoreClock = HSI_VALUE;
+      break;
+    case 0x04:  /* HSE used as system clock source */
+      SystemCoreClock = HSE_VALUE;
+      break;
+    case 0x08:  /* PLL used as system clock source */
+
+      /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N
+         SYSCLK = PLL_VCO / PLL_P
+         */
+      pllsource = (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) >> 22;
+      pllm = RCC->PLLCFGR & RCC_PLLCFGR_PLLM;
+
+      if (pllsource != 0)
+      {
+        /* HSE used as PLL clock source */
+        pllvco = (HSE_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+      }
+      else
+      {
+        /* HSI used as PLL clock source */
+        pllvco = (HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+      }
+
+      pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >>16) + 1 ) *2;
+      SystemCoreClock = pllvco/pllp;
+      break;
+    default:
+      SystemCoreClock = HSI_VALUE;
+      break;
+  }
+  /* Compute HCLK frequency --------------------------------------------------*/
+  /* Get HCLK prescaler */
+  tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4)];
+  /* HCLK frequency */
+  SystemCoreClock >>= tmp;
+}
+
 void CLK_periphEnable(periph_e periph)
 {
   PRINTF_INFO("enable %u", periph);
@@ -90,4 +157,71 @@ void CLK_periphReset(periph_e periph)
 void CLK_periphResetAll(void)
 {
   HAL_DeInit();
+}
+
+uint32_t CLK_getPeriphFreqHz(periph_e periph)
+{
+  return 0;
+}
+
+
+static void configClocks(void)
+{
+  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+  RCC_PLLI2SInitTypeDef RCC_i2sClkInitStruct;
+
+  /* Enable power control clock */
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  /* The voltage scaling allows optimizing the power consumption when the device
+  is clocked below the maximum system frequency. To update the voltage scaling
+  value according to system frequency, refer to the product datasheet. */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+
+  /* Enable HSE oscillator and activate PLL with HSE as source (25 MHz) */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;  /* 25 MHz */
+  RCC_OscInitStruct.PLL.PLLM = 15;                      /* 25 / 25 = 1 */
+
+  /* PLL1  */
+  RCC_OscInitStruct.PLL.PLLN = 144;                     /* 1 * 336 = 336 */
+  /* Periph Clk 84 MHz */
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;           /* 336 / 4 = 84 */
+  /* USB clock 48 MHz */
+  RCC_OscInitStruct.PLL.PLLQ = 4;                       /* 336 / 7 = 48 */
+
+  if (HAL_OK != HAL_RCC_OscConfig(&RCC_OscInitStruct))
+  {
+    while (1);
+  }
+
+  /* PLL2 - I2S */
+  /* I2S 2ch * 16 bit * 96000 Hz = 3072000 Hz clock must be multiple of this */
+  RCC_i2sClkInitStruct.PLLI2SN = 100;                   /* 1 * 100 = 100 */
+  RCC_i2sClkInitStruct.PLLI2SR = 2;                     /* 100 / 2 = 50 */
+  /* 50 Mhz -> 97656 HZ sampling frequency */
+
+  if (HAL_OK != HAL_RCCEx_EnablePLLI2S(&RCC_i2sClkInitStruct))
+  {
+    while (1);
+  }
+
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+  clocks dividers */
+  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
+                                 RCC_CLOCKTYPE_HCLK   |
+                                 RCC_CLOCKTYPE_PCLK1  |
+                                 RCC_CLOCKTYPE_PCLK2);
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_OK != HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_ACR_LATENCY_2WS))
+  {
+    while (1);
+  }
 }
