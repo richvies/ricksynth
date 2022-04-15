@@ -1,5 +1,14 @@
 # MCU Library
 
+# File directories
+MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
+MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu.a
+
+MAL_DIR         := $(MCU_MAKE_DIR)mal/
+MAL_MAKE_DIR    := $(MAL_DIR)
+MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a
+LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
+
 # Toolchain commands
 TOOLCHAIN_BIN_PATH  := /usr/local/bin/
 TOOLCHAIN_PREFIX    := arm-none-eabi
@@ -10,12 +19,6 @@ AR 							    := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-ar'
 OBJDUMP             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objdump'
 OBJCOPY             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE                := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-size'
-
-# File directories
-MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu.a
-MAL_DIR         := $(MCU_MAKE_DIR)mal/
-LINKER_SCRIPTS  := $(MCU_MAKE_DIR)link.ld
 
 # Useful commands
 ST_CMD            := STM32_Programmer_CLI -c port=usb1

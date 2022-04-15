@@ -34,6 +34,7 @@ SOFTWARE.
 extern void HW_initEarly(void);
 extern void HW_init(void);
 extern void HW_reset(void);
+extern void HW_nop(void);
 
 
 #endif

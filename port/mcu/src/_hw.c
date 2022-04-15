@@ -72,3 +72,8 @@ void HW_reset(void)
 {
   NVIC_SystemReset();
 }
+
+void HW_nop(void)
+{
+  __NOP();
+}

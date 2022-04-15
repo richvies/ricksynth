@@ -91,8 +91,8 @@ export MCU_BOARD
 
 include port/mcu/makefile.inc
 
-LOCAL_LIBS 					+= $(MCU_LIB)
-LOCAL_LIBS_MAKE_DIR += $(MCU_MAKE_DIR)
+LOCAL_LIBS 					+= $(MCU_LIB) $(MAL_LIB)
+LOCAL_LIBS_MAKE_DIR += $(MCU_MAKE_DIR) $(MAL_MAKE_DIR)
 
 #############################################################
 # libraries
@@ -218,7 +218,7 @@ cleanall:
 	@echo clean main
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
 	@echo
-	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'clean $(folder)'; make clean -C $(folder) -j; echo)
+	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'clean $(folder)'; make clean -C $(folder) -j; echo;)
 
 version:
 	@echo id = $(commit_id)
@@ -241,7 +241,7 @@ erase:
 
 $(LOCAL_LIBS): phony
 	@echo
-	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo)
+	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo;)
 
 $(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo

@@ -26,9 +26,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#ifndef IO_H
-#define IO_H
+#ifndef UI_H
+#define UI_H
 
-#include "backbone/common.h"
+
+#include "common.h"
+
 
 #endif

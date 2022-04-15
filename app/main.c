@@ -26,13 +26,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
+
 #include "common.h"
+#include "_hw.h"
+#include "io.h"
+
 
 int main()
 {
+  IO_cfg_t cfg;
+
+  IO_init();
+
+  cfg.dir = IO_DIR_OUT_PP;
+  cfg.mode = IO_MODE_GPIO;
+  cfg.pullup = IO_PULL_NONE;
+  cfg.speed = IO_SPEED_FAST;
+  IO_configure(io_pin_builtin_led, &cfg);
+
   while(1)
   {
-
+    IO_toggle(io_pin_builtin_led);
+    for (uint32_t i = 0; i < 8400000; i++)
+    {
+      HW_nop();
+    }
   }
 
   return 0;

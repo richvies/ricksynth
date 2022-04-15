@@ -32,18 +32,21 @@ SOFTWARE.
 
 
 /* Board layout configuration */
-#define I2C_1_SCL         PORT_PIN_TO_IO(IO_PORT_B, 6)
-#define I2C_1_SDA         PORT_PIN_TO_IO(IO_PORT_B, 7)
-#define I2C_1_PRIORITY    PRIORITY_MEDIUM
+#define I2C_1_SCL             PORT_PIN_TO_IO(IO_PORT_B, 6)
+#define I2C_1_SDA             PORT_PIN_TO_IO(IO_PORT_B, 7)
+#define I2C_1_PRIORITY        PRIORITY_MEDIUM
 
-#define CHIP_SPI_NSS_PIN  PORT_PIN_TO_IO(IO_PORT_A, 13)
-#define CHIP_IRQ_IO       PORT_PIN_TO_IO(IO_PORT_A, 14)
+#define CHIP_SPI_NSS_PIN      PORT_PIN_TO_IO(IO_PORT_A, 13)
+#define CHIP_IRQ_IO           PORT_PIN_TO_IO(IO_PORT_A, 14)
 
-#define IO_EXT_1_PIN      CHIP_IRQ_IO
+#define IO_io_pin_builtin_led    PORT_PIN_TO_IO(IO_PORT_C, 13)
+
+#define IO_EXT_1_PIN          CHIP_IRQ_IO
 
 
 /* Link pins to devices */
 IO_num_e const CHIP_spi_nss_pin = CHIP_SPI_NSS_PIN;
+IO_num_e const io_pin_builtin_led = IO_io_pin_builtin_led;
 
 /* IO Ports */
 io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =

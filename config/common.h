@@ -29,6 +29,7 @@ SOFTWARE.
 #ifndef COMMON_H
 #define COMMON_H
 
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -36,5 +37,6 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include "config.h"
+
 
 #endif

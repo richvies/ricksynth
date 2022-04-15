@@ -29,6 +29,8 @@ SOFTWARE.
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "backbone/common.h"
+
+#include "common.h"
+
 
 #endif
