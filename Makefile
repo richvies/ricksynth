@@ -154,9 +154,6 @@ VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
 # flags & definitions
 #############################################################
 
-AS_FLAGS = \
-  $(MCU_AS_FLAGS)
-
 C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
 
 C_FLAGS = \
@@ -266,11 +263,6 @@ $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CC) -E $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
 	$(NO_ECHO)$(CC) $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
-
-$(BUILD_DIR)%.o: %.s $(BUILD_DIR)compile.arg
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(AS) $(AS_FLAGS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 # include header dependencies
 -include $(OBJS:.o=.d)

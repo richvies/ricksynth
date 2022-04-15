@@ -161,6 +161,7 @@ void CLK_periphResetAll(void)
 
 uint32_t CLK_getPeriphFreqHz(periph_e periph)
 {
+  (void)periph;
   return 0;
 }
 

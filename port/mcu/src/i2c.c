@@ -32,6 +32,7 @@ SOFTWARE.
 #include "mcu.h"
 #include "clk.h"
 #include "io.h"
+#include "irq.h"
 
 
 typedef struct
@@ -44,12 +45,12 @@ typedef struct
 
 static i2c_handle_t handles[I2C_NUM_OF_CH] = {0};
 
-static const address_mode_to_hal[I2C_NUM_OF_ADDRESS_MODES] =
+static const uint32_t address_mode_to_hal[I2C_NUM_OF_ADDRESS_MODES] =
 {
   I2C_ADDRESSINGMODE_7BIT,
   I2C_ADDRESSINGMODE_10BIT,
 };
-static const stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
+static const uint32_t stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
 {
   I2C_NOSTRETCH_ENABLE,
   I2C_NOSTRETCH_DISABLE,
@@ -95,7 +96,15 @@ bool I2C_init   (I2C_ch_e ch, I2C_config_t *cfg)
 
 bool I2C_deInit (I2C_ch_e ch)
 {
+  bool ret = false;
 
+  if (HAL_OK == HAL_I2C_DeInit(&handles[ch].hal))
+  {
+    handles[ch].init = false;
+    ret = true;
+  }
+
+  return ret;
 }
 
 bool I2C_isBusy (I2C_ch_e ch)
@@ -266,8 +275,8 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
   IRQ_disable(h->hw->event_irq_num);
   IRQ_disable(h->hw->error_irq_num);
 
-  IO_reset(h->hw->sda_pin);
-  IO_reset(h->hw->scl_pin);
+  IO_deinit(h->hw->sda_pin);
+  IO_deinit(h->hw->scl_pin);
 }
 
 void I2C3_EV_IRQHandler(void)

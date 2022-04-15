@@ -49,7 +49,7 @@ void IRQ_disableAll(void)
 {
   irq_num_e irq;
 
-  for (irq = 0; irq < 0xff; irq++)
+  for (irq = 0; irq < 0x7f; irq++)
   {
     HAL_NVIC_DisableIRQ(irq);
   }

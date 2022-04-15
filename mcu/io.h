@@ -83,7 +83,7 @@ typedef struct
   IO_mode_e       mode;
   IO_speed_e      speed;
   IO_pull_res_e   pullup;
-  void*           extend;
+  void const *    extend;
 } IO_cfg_t;
 
 
@@ -92,7 +92,7 @@ typedef void (*IO_ext_irq_callback_fn)(IO_irq_edge_e edge);
 
 extern void IO_init(void);
 extern void IO_configure(IO_num_e num, IO_cfg_t *cfg);
-extern bool IO_reset(IO_num_e num);
+extern void IO_deinit(IO_num_e num);
 
 extern void IO_set(IO_num_e num);
 extern void IO_clear(IO_num_e num);

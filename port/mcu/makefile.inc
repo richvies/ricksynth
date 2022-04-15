@@ -30,9 +30,6 @@ MCU_DEFS = \
   -DSTM32F401xC \
   -DUSE_HAL_DRIVER \
 
-MCU_AS_FLAGS += \
-  -x assembler-with-cpp
-
 MCU_C_FLAGS  += \
   -mcpu=cortex-m4 \
   -mthumb \

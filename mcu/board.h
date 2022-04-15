@@ -35,6 +35,13 @@ SOFTWARE.
 #include "stdbool.h"
 
 
+// DBG_Printf(INFO_LVL, RAD_ID, x, ##__VA_ARGS__)
+#define PRINTF_VERB(x, ...)
+#define PRINTF_INFO(x, ...)
+#define PRINTF_WARN(x, ...)
+#define PRINTF_ERRO(x, ...)
+
+
 /* IO Pins */
 typedef uint16_t IO_num_e;
 

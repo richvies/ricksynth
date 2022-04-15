@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include "io.h"
 
+#include "clk.h"
 #include "mcu.h"
 #include "irq.h"
 
@@ -105,7 +106,7 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
   HAL_GPIO_Init(IO_TO_HAL_INST(num), &init);
 }
 
-bool IO_reset(IO_num_e num)
+void IO_deinit(IO_num_e num)
 {
   HAL_GPIO_DeInit(IO_TO_HAL_INST(num), IO_TO_PIN(num));
 }

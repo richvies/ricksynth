@@ -62,5 +62,5 @@ io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
 /* I2C */
 i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
 {
-  {PERIPH_I2C_1, I2C1, I2C_1_SDA, I2C_1_SCL, GPIO_AF4_I2C1, I2C1_EV_IRQn, I2C_1_PRIORITY, I2C1_ER_IRQn, I2C_1_PRIORITY},
+  {PERIPH_I2C_1, I2C1, I2C_1_SDA, I2C_1_SCL, {GPIO_AF4_I2C1}, I2C1_EV_IRQn, I2C_1_PRIORITY, I2C1_ER_IRQn, I2C_1_PRIORITY},
 };

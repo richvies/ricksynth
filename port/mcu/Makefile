@@ -14,10 +14,9 @@ else
 endif
 
 #############################################################
-# STM32CubeMx sources
+# sources + flags
 #############################################################
 
-# C sources
 C_SOURCES = \
 $(MCU_BOARD) \
 src/_hw.c \
@@ -68,30 +67,21 @@ $(MAL_DIR)STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rtc_ex.c \
 $(MAL_DIR)STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
 $(MAL_DIR)STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
 
-# ASM sources
-ASM_SOURCES =
+C_OBJS := \
+  $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
 
-# C includes
 C_INCLUDES =  \
 $(MCU_INCLUDES) \
 -I./ \
 -I$(MAL_DIR) \
 -I$(MAL_DIR)CMSIS \
+-I$(MAL_DIR)CMSIS/Include \
 -I$(MAL_DIR)USB_DEVICE/App \
 -I$(MAL_DIR)USB_DEVICE/Target \
 -I$(MAL_DIR)STM32F4xx_HAL_Driver/Inc \
 -I$(MAL_DIR)STM32F4xx_HAL_Driver/Inc/Legacy \
 -I$(MAL_DIR)Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
--I$(MAL_DIR)Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc \
--I$(MAL_DIR)CMSIS/Include
-
-OBJS := \
-  $(addprefix $(BUILD_DIR), $(ASM_SOURCES:.s=.o)) \
-  $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
-
-# MCU specific definitions & flags
-AS_FLAGS += \
-  $(MCU_AS_FLAGS)
+-I$(MAL_DIR)Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc
 
 C_FLAGS = \
   $(MCU_C_FLAGS) \
@@ -104,7 +94,6 @@ C_FLAGS = \
   -ffreestanding \
   -fno-builtin \
   -fno-move-loop-invariants \
-  -w \
   -Wall \
   -Wextra \
 	-std=c99 \
@@ -121,22 +110,17 @@ all: $(LIB_DIR)$(TARGET).a
 clean:
 	$(RM) $(BUILD_DIR) $(LIB_DIR)
 
-$(LIB_DIR)$(TARGET).a: $(OBJS)
+$(LIB_DIR)$(TARGET).a: $(C_OBJS)
 	@echo
 	@echo archiving $(TARGET)
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
-	$(NO_ECHO)$(AR) rcs $(LIB_DIR)$(TARGET).a $(OBJS)
+	$(NO_ECHO)$(AR) rcs $(LIB_DIR)$(TARGET).a $(C_OBJS)
 
 $(BUILD_DIR)%.o: %.c
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
-
-$(BUILD_DIR)%.o: %.s
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(AS) $(AS_FLAGS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -Wno-unused -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 # include header dependencies
--include $(OBJS:.o=.d)
+-include $(C_OBJS:.o=.d)
