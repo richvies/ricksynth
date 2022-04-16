@@ -30,6 +30,7 @@ SOFTWARE.
 #include "common.h"
 #include "_hw.h"
 #include "io.h"
+#include "tim.h"
 
 
 int main()
@@ -47,10 +48,7 @@ int main()
   while(1)
   {
     IO_toggle(io_pin_builtin_led);
-    for (uint32_t i = 0; i < 8400000; i++)
-    {
-      HW_nop();
-    }
+    TIM_delayMs(3000);
   }
 
   return 0;

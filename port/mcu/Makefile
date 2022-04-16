@@ -23,7 +23,8 @@ src/_vectors.c \
 src/clk.c \
 src/io.c \
 src/i2c.c \
-src/irq.c
+src/irq.c \
+src/tim.c
 
 C_OBJS := \
   $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
@@ -61,7 +62,7 @@ C_FLAGS = \
 # File build recipes
 #############################################################
 
-.PHONY: all clean phony
+.PHONY: all clean
 
 all: $(LIB_DIR)$(TARGET).a
 

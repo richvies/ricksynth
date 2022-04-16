@@ -45,6 +45,9 @@ SOFTWARE.
 /* IO Pins */
 typedef uint16_t IO_num_e;
 
+extern IO_num_e const CHIP_spi_nss_pin;
+extern IO_num_e const io_pin_builtin_led;
+
 /* IO External interrupt */
 typedef enum
 {
@@ -63,8 +66,27 @@ typedef enum
 } I2C_ch_e;
 
 
-extern IO_num_e const CHIP_spi_nss_pin;
-extern IO_num_e const io_pin_builtin_led;
+/* Timers */
+typedef enum
+{
+  TIM_1,
+  TIM_2,
+  TIM_3,
+  TIM_4,
+  TIM_5,
+  TIM_6,
+  TIM_7,
+  TIM_8,
+  TIM_9,
+  TIM_10,
+  TIM_11,
+  TIM_12,
+  TIM_13,
+  TIM_14,
+  TIM_15,
+  TIM_16,
+  TIM_NUM_OF_CH,
+} TIM_ch_e;
 
 
 #endif

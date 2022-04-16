@@ -97,7 +97,7 @@ C_FLAGS = \
 all: $(LIB_DIR)$(TARGET).a
 
 clean:
-	$(RM) $(BUILD_DIR) $(LIB_DIR)
+#	$(RM) $(BUILD_DIR) $(LIB_DIR)
 
 $(LIB_DIR)$(TARGET).a: $(C_OBJS)
 	@echo

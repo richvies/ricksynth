@@ -6,7 +6,7 @@ MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu.a
 
 MAL_DIR         := $(MCU_MAKE_DIR)mal/
 MAL_MAKE_DIR    := $(MAL_DIR)
-MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a
+MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a 
 LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
 
 # Toolchain commands

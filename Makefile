@@ -239,7 +239,7 @@ erase:
 # File build recipes
 #############################################################
 
-$(LOCAL_LIBS): phony
+%.a: phony
 	@echo
 	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo;)
 

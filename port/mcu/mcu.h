@@ -116,5 +116,14 @@ typedef struct
 
 extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];
 
+/* Timer */
+typedef struct
+{
+  periph_e        const periph;
+  TIM_TypeDef *   const inst;
+} tim_hw_info_t;
+
+extern tim_hw_info_t const tim_hw_info[TIM_NUM_OF_CH];
+
 
 #endif

@@ -37,7 +37,7 @@ SOFTWARE.
 typedef struct
 {
   io_ext_irq_hw_info_t const * hw;
-  IO_ext_irq_callback_fn cb;
+  IO_ext_irq_cb cb;
 } ext_irq_info_t;
 
 
@@ -157,7 +157,7 @@ bool IO_enableExtIrq(IO_num_e num)
   return ret;
 }
 
-bool IO_setExtIrqCallbackFn(IO_num_e num, IO_ext_irq_callback_fn fn)
+bool IO_setExtIrqCallback(IO_num_e num, IO_ext_irq_cb fn)
 {
   bool ret = false;
   IO_ext_irq_e ext_irq;
