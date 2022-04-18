@@ -43,11 +43,11 @@ int main()
   cfg.mode = IO_MODE_GPIO;
   cfg.pullup = IO_PULL_NONE;
   cfg.speed = IO_SPEED_FAST;
-  IO_configure(io_pin_builtin_led, &cfg);
+  IO_configure(IO_pin_builtin_led, &cfg);
 
   while(1)
   {
-    IO_toggle(io_pin_builtin_led);
+    IO_toggle(IO_pin_builtin_led);
     TIM_delayMs(3000);
   }
 

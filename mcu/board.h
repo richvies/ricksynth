@@ -33,6 +33,8 @@ SOFTWARE.
 
 #include "stdint.h"
 #include "stdbool.h"
+#include "stdlib.h"
+#include "string.h"
 
 
 // DBG_Printf(INFO_LVL, RAD_ID, x, ##__VA_ARGS__)
@@ -46,7 +48,7 @@ SOFTWARE.
 typedef uint16_t IO_num_e;
 
 extern IO_num_e const CHIP_spi_nss_pin;
-extern IO_num_e const io_pin_builtin_led;
+extern IO_num_e const IO_pin_builtin_led;
 
 /* IO External interrupt */
 typedef enum
@@ -69,24 +71,34 @@ typedef enum
 /* Timers */
 typedef enum
 {
-  TIM_1,
-  TIM_2,
-  TIM_3,
-  TIM_4,
-  TIM_5,
-  TIM_6,
-  TIM_7,
-  TIM_8,
-  TIM_9,
-  TIM_10,
-  TIM_11,
-  TIM_12,
-  TIM_13,
-  TIM_14,
-  TIM_15,
-  TIM_16,
+  TIM_CH_1,
+  TIM_CH_2,
+  TIM_CH_3,
+  TIM_CH_4,
+  TIM_CH_5,
+  TIM_CH_9,
+  TIM_CH_10,
+  TIM_CH_11,
   TIM_NUM_OF_CH,
 } TIM_ch_e;
+
+typedef enum
+{
+  TIM_SUB_CH_1,
+  TIM_SUB_CH_2,
+  TIM_SUB_CH_3,
+  TIM_SUB_CH_4,
+  TIM_NUM_OF_SUB_CH,
+} TIM_sub_ch_e;
+
+typedef enum
+{
+  ALARM_CH_1,
+  ALARM_CH_2,
+  ALARM_CH_3,
+  ALARM_CH_4,
+  ALARM_NUM_OF_CH,
+} ALARM_ch_e;
 
 
 #endif

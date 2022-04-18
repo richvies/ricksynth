@@ -34,16 +34,78 @@ SOFTWARE.
 #include "board.h"
 
 
-typedef void (*TIM_cb)(void);
+typedef enum
+{
+  TIM_MODE_TIMER,
+  TIM_MODE_OUTPUT_COMPARE,
+  TIM_MODE_INPUT_CAPTURE,
+} TIM_mode_e;
+
+typedef enum
+{
+  TIM_DIR_UP,
+  TIM_DIR_DOWN,
+  TIM_DIR_BOTH,
+} TIM_dir_e;
+
+typedef enum
+{
+  TIM_INPUT_FILTER_OFF,
+  TIM_INPUT_FILTER_LOW,
+  TIM_INPUT_FILTER_MID,
+  TIM_INPUT_FILTER_HIGH,
+} TIM_input_filter_e;
 
 
-extern bool     TIM_init(TIM_ch_e ch, uint32_t freq_hz);
-extern bool     TIM_start(TIM_ch_e ch, uint32_t period, TIM_cb callback_fn);
+typedef struct
+{
+  bool error;
+  TIM_sub_ch_e sub_ch;
+  union
+  {
+    struct
+    {
+      uint16_t count;
+    } capture;
+    struct
+    {
+      bool isHigh;
+    } compare;
+  };
+} TIM_cb_args_t;
+
+typedef void (*TIM_cb)(TIM_cb_args_t *args);
+typedef void (*ALARM_cb)(void);
+
+typedef struct
+{
+  uint16_t ns_per_tick;
+  TIM_mode_e mode;
+  TIM_dir_e dir;
+  uint16_t compare;
+  TIM_cb cb;
+} TIM_cfg_t;
+
+typedef struct
+{
+  uint32_t period_ms;
+  bool repeat;
+  ALARM_cb cb;
+} ALARM_cfg_t;
+
+
+extern void     TIM_initSystemTimer(void);
+
+extern bool     TIM_init(TIM_ch_e ch, TIM_cfg_t *cfg);
+extern bool     TIM_start(TIM_ch_e ch);
 extern bool     TIM_stop(TIM_ch_e ch);
-extern bool     TIM_updateTimerFrequency(TIM_ch_e ch, uint32_t freq_hz);
+
 extern void     TIM_delayUs(uint32_t delay);
 extern void     TIM_delayMs(uint32_t delay);
 extern uint32_t TIM_millis(void);
+
+extern bool     ALARM_start(ALARM_ch_e ch, ALARM_cfg_t *cfg);
+extern void     ALARM_stop(ALARM_ch_e ch);
 
 
 #endif

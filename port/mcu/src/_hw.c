@@ -32,6 +32,7 @@ SOFTWARE.
 #include "mcu.h"
 #include "_vectors.h"
 #include "clk.h"
+#include "tim.h"
 
 
 void HW_initEarly(void)
@@ -64,8 +65,15 @@ void HW_initEarly(void)
 
 void HW_init(void)
 {
-  HAL_Init();
+  __HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+  __HAL_FLASH_DATA_CACHE_ENABLE();
+  __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+
+  /* Allow irq to preempt */
+  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
   CLK_init();
+  TIM_initSystemTimer();
 }
 
 void HW_reset(void)

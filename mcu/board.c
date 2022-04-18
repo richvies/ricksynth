@@ -39,14 +39,14 @@ SOFTWARE.
 #define CHIP_SPI_NSS_PIN      PORT_PIN_TO_IO(IO_PORT_A, 13)
 #define CHIP_IRQ_IO           PORT_PIN_TO_IO(IO_PORT_A, 14)
 
-#define IO_io_pin_builtin_led    PORT_PIN_TO_IO(IO_PORT_C, 13)
+#define BUILTIN_LED           PORT_PIN_TO_IO(IO_PORT_C, 13)
 
 #define IO_EXT_1_PIN          CHIP_IRQ_IO
 
 
 /* Link pins to devices */
 IO_num_e const CHIP_spi_nss_pin = CHIP_SPI_NSS_PIN;
-IO_num_e const io_pin_builtin_led = IO_io_pin_builtin_led;
+IO_num_e const IO_pin_builtin_led = BUILTIN_LED;
 
 /* IO Ports */
 io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
