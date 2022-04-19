@@ -36,6 +36,7 @@ SOFTWARE.
 int main()
 {
   IO_cfg_t cfg;
+  uint32_t timer = 0;
 
   IO_init();
 
@@ -48,7 +49,9 @@ int main()
   while(1)
   {
     IO_toggle(IO_pin_builtin_led);
-    TIM_delayMs(3000);
+    // TIM_delayMs(500);
+    while (TIM_millis() - timer < 500);
+    timer = TIM_millis();
   }
 
   return 0;

@@ -24,6 +24,16 @@
 			"**/*.i": true,
 			"**/.DS_Store": true
 		},
+		"terminal.integrated.profiles.osx": {
+			"bash": {
+				"path": "bash",
+				"args": [
+					"--rcfile",
+          "./.vscode/bash_profile.sh"
+				],
+				"icon": "terminal-bash"
+			}
+		},
 		"editor.rulers": [80],
 		"python.pythonPath": "/usr/local/anaconda3/bin/python",
 		"gitlens.codeLens.enabled": false,

@@ -1,0 +1,21 @@
+echo $HISTFILE
+echo 
+clear
+clear
+clear
+clear; make cleanall; make -j
+clear
+clear; make cleanall; make -j
+echo $HISTSIZE
+echo $HISTFILESIZE
+echo
+echo 
+echo
+ls
+echo
+ls
+echo
+ls
+how
+cat
+rm
