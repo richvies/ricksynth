@@ -119,6 +119,14 @@ void CLK_periphEnable(periph_e periph)
       __HAL_RCC_I2C1_CLK_ENABLE();
       break;
 
+    case PERIPH_DMA_1:
+        __HAL_RCC_DMA1_CLK_ENABLE();
+      break;
+
+    case PERIPH_DMA_2:
+      __HAL_RCC_DMA2_CLK_ENABLE();
+      break;
+
     default:
       PRINTF_WARN("%u unknown", periph);
       break;

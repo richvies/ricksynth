@@ -31,6 +31,7 @@ SOFTWARE.
 
 #include "mcu.h"
 #include "clk.h"
+#include "dma.h"
 #include "io.h"
 #include "irq.h"
 
@@ -40,6 +41,7 @@ typedef struct
   bool init;
   I2C_HandleTypeDef hal;
   const i2c_hw_info_t *hw;
+  I2C_xfer_cb cb;
 } i2c_handle_t;
 
 
@@ -57,11 +59,17 @@ static const uint32_t stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
 };
 
 
+static bool writeIrq   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
+static bool readIrq    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
+static bool writeDma   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
+static bool readDma    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
+
 static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch);
-static void configureHal(i2c_handle_t *h, I2C_config_t *cfg);
+static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg);
+static bool initDma(i2c_handle_t *h);
 
 
-bool I2C_init   (I2C_ch_e ch, I2C_config_t *cfg)
+bool I2C_init   (I2C_ch_e ch, I2C_cfg_t *cfg)
 {
   bool ret = false;
   i2c_handle_t *h;
@@ -82,14 +90,15 @@ bool I2C_init   (I2C_ch_e ch, I2C_config_t *cfg)
   /* link to hw information */
   h->hw = &i2c_hw_info[ch];
 
-  /* configure peripheral */
+  /* set config params */
   configureHal(h, cfg);
 
   if(HAL_OK == HAL_I2C_Init(&h->hal))
   {
-    h->init = true;
-    ret = true;
+    ret = initDma(h);
   }
+
+  h->init = ret;
 
   return ret;
 }
@@ -97,11 +106,29 @@ bool I2C_init   (I2C_ch_e ch, I2C_config_t *cfg)
 bool I2C_deInit (I2C_ch_e ch)
 {
   bool ret = false;
+  i2c_handle_t *h;
 
-  if (HAL_OK == HAL_I2C_DeInit(&handles[ch].hal))
+  if (ch >= I2C_NUM_OF_CH)
   {
-    handles[ch].init = false;
+    return false;
+  }
+
+  h = &handles[ch];
+
+  if (HAL_OK == HAL_I2C_DeInit(&h->hal))
+  {
+    h->init = false;
     ret = true;
+
+    if (h->hw->dma_rx_info)
+    {
+      DMA_deinit(h->hw->dma_rx_info->stream);
+    }
+
+    if (h->hw->dma_tx_info)
+    {
+      DMA_deinit(h->hw->dma_tx_info->stream);
+    }
   }
 
   return ret;
@@ -119,83 +146,67 @@ bool I2C_isBusy (I2C_ch_e ch)
   return ret;
 }
 
-
-bool I2C_write    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret = false;
+  bool ret = I2C_isBusy(ch);
 
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Transmit(&handles[ch].hal, addr, d, l, 1000)))
+  if (false == ret)
   {
-    ret = true;
+    handles[ch].cb = info->cb;
+
+    if (handles[ch].hw->dma_tx_info)
+    {
+      ret = writeDma(ch, info->addr, info->data, info->length);
+    }
+    else
+    {
+      ret = writeIrq(ch, info->addr, info->data, info->length);
+    }
   }
 
   return ret;
 }
 
-bool I2C_read     (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret = false;
+  bool ret = I2C_isBusy(ch);
 
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Receive(&handles[ch].hal, addr, d, l, 1000)))
+  if (false == ret)
   {
-    ret = true;
+    handles[ch].cb = info->cb;
+
+    if (handles[ch].hw->dma_rx_info)
+    {
+      ret = writeDma(ch, info->addr, info->data, info->length);
+    }
+    else
+    {
+      ret = writeIrq(ch, info->addr, info->data, info->length);
+    }
   }
 
   return ret;
 }
 
-bool I2C_writeIrq (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+
+static bool writeIrq   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
 {
-  bool ret = false;
-
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Transmit_IT(&handles[ch].hal, addr, d, l)))
-  {
-    ret = true;
-  }
-
-  return ret;
+  return (HAL_OK == HAL_I2C_Master_Transmit_IT(&handles[ch].hal, addr, d, l));
 }
 
-bool I2C_readIrq  (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool readIrq    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
 {
-  bool ret = false;
-
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Receive_IT(&handles[ch].hal, addr, d, l)))
-  {
-    ret = true;
-  }
-
-  return ret;
+  return (HAL_OK == HAL_I2C_Master_Receive_IT(&handles[ch].hal, addr, d, l));
 }
 
-bool I2C_writeDma (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool writeDma   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
 {
-  bool ret = false;
-
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Transmit_DMA(&handles[ch].hal, addr, d, l)))
-  {
-    ret = true;
-  }
-
-  return ret;
+  return (HAL_OK == HAL_I2C_Master_Transmit_DMA(&handles[ch].hal, addr, d, l));
 }
 
-bool I2C_readDma  (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool readDma    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
 {
-  bool ret = false;
-
-  if ((false == I2C_isBusy(ch))
-  &&  (HAL_OK == HAL_I2C_Master_Receive_DMA(&handles[ch].hal, addr, d, l)))
-  {
-    ret = true;
-  }
-
-  return ret;
+  return (HAL_OK == HAL_I2C_Master_Receive_DMA(&handles[ch].hal, addr, d, l));
 }
 
 
@@ -217,7 +228,7 @@ static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
   return ret;
 }
 
-static void configureHal(i2c_handle_t *h, I2C_config_t *cfg)
+static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
 {
   h->hal.Instance              = h->hw->inst;
   h->hal.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -230,12 +241,41 @@ static void configureHal(i2c_handle_t *h, I2C_config_t *cfg)
   h->hal.Init.NoStretchMode   = stretch_mode_to_hal[cfg->stretch_mode];
 }
 
+static bool initDma(i2c_handle_t *h)
+{
+  bool ret = true;
+  DMA_cfg_t dma_cfg;
+
+  dma_cfg.channel           = h->hw->dma_rx_ch;
+  dma_cfg.priority          = h->hw->irq_priority;
+  dma_cfg.parent_handle     = &h->hal;
+  dma_cfg.periph_data_size  = DMA_DATA_SIZE_8BIT;
+  dma_cfg.mem_data_size     = DMA_DATA_SIZE_8BIT;
+  dma_cfg.inc_mem_addr      = true;
+  dma_cfg.inc_periph_addr   = false;
+  dma_cfg.circular_mode     = false;
+
+  if (h->hw->dma_rx_info)
+  {
+    dma_cfg.dir = DMA_DIR_PERIPH_TO_MEM;
+    ret &= DMA_init(h->hw->dma_rx_info->stream, &dma_cfg);
+  }
+
+  if (h->hw->dma_tx_info)
+  {
+    dma_cfg.dir = DMA_DIR_MEM_TO_PERIPH;
+    ret &= DMA_init(h->hw->dma_tx_info->stream, &dma_cfg);
+  }
+
+  return ret;
+}
+
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
   I2C_ch_e ch;
   i2c_handle_t *h;
-  IO_cfg_t cfg;
+  IO_cfg_t io_cfg;
 
   if (false == channelFromHal(hi2c, &ch))
   {
@@ -244,18 +284,18 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 
   h  = &handles[ch];
 
-  cfg.dir     = IO_DIR_OUT_OD;
-  cfg.mode    = IO_MODE_PERIPH;
-  cfg.pullup  = IO_PULL_UP;
-  cfg.speed   = IO_SPEED_FAST;
-  cfg.extend  = &h->hw->io_cfg_ext;
-  IO_configure(h->hw->sda_pin, &cfg);
-  IO_configure(h->hw->scl_pin, &cfg);
+  io_cfg.dir     = IO_DIR_OUT_OD;
+  io_cfg.mode    = IO_MODE_PERIPH;
+  io_cfg.pullup  = IO_PULL_UP;
+  io_cfg.speed   = IO_SPEED_FAST;
+  io_cfg.extend  = &h->hw->io_cfg_ext;
+  IO_configure(h->hw->sda_pin, &io_cfg);
+  IO_configure(h->hw->scl_pin, &io_cfg);
 
   CLK_periphEnable(h->hw->periph);
 
-  IRQ_config(h->hw->event_irq_num, h->hw->event_irq_priority);
-  IRQ_config(h->hw->error_irq_num, h->hw->error_irq_priority);
+  IRQ_config(h->hw->event_irq_num, h->hw->irq_priority);
+  IRQ_config(h->hw->error_irq_num, h->hw->irq_priority);
   IRQ_enable(h->hw->event_irq_num);
   IRQ_enable(h->hw->error_irq_num);
 }
@@ -277,28 +317,51 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 
   IO_deinit(h->hw->sda_pin);
   IO_deinit(h->hw->scl_pin);
+
+  CLK_periphReset(h->hw->periph);
 }
+
+
+void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
+{
+  I2C_ch_e ch;
+
+  if (true == channelFromHal(hi2c, &ch))
+  {
+    if (handles[ch].cb)
+    {
+      handles[ch].cb(error);
+    }
+  }
+}
+
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+  callXferCb(hi2c, false);
+}
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+  callXferCb(hi2c, false);
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+{
+  callXferCb(hi2c, true);
+}
+
+void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+  callXferCb(hi2c, true);
+}
+
 
 void I2C3_EV_IRQHandler(void)
 {
-  HAL_I2C_EV_IRQHandler(&handles[0].hal);
+  HAL_I2C_EV_IRQHandler(&handles[I2C_CH_1].hal);
 }
 
 void I2C3_ER_IRQHandler(void)
 {
-  HAL_I2C_ER_IRQHandler(&handles[0].hal);
-}
-
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *I2cHandle)
-{
-  UNUSED(I2cHandle);
-
-  //TODO
-}
-
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *I2cHandle)
-{
-  UNUSED(I2cHandle);
-
-  //TODO
+  HAL_I2C_ER_IRQHandler(&handles[I2C_CH_1].hal);
 }

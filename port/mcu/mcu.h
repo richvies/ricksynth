@@ -64,6 +64,8 @@ typedef enum
   PERIPH_GPIO_B,
   PERIPH_GPIO_C,
   PERIPH_I2C_1,
+  PERIPH_DMA_1,
+  PERIPH_DMA_2,
 } periph_e;
 
 
@@ -100,18 +102,33 @@ typedef struct
 extern io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ];
 
 
-/* I2C */
+/* DMA */
 typedef struct
 {
   periph_e        const periph;
-  I2C_TypeDef *   const inst;
-  IO_num_e        const sda_pin;
-  IO_num_e        const scl_pin;
-  io_cfg_extend_t const io_cfg_ext;
-  irq_num_e       const event_irq_num;
-  irq_priority_e  const event_irq_priority;
-  irq_num_e       const error_irq_num;
-  irq_priority_e  const error_irq_priority;
+  DMA_TypeDef *   const inst;
+  DMA_stream_e    const stream;
+  irq_num_e       const irq_num;
+} dma_hw_info_t;
+
+extern dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM];
+
+
+/* I2C */
+typedef struct
+{
+  periph_e              const periph;
+  I2C_TypeDef *         const inst;
+  IO_num_e              const sda_pin;
+  IO_num_e              const scl_pin;
+  io_cfg_extend_t       const io_cfg_ext;
+  irq_num_e             const event_irq_num;
+  irq_num_e             const error_irq_num;
+  irq_priority_e        const irq_priority;
+  dma_hw_info_t const * const dma_tx_info;
+  DMA_ch_e              const dma_tx_ch;
+  dma_hw_info_t const * const dma_rx_info;
+  DMA_ch_e              const dma_rx_ch;
 } i2c_hw_info_t;
 
 extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];

@@ -59,6 +59,30 @@ typedef enum
 } IO_ext_irq_e;
 
 
+/* DMA */
+typedef enum
+{
+  DMA_STREAM_FIRST = 0,
+  DMA_1_STREAM_0 = DMA_STREAM_FIRST,
+  DMA_1_STREAM_6,
+  DMA_NUM_OF_STREAM,
+} DMA_stream_e;
+
+typedef enum
+{
+  DMA_CH_FIRST = 0,
+  DMA_CH_0 = DMA_CH_FIRST,
+  DMA_CH_1,
+  DMA_CH_2,
+  DMA_CH_3,
+  DMA_CH_4,
+  DMA_CH_5,
+  DMA_CH_6,
+  DMA_CH_7,
+  DMA_NUM_OF_CH,
+} DMA_ch_e;
+
+
 /* I2C */
 typedef enum
 {

@@ -27,60 +27,47 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __I2C_H
-#define __I2C_H
+#ifndef __DMA_H
+#define __DMA_H
 
 
-#include "board.h"
+#include "mcu.h"
 
 
 typedef enum
 {
-  I2C_MASTER_MODE,
-  I2C_SLAVE_MODE,
-  I2C_NUM_OF_MASTER_MODES,
-} I2C_master_mode_e;
+  DMA_DIR_PERIPH_TO_MEM,
+  DMA_DIR_MEM_TO_PERIPH,
+  DMA_DIR_MEM_TO_MEM,
+  DMA_DIR_NUM_OF,
+} DMA_dir_e;
 
 typedef enum
 {
-  I2C_ADDRESS_MODE_7_BIT,
-  I2C_ADDRESS_MODE_10_BIT,
-  I2C_NUM_OF_ADDRESS_MODES,
-} I2C_address_mode_e;
-
-typedef enum
-{
-  I2C_STRETCH_MODE_ENABLE,
-  I2C_STRETCH_MODE_DISABLE,
-  I2C_NUM_OF_STRETCH_MODES,
-} I2C_stretch_mode_e;
+  DMA_DATA_SIZE_8BIT,
+  DMA_DATA_SIZE_16BIT,
+  DMA_DATA_SIZE_32BIT,
+  DMA_DATA_SIZE_NUM_OF,
+} DMA_data_size_e;
 
 
 typedef struct
 {
-  I2C_master_mode_e   master_mode;
-  I2C_address_mode_e  address_mode;
-  I2C_stretch_mode_e  stretch_mode;
-  uint32_t            clk_speed_hz;
-  uint16_t            own_address;
-} I2C_cfg_t;
+  void *parent_handle;
+  irq_priority_e priority;
 
-typedef void (*I2C_xfer_cb)(bool error);
-
-typedef struct
-{
-  uint16_t addr;
-  uint8_t *data;
-  uint16_t length;
-  I2C_xfer_cb cb;
-} I2C_xfer_info_t;
+  DMA_ch_e        channel;
+  DMA_dir_e       dir;
+  bool            inc_periph_addr;
+  bool            inc_mem_addr;
+  DMA_data_size_e periph_data_size;
+  DMA_data_size_e mem_data_size;
+  bool            circular_mode;
+} DMA_cfg_t;
 
 
-extern bool I2C_init    (I2C_ch_e ch, I2C_cfg_t *cfg);
-extern bool I2C_deInit  (I2C_ch_e ch);
-extern bool I2C_isBusy  (I2C_ch_e ch);
-extern bool I2C_write   (I2C_ch_e ch, I2C_xfer_info_t *info);
-extern bool I2C_read    (I2C_ch_e ch, I2C_xfer_info_t *info);
+bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg);
+void DMA_deinit(DMA_stream_e stream);
 
 
 #endif
