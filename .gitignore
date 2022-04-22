@@ -2,3 +2,4 @@
 **/bin/
 **/lib/
 .DS_Store
+**/.bash_history

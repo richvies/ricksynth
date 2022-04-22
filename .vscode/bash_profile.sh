@@ -1,3 +1,5 @@
+source /etc/profile
 source $HOME/.bash_profile
-export HISTFILE=".vscode/bash_history"
+touch ".vscode/.bash_history"
+export HISTFILE=".vscode/.bash_history"
 export HISTCONTROL=ignoredups
