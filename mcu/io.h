@@ -31,6 +31,11 @@ SOFTWARE.
 #define __IO_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "board.h"
 
 
@@ -101,6 +106,11 @@ extern bool IO_isHigh(IO_num_e num);
 
 extern bool IO_enableExtIrq(IO_num_e num);
 extern bool IO_setExtIrqCallback(IO_num_e num, IO_ext_irq_cb fn);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

@@ -30,6 +30,11 @@ SOFTWARE.
 #define COMMON_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -37,6 +42,11 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include "config.h"
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

@@ -31,10 +31,20 @@ SOFTWARE.
 #define __HW_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 extern void HW_initEarly(void);
 extern void HW_init(void);
 extern void HW_reset(void);
 extern void HW_nop(void);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

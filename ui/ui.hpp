@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#ifndef MODIFIER_H
-#define MODIFIER_H
+#ifndef UI_HPP
+#define UI_HPP
 
 
 #include "common.h"

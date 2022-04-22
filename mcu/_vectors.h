@@ -31,6 +31,11 @@ SOFTWARE.
 #define __VECTORS_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "_startup.h"
 
 
@@ -38,6 +43,11 @@ typedef void (* const irq_vector_t)(void);
 
 
 extern irq_vector_t _vectors[];
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

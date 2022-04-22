@@ -31,6 +31,11 @@ SOFTWARE.
 #define __I2C_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "board.h"
 
 
@@ -81,6 +86,11 @@ extern bool I2C_deInit  (I2C_ch_e ch);
 extern bool I2C_isBusy  (I2C_ch_e ch);
 extern bool I2C_write   (I2C_ch_e ch, I2C_xfer_info_t *info);
 extern bool I2C_read    (I2C_ch_e ch, I2C_xfer_info_t *info);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

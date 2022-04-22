@@ -57,8 +57,7 @@ MCU_LD_FLAGS += \
   --specs=nano.specs \
   --specs=nosys.specs
 
-
-C_FLAGS = \
+FLAGS = \
   $(MCU_C_FLAGS) \
   -fmessage-length=0 \
   -fsigned-char \
@@ -69,15 +68,22 @@ C_FLAGS = \
   -fno-move-loop-invariants \
   -Wall \
   -Wextra \
-	-std=c99 \
   $(MCU_DEFS)
 
 ifeq '$(config)' 'debug'
-  C_FLAGS +=  \
+  FLAGS +=  \
   -Og \
   -ggdb
 else
-  C_FLAGS +=  \
+  FLAGS +=  \
   -Ofast \
   -g0
 endif
+
+C_FLAGS = \
+  $(FLAGS) \
+	-std=c99
+
+CPP_FLAGS = \
+  $(FLAGS) \
+	-std=c++11

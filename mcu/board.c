@@ -35,7 +35,6 @@ SOFTWARE.
 #define I2C_1_SCL             PORT_PIN_TO_IO(IO_PORT_B, 6)
 #define I2C_1_SDA             PORT_PIN_TO_IO(IO_PORT_B, 7)
 #define I2C_1_PRIORITY        PRIORITY_MEDIUM
-#define I2C_1_USE_DMA         true
 #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
 #define I2C_1_TX_DMA_CH       DMA_CH_1
 #define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0

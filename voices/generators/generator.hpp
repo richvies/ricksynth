@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#ifndef GENERATOR_H
-#define GENERATOR_H
+#ifndef GENERATOR_HPP
+#define GENERATOR_HPP
 
 
 #include "common.h"

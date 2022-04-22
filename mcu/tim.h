@@ -31,6 +31,11 @@ SOFTWARE.
 #define __TIM_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "board.h"
 
 
@@ -106,6 +111,11 @@ extern uint32_t TIM_millis(void);
 
 extern bool     ALARM_start(ALARM_ch_e ch, ALARM_cfg_t *cfg);
 extern void     ALARM_stop(ALARM_ch_e ch);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

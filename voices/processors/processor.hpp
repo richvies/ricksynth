@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ****************************************************************************/
 
-#ifndef PARAMETER_H
-#define PARAMETER_H
+#ifndef PROCESSOR_HPP
+#define PROCESSOR_HPP
 
 
 #include "common.h"

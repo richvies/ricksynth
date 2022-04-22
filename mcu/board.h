@@ -31,6 +31,11 @@ SOFTWARE.
 #define __BOARD_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "stdint.h"
 #include "stdbool.h"
 #include "stdlib.h"
@@ -124,6 +129,11 @@ typedef enum
   ALARM_CH_4,
   ALARM_NUM_OF_CH,
 } ALARM_ch_e;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

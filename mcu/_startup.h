@@ -31,7 +31,17 @@ SOFTWARE.
 #define __STARTUP_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 extern void START_resetHandler(void);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

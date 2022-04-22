@@ -243,13 +243,19 @@ $(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	@echo Linking target: $(TARGET).elf
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
+	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CC) -E $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
 	$(NO_ECHO)$(CC) $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+$(BUILD_DIR)%.o: %.cpp $(BUILD_DIR)compile.arg
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CPP) -E $(C_DEFS) $(CPP_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CPP) $(C_DEFS) $(CPP_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 # include header dependencies
 -include $(OBJS:.o=.d)

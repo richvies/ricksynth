@@ -31,6 +31,11 @@ SOFTWARE.
 #define __MCU_H
 
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -144,6 +149,11 @@ typedef struct
 } tim_hw_info_t;
 
 extern tim_hw_info_t const tim_hw_info[TIM_NUM_OF_CH];
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif
