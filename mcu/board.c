@@ -35,6 +35,7 @@ SOFTWARE.
 #define I2C_1_SCL             PORT_PIN_TO_IO(IO_PORT_B, 6)
 #define I2C_1_SDA             PORT_PIN_TO_IO(IO_PORT_B, 7)
 #define I2C_1_PRIORITY        PRIORITY_MEDIUM
+#define I2C_1_USE_DMA         true
 #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
 #define I2C_1_TX_DMA_CH       DMA_CH_1
 #define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
@@ -55,6 +56,9 @@ IO_num_e const IO_pin_builtin_led = BUILTIN_LED;
 /* IO Ports */
 io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
 {
+  /* NULL port for NULL pins */
+  {0, NULL},
+
   {PERIPH_GPIO_A, GPIOA},
   {PERIPH_GPIO_B, GPIOB},
   {PERIPH_GPIO_C, GPIOC},
@@ -70,8 +74,8 @@ io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
 /* DMA */
 dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 {
-  {PERIPH_DMA_1, DMA1, DMA_1_STREAM_0, DMA1_Stream0_IRQn},
-  {PERIPH_DMA_1, DMA1, DMA_1_STREAM_0, DMA1_Stream0_IRQn},
+  {PERIPH_DMA_1, DMA1, DMA1_Stream0_IRQn},
+  {PERIPH_DMA_1, DMA1, DMA1_Stream6_IRQn},
 };
 
 
@@ -87,9 +91,9 @@ i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
     I2C1_EV_IRQn,
     I2C1_ER_IRQn,
     I2C_1_PRIORITY,
-    &dma_hw_info[I2C_1_TX_DMA_STREAM],
+    I2C_1_TX_DMA_STREAM,
     I2C_1_TX_DMA_CH,
-    &dma_hw_info[I2C_1_RX_DMA_STREAM],
+    I2C_1_RX_DMA_STREAM,
     I2C_1_RX_DMA_CH
   },
 };

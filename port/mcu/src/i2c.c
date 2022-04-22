@@ -65,6 +65,7 @@ static bool writeDma   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
 static bool readDma    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
 
 static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch);
+static bool channelFromPeriph(periph_e periph, I2C_ch_e *ch);
 static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg);
 static bool initDma(i2c_handle_t *h);
 
@@ -120,14 +121,14 @@ bool I2C_deInit (I2C_ch_e ch)
     h->init = false;
     ret = true;
 
-    if (h->hw->dma_rx_info)
+    if (h->hw->dma_rx_stream)
     {
-      DMA_deinit(h->hw->dma_rx_info->stream);
+      DMA_deinit(h->hw->dma_rx_stream);
     }
 
-    if (h->hw->dma_tx_info)
+    if (h->hw->dma_tx_stream)
     {
-      DMA_deinit(h->hw->dma_tx_info->stream);
+      DMA_deinit(h->hw->dma_tx_stream);
     }
   }
 
@@ -136,14 +137,7 @@ bool I2C_deInit (I2C_ch_e ch)
 
 bool I2C_isBusy (I2C_ch_e ch)
 {
-  bool ret = false;
-
-  if (HAL_I2C_STATE_READY == HAL_I2C_GetState(&handles[ch].hal))
-  {
-    ret = true;
-  }
-
-  return ret;
+  return (HAL_I2C_STATE_READY == HAL_I2C_GetState(&handles[ch].hal));
 }
 
 bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
@@ -154,7 +148,7 @@ bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
   {
     handles[ch].cb = info->cb;
 
-    if (handles[ch].hw->dma_tx_info)
+    if (handles[ch].hw->dma_tx_stream)
     {
       ret = writeDma(ch, info->addr, info->data, info->length);
     }
@@ -175,7 +169,7 @@ bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
   {
     handles[ch].cb = info->cb;
 
-    if (handles[ch].hw->dma_rx_info)
+    if (handles[ch].hw->dma_rx_stream)
     {
       ret = writeDma(ch, info->addr, info->data, info->length);
     }
@@ -228,6 +222,24 @@ static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
   return ret;
 }
 
+static bool channelFromPeriph(periph_e periph, I2C_ch_e *ch)
+{
+  bool ret = false;
+  I2C_ch_e i;
+
+  for (i = I2C_CH_FIRST; i < I2C_NUM_OF_CH; i++)
+  {
+    if (periph == handles[i].hw->periph)
+    {
+      *ch = i;
+      ret = true;
+      break;
+    }
+  }
+
+  return ret;
+}
+
 static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
 {
   h->hal.Instance              = h->hw->inst;
@@ -255,16 +267,16 @@ static bool initDma(i2c_handle_t *h)
   dma_cfg.inc_periph_addr   = false;
   dma_cfg.circular_mode     = false;
 
-  if (h->hw->dma_rx_info)
+  if (h->hw->dma_rx_stream)
   {
     dma_cfg.dir = DMA_DIR_PERIPH_TO_MEM;
-    ret &= DMA_init(h->hw->dma_rx_info->stream, &dma_cfg);
+    ret &= DMA_init(h->hw->dma_rx_stream, &dma_cfg);
   }
 
-  if (h->hw->dma_tx_info)
+  if (h->hw->dma_tx_stream)
   {
     dma_cfg.dir = DMA_DIR_MEM_TO_PERIPH;
-    ret &= DMA_init(h->hw->dma_tx_info->stream, &dma_cfg);
+    ret &= DMA_init(h->hw->dma_tx_stream, &dma_cfg);
   }
 
   return ret;
@@ -322,7 +334,55 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 }
 
 
-void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
+static void irqHandler(periph_e periph, bool error)
+{
+  I2C_ch_e ch;
+
+  if (true == channelFromPeriph(periph, &ch))
+  {
+    if (error)
+    {
+      HAL_I2C_ER_IRQHandler(&handles[ch].hal);
+    }
+    else
+    {
+      HAL_I2C_EV_IRQHandler(&handles[ch].hal);
+    }
+  }
+}
+
+void I2C1_EV_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_1, false);
+}
+
+void I2C1_ER_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_1, true);
+}
+
+void I2C2_EV_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_2, false);
+}
+
+void I2C2_ER_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_2, true);
+}
+
+void I2C3_EV_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_3, false);
+}
+
+void I2C3_ER_IRQHandler(void)
+{
+  irqHandler(PERIPH_I2C_3, true);
+}
+
+
+static void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
 {
   I2C_ch_e ch;
 
@@ -353,15 +413,4 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
 {
   callXferCb(hi2c, true);
-}
-
-
-void I2C3_EV_IRQHandler(void)
-{
-  HAL_I2C_EV_IRQHandler(&handles[I2C_CH_1].hal);
-}
-
-void I2C3_ER_IRQHandler(void)
-{
-  HAL_I2C_ER_IRQHandler(&handles[I2C_CH_1].hal);
 }

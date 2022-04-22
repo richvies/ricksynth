@@ -62,7 +62,8 @@ typedef enum
 /* DMA */
 typedef enum
 {
-  DMA_STREAM_FIRST = 0,
+  DMA_STREAM_NONE  = 0,
+  DMA_STREAM_FIRST = 1,
   DMA_1_STREAM_0 = DMA_STREAM_FIRST,
   DMA_1_STREAM_6,
   DMA_NUM_OF_STREAM,

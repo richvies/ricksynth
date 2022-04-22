@@ -42,7 +42,8 @@ SOFTWARE.
 #define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
 #define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
 #define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
-#define IO_TO_HAL_INST(io)          (io_ports_hw_info[IO_TO_PORT(io)].inst)
+#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
+#define IO_NULL_PIN                 (0)
 #define IRQ_NUM_OF                  (85)
 
 
@@ -64,6 +65,8 @@ typedef enum
   PERIPH_GPIO_B,
   PERIPH_GPIO_C,
   PERIPH_I2C_1,
+  PERIPH_I2C_2,
+  PERIPH_I2C_3,
   PERIPH_DMA_1,
   PERIPH_DMA_2,
 } periph_e;
@@ -72,6 +75,7 @@ typedef enum
 /* IO */
 typedef enum
 {
+  IO_PORT_NULL,
   IO_PORT_A,
   IO_PORT_B,
   IO_PORT_C,
@@ -107,7 +111,6 @@ typedef struct
 {
   periph_e        const periph;
   DMA_TypeDef *   const inst;
-  DMA_stream_e    const stream;
   irq_num_e       const irq_num;
 } dma_hw_info_t;
 
@@ -125,9 +128,9 @@ typedef struct
   irq_num_e             const event_irq_num;
   irq_num_e             const error_irq_num;
   irq_priority_e        const irq_priority;
-  dma_hw_info_t const * const dma_tx_info;
+  DMA_stream_e          const dma_tx_stream;
   DMA_ch_e              const dma_tx_ch;
-  dma_hw_info_t const * const dma_rx_info;
+  DMA_stream_e          const dma_rx_stream;
   DMA_ch_e              const dma_rx_ch;
 } i2c_hw_info_t;
 

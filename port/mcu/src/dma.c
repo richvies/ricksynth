@@ -158,7 +158,7 @@ void HAL_DMA_MspInit(DMA_HandleTypeDef *hdma)
     return;
   }
 
-  h  = &handles[stream];
+  h = &handles[stream];
 
   CLK_periphEnable(h->hw->periph);
   IRQ_config(h->hw->irq_num, h->irq_priority);

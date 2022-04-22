@@ -88,6 +88,7 @@ MCU_INCLUDES = -I$(CURDIR)/mcu
 export MCU_INCLUDES
 MCU_BOARD		= $(CURDIR)/mcu/board.c
 export MCU_BOARD
+export config
 
 include port/mcu/makefile.inc
 
@@ -156,25 +157,11 @@ VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
 
 C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
 
-C_FLAGS = \
-  $(MCU_C_FLAGS) \
-  -Og \
-  -g3 \
-  -fmessage-length=0 \
-  -fsigned-char \
-  -ffunction-sections \
-  -fdata-sections \
-  -ffreestanding \
-  -fno-builtin \
-  -fno-move-loop-invariants \
-  -Wall \
-  -Wextra \
-	-std=c99
+# defined in mcu makefile.inc, can add extra flags here if needs be
+C_FLAGS +=
 
 LD_FLAGS = \
   $(MCU_LD_FLAGS) \
-  -Og \
-  -g3 \
   -Wl,--start-group $(LIBS_INCLUDE) -Wl,--end-group\
   -Wl,-Map=$(BIN_DIR)$(TARGET).map,--cref \
   -Wl,--gc-sections

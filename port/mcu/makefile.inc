@@ -2,11 +2,20 @@
 
 # File directories
 MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu.a
+ifeq '$(config)' 'debug'
+  MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_debug.a
+else
+  MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_release.a
+endif
 
 MAL_DIR         := $(MCU_MAKE_DIR)mal/
 MAL_MAKE_DIR    := $(MAL_DIR)
-MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a 
+ifeq '$(config)' 'debug'
+  MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal_debug.a
+else
+  MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal_release.a
+endif
+
 LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
 
 # Toolchain commands
@@ -47,3 +56,28 @@ MCU_LD_FLAGS += \
   -T$(LINKER_SCRIPTS) \
   --specs=nano.specs \
   --specs=nosys.specs
+
+
+C_FLAGS = \
+  $(MCU_C_FLAGS) \
+  -fmessage-length=0 \
+  -fsigned-char \
+  -ffunction-sections \
+  -fdata-sections \
+  -ffreestanding \
+  -fno-builtin \
+  -fno-move-loop-invariants \
+  -Wall \
+  -Wextra \
+	-std=c99 \
+  $(MCU_DEFS)
+
+ifeq '$(config)' 'debug'
+  C_FLAGS +=  \
+  -Og \
+  -ggdb
+else
+  C_FLAGS +=  \
+  -Ofast \
+  -g0
+endif

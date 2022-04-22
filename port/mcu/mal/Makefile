@@ -1,8 +1,8 @@
 include ../makefile.inc
 
-TARGET          := $(subst .a,,$(notdir $(MAL_LIB)))
 BUILD_DIR       := build/
 LIB_DIR         := lib/
+TARGETS         := $(LIB_DIR)libmal_release.a $(LIB_DIR)libmal_debug.a
 
 MKDIR           := mkdir
 RM 			        := rm -rf
@@ -60,6 +60,9 @@ STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
 C_OBJS := \
   $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
 
+C_OBJS_DEBUG := \
+  $(subst .o,_debug.o,$(C_OBJS))
+
 C_INCLUDES =  \
 $(MCU_INCLUDES) \
 -I./ \
@@ -72,40 +75,36 @@ $(MCU_INCLUDES) \
 -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -IMiddlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc
 
-C_FLAGS = \
-  $(MCU_C_FLAGS) \
-  -Og \
-  -g3 \
-  -fmessage-length=0 \
-  -fsigned-char \
-  -ffunction-sections \
-  -fdata-sections \
-  -ffreestanding \
-  -fno-builtin \
-  -fno-move-loop-invariants \
-  -Wall \
-  -Wextra \
-	-std=c99 \
-  $(MCU_DEFS)
-
 #############################################################
 # File build recipes
 #############################################################
 
 .PHONY: all clean
 
-all: $(LIB_DIR)$(TARGET).a
+all: $(TARGETS)
 
 clean:
 #	$(RM) $(BUILD_DIR) $(LIB_DIR)
 
-$(LIB_DIR)$(TARGET).a: $(C_OBJS)
+$(LIB_DIR)libmal_release.a: $(C_OBJS)
 	@echo
-	@echo archiving $(TARGET)
+	@echo archiving libmal_release
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
-	$(NO_ECHO)$(AR) rcs $(LIB_DIR)$(TARGET).a $(C_OBJS)
+	$(NO_ECHO)$(AR) rcs $(LIB_DIR)libmal_release.a $(C_OBJS)
+
+$(LIB_DIR)libmal_debug.a: $(C_OBJS_DEBUG)
+	@echo
+	@echo archiving libmal_debug
+	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
+	$(NO_ECHO)$(AR) rcs $(LIB_DIR)libmal_debug.a $(C_OBJS_DEBUG)
 
 $(BUILD_DIR)%.o: %.c
+	@echo Compiling file: $(notdir $<)
+	$(NO_ECHO)$(MKDIR) -p $(@D)
+	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -Wno-unused -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+
+$(BUILD_DIR)%_debug.o: %.c
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<

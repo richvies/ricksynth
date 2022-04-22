@@ -103,35 +103,35 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
     init.Alternate = ((io_cfg_extend_t const *)cfg->extend)->af_value;
   }
 
-  HAL_GPIO_Init(IO_TO_HAL_INST(num), &init);
+  HAL_GPIO_Init(IO_TO_GPIO_INST(num), &init);
 }
 
 void IO_deinit(IO_num_e num)
 {
-  HAL_GPIO_DeInit(IO_TO_HAL_INST(num), IO_TO_PIN(num));
+  HAL_GPIO_DeInit(IO_TO_GPIO_INST(num), IO_TO_PIN(num));
 }
 
 
 void IO_set(IO_num_e num)
 {
-  HAL_GPIO_WritePin(IO_TO_HAL_INST(num), IO_TO_PIN(num), GPIO_PIN_SET);
+  HAL_GPIO_WritePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num), GPIO_PIN_SET);
 }
 
 void IO_clear(IO_num_e num)
 {
-  HAL_GPIO_WritePin(IO_TO_HAL_INST(num), IO_TO_PIN(num), GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num), GPIO_PIN_RESET);
 }
 
 void IO_toggle(IO_num_e num)
 {
-  HAL_GPIO_TogglePin(IO_TO_HAL_INST(num), IO_TO_PIN(num));
+  HAL_GPIO_TogglePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num));
 }
 
 bool IO_isHigh(IO_num_e num)
 {
   bool ret = false;
 
-  if (GPIO_PIN_SET == HAL_GPIO_ReadPin(IO_TO_HAL_INST(num), IO_TO_PIN(num)))
+  if (GPIO_PIN_SET == HAL_GPIO_ReadPin(IO_TO_GPIO_INST(num), IO_TO_PIN(num)))
   {
     ret = true;
   }

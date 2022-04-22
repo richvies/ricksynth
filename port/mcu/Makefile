@@ -42,22 +42,6 @@ $(MCU_INCLUDES) \
 -I$(MAL_DIR)Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -I$(MAL_DIR)Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc
 
-C_FLAGS = \
-  $(MCU_C_FLAGS) \
-  -Og \
-  -g3 \
-  -fmessage-length=0 \
-  -fsigned-char \
-  -ffunction-sections \
-  -fdata-sections \
-  -ffreestanding \
-  -fno-builtin \
-  -fno-move-loop-invariants \
-  -Wall \
-  -Wextra \
-	-std=c99 \
-  $(MCU_DEFS)
-
 #############################################################
 # File build recipes
 #############################################################
