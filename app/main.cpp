@@ -36,7 +36,6 @@ SOFTWARE.
 int main()
 {
   IO_cfg_t cfg;
-  uint32_t timer = 0;
 
   IO_init();
 
