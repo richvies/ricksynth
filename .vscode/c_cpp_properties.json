@@ -4,7 +4,8 @@
             "name": "workspace",
             "intelliSenseMode": "gcc-arm",
             "cStandard": "c99",
-            "compilerPath": "/usr/local/Cellar/gcc-arm-none-eabi/20200630/bin/arm-none-eabi-gcc",
+            "cppStandard": "c++11",
+            "compilerPath": "/usr/local/bin/arm-none-eabi-gcc",
             "includePath": [
                 "${workspaceFolder}/app/**",
                 "${workspaceFolder}/backbone/**",
