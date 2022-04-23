@@ -32,14 +32,16 @@ SOFTWARE.
 
 PCF8575::PCF8575(I2C_ch_e ch, uint8_t addr)
 {
-  _i2c_ch         = ch;
-  _xfer_info.addr = addr;
-  _xfer_info.cb   = NULL;
-  _copy           = 0;
+  _i2c_ch             = ch;
+  _i2c_xfer_info.addr = addr;
+  _i2c_xfer_info.cb   = NULL;
+  _copy               = 0;
 }
 
-PCF8575::init(void)
+bool PCF8575::init(void)
 {
+  bool ret = false;
+
   I2C_cfg_t cfg;
   cfg.master_mode   = I2C_MASTER_MODE;
   cfg.clk_speed_hz  = 100000;
@@ -47,97 +49,123 @@ PCF8575::init(void)
   cfg.own_address   = 0;
   cfg.stretch_mode  = I2C_STRETCH_MODE_DISABLE;
 
-  write16(0);
-
-  return I2C_init(_i2c_ch, &cfg);
-}
-
-
-uint16_t PCF8575::read16()
-{
-  uint16_t read;
-
-  _xfer_info.length = 2;
-  _xfer_info.data   = (uint8_t*)&read;
-
-  if (true == I2C_read(_i2c_ch, &_xfer_info))
+  if (true == I2C_init(_i2c_ch, &cfg))
   {
-    while (true == I2C_isBusy(_i2c_ch));
-  }
-  else
-  {
-    read = 0;
+    while (false == write16(0));
+    ret = true;
   }
 
-  return read;
-}
-
-void PCF8575::write16(uint16_t value)
-{
-  _xfer_info.length = 2;
-  _xfer_info.data   = (uint8_t*)&value;
-
-  if (true == I2C_write(_i2c_ch, &_xfer_info))
-  {
-    _copy = value;
-  }
-}
-
-void PCF8575::toggle16(uint16_t mask)
-{
-  uint16_t tmp = _copy ^ mask;
-  write16(tmp);
+  return ret;
 }
 
 
-bool PCF8575::read(uint8_t pin)
+bool PCF8575::read16(uint16_t *value, PCF8575_read_cb cb)
 {
-  return ((read16() & (1 << pin)) > 0);
+  _i2c_xfer_info.length = 2;
+  _i2c_xfer_info.data   = (uint8_t*)value;
+  _i2c_xfer_info.cb     = i2cReadCb;
+  _i2c_xfer_info.ctx    = this;
+
+  _readCb = cb;
+
+  return I2C_read(_i2c_ch, &_i2c_xfer_info);
 }
 
-void PCF8575::write(uint8_t pin, bool high)
+bool PCF8575::write16(uint16_t *value)
 {
-  uint16_t tmp = _copy;
+  _i2c_xfer_info.length = 2;
+  _i2c_xfer_info.data   = (uint8_t*)value;
+  _i2c_xfer_info.cb     = i2cWriteCb;
+  _i2c_xfer_info.ctx    = this;
+
+  return I2C_write(_i2c_ch, &_i2c_xfer_info);
+}
+
+bool PCF8575::toggle16(uint16_t mask)
+{
+  _tmp = _copy ^ mask;
+  return write16(&_tmp);
+}
+
+
+bool PCF8575::read(uint8_t pin, uint16_t *value, PCF8575_read_cb cb)
+{
+  _pin = pin;
+  return read16(value, cb);
+}
+
+bool PCF8575::write(uint8_t pin, bool high)
+{
+  _tmp = _copy;
 
   if (high)
   {
-    tmp |= (1 << pin);
+    _tmp |= (1 << pin);
   }
   else
   {
-    tmp &= ~(1 << pin);
+    _tmp &= ~(1 << pin);
   }
 
-  write16(tmp);
+  return write16(&_tmp);
 }
 
-void PCF8575::toggle(uint8_t pin)
+bool PCF8575::toggle(uint8_t pin)
 {
-  toggle16(1 << pin);
+  return toggle16(1 << pin);
 }
 
 
-void PCF8575::shiftRight(uint8_t n)
+bool PCF8575::shiftRight(uint8_t n)
 {
-  uint16_t tmp = _copy >> n;
-  write16(tmp);
+  _tmp = _copy >> n;
+  return write16(&_tmp);
 }
 
-void PCF8575::shiftLeft(uint8_t n)
+bool PCF8575::shiftLeft(uint8_t n)
 {
-  uint16_t tmp = _copy << n;
-  write16(tmp);
+  _tmp = _copy << n;
+  return write16(&_tmp);
 }
 
-void PCF8575::rotateRight(uint8_t n)
-{
-  n &= 15;
-  uint16_t tmp = (_copy >> n) | (_copy << (16 - n));
-  write16(tmp);
-}
-
-void PCF8575::rotateLeft(uint8_t n)
+bool PCF8575::rotateRight(uint8_t n)
 {
   n &= 15;
-  rotateRight(16 - n);
+  _tmp = (_copy >> n) | (_copy << (16 - n));
+  return write16(&_tmp);
+}
+
+bool PCF8575::rotateLeft(uint8_t n)
+{
+  n &= 15;
+  return rotateRight(16 - n);
+}
+
+
+void PCF8575::i2cWriteCb(bool error, void *ctx)
+{
+  PCF8575 *t = (PCF8575*)ctx;
+
+  if (false == error)
+  {
+    t->_copy = *((uint16_t*)t->_i2c_xfer_info.data);
+  }
+}
+
+void PCF8575::i2cReadCb(bool error, void *ctx)
+{
+  uint16_t value;
+  PCF8575 *t = (PCF8575*)ctx;
+
+  if ((0xff != t->_pin)
+  &&  (false == error))
+  {
+    /* get value of specified pin from entire 16 bit read */
+    value   = *((uint16_t*)t->_i2c_xfer_info.data);
+    t->_i2c_xfer_info.data[0] = value & (1 << t->_pin);
+
+    t->_pin = 0xff;
+  }
+
+  t->_readCb(error);
 }

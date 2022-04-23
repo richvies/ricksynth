@@ -40,10 +40,10 @@ SOFTWARE.
 typedef struct
 {
   bool init;
+  mutex_t mutex;
+  I2C_xfer_info_t *xfer;
   I2C_HandleTypeDef hal;
   const i2c_hw_info_t *hw;
-  I2C_xfer_cb cb;
-  mutex_t mutex;
 } i2c_handle_t;
 
 
@@ -152,8 +152,7 @@ bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
     return false;
   }
 
-  handles[ch].cb = info->cb;
-
+  handles[ch].xfer = info;
   if (handles[ch].hw->dma_tx_stream)
   {
     ret = writeDma(ch, info->addr, info->data, info->length);
@@ -176,8 +175,7 @@ bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
     return false;
   }
 
-  handles[ch].cb = info->cb;
-
+  handles[ch].xfer = info;
   if (handles[ch].hw->dma_rx_stream)
   {
     ret = writeDma(ch, info->addr, info->data, info->length);
@@ -396,11 +394,11 @@ static void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
 
   if (true == channelFromHal(hi2c, &ch))
   {
-    MUT_give(handles[ch].mutex);
-    if (handles[ch].cb)
+    if (handles[ch].xfer->cb)
     {
-      handles[ch].cb(error);
+      handles[ch].xfer->cb(error, handles[ch].xfer->ctx);
     }
+    MUT_give(handles[ch].mutex);
   }
 }
 

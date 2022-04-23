@@ -70,14 +70,15 @@ typedef struct
   uint16_t            own_address;
 } I2C_cfg_t;
 
-typedef void (*I2C_xfer_cb)(bool error);
+typedef void (*I2C_xfer_cb)(bool error, void *ctx);
 
 typedef struct
 {
-  uint16_t addr;
-  uint8_t *data;
-  uint16_t length;
+  uint16_t    addr;
+  uint8_t*    data;
+  uint16_t    length;
   I2C_xfer_cb cb;
+  void*       ctx;
 } I2C_xfer_info_t;
 
 

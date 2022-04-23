@@ -33,31 +33,37 @@ SOFTWARE.
 
 #include "i2c.h"
 
+using PCF8575_read_cb = void(*)(bool error);
 
 class PCF8575
 {
   public:
-    void PCF8575(I2C_ch_e ch, uint8_t addr);
+    PCF8575(I2C_ch_e ch, uint8_t addr);
 
-    bool      init(void);
+    bool init(void);
 
-    void      write16(uint16_t value);
-    uint16_t  read16();
-    void      toggle16(uint16_t mask);
+    bool read16(uint16_t *value, PCF8575_read_cb cb);
+    bool write16(uint16_t *value);
+    bool toggle16(uint16_t mask);
 
-    void      write(uint8_t pin, bool high);
-    bool      read(uint8_t pin);
-    void      toggle(uint8_t pin);
+    bool read(uint8_t pin, uint16_t *value, PCF8575_read_cb cb);
+    bool write(uint8_t pin, bool high);
+    bool toggle(uint8_t pin);
 
-    void shiftRight(uint8_t n = 1);
-    void shiftLeft(uint8_t n = 1);
-    void rotateRight(uint8_t n = 1);
-    void rotateLeft(uint8_t n = 1);
+    bool shiftRight(uint8_t n);
+    bool shiftLeft(uint8_t n);
+    bool rotateRight(uint8_t n);
+    bool rotateLeft(uint8_t n);
 
   private:
-    I2C_ch_e  _i2c_ch;
-    I2C_xfer_info_t _xfer_info;
-    uint16_t  _copy;
+    I2C_ch_e        _i2c_ch;
+    I2C_xfer_info_t _i2c_xfer_info;
+    static void i2cReadCb(bool error, void *ctx);
+    static void i2cWriteCb(bool error, void *ctx);
+
+    PCF8575_read_cb _readCb;
+    uint16_t  _copy, _tmp;
+    uint8_t _pin;
 };
 
 #endif

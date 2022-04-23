@@ -110,6 +110,7 @@ SOURCE_DIR = \
   backbone/peripheral \
   backbone/system \
   backbone/util \
+	chips/PF8575 \
   modifiers \
   ui \
   voices \
