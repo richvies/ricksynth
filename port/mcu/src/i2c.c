@@ -34,6 +34,7 @@ SOFTWARE.
 #include "dma.h"
 #include "io.h"
 #include "irq.h"
+#include "mutex.h"
 
 
 typedef struct
@@ -42,6 +43,7 @@ typedef struct
   I2C_HandleTypeDef hal;
   const i2c_hw_info_t *hw;
   I2C_xfer_cb cb;
+  mutex_t mutex;
 } i2c_handle_t;
 
 
@@ -142,20 +144,23 @@ bool I2C_isBusy (I2C_ch_e ch)
 
 bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret = I2C_isBusy(ch);
+  bool ret;
 
-  if (false == ret)
+  if ((true == I2C_isBusy(ch))
+  ||  (false == MUT_take(handles[ch].mutex)))
   {
-    handles[ch].cb = info->cb;
+    return false;
+  }
 
-    if (handles[ch].hw->dma_tx_stream)
-    {
-      ret = writeDma(ch, info->addr, info->data, info->length);
-    }
-    else
-    {
-      ret = writeIrq(ch, info->addr, info->data, info->length);
-    }
+  handles[ch].cb = info->cb;
+
+  if (handles[ch].hw->dma_tx_stream)
+  {
+    ret = writeDma(ch, info->addr, info->data, info->length);
+  }
+  else
+  {
+    ret = writeIrq(ch, info->addr, info->data, info->length);
   }
 
   return ret;
@@ -163,20 +168,23 @@ bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
 
 bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret = I2C_isBusy(ch);
+  bool ret;
 
-  if (false == ret)
+  if ((true == I2C_isBusy(ch))
+  ||  (false == MUT_take(handles[ch].mutex)))
   {
-    handles[ch].cb = info->cb;
+    return false;
+  }
 
-    if (handles[ch].hw->dma_rx_stream)
-    {
-      ret = writeDma(ch, info->addr, info->data, info->length);
-    }
-    else
-    {
-      ret = writeIrq(ch, info->addr, info->data, info->length);
-    }
+  handles[ch].cb = info->cb;
+
+  if (handles[ch].hw->dma_rx_stream)
+  {
+    ret = writeDma(ch, info->addr, info->data, info->length);
+  }
+  else
+  {
+    ret = writeIrq(ch, info->addr, info->data, info->length);
   }
 
   return ret;
@@ -388,6 +396,7 @@ static void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
 
   if (true == channelFromHal(hi2c, &ch))
   {
+    MUT_give(handles[ch].mutex);
     if (handles[ch].cb)
     {
       handles[ch].cb(error);

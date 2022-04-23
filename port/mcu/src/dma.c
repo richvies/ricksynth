@@ -57,6 +57,10 @@ static const uint32_t size_to_hal[DMA_DATA_SIZE_NUM_OF] =
 };
 
 
+static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch);
+static void configureHal(dma_handle_t *h, DMA_cfg_t *cfg);
+
+
 bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
 {
   bool ret = false;
@@ -90,12 +94,12 @@ bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
   return ret;
 }
 
-void DMA_deinit(DMA_stream_e stream)
+bool DMA_deinit(DMA_stream_e stream)
 {
   bool ret = false;
   dma_handle_t *h;
 
-  if (stream >= I2C_NUM_OF_CH)
+  if (stream >= DMA_NUM_OF_STREAM)
   {
     return false;
   }
@@ -112,7 +116,7 @@ void DMA_deinit(DMA_stream_e stream)
 }
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_ch_e *ch)
+static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch)
 {
   bool ret = false;
   DMA_stream_e i;
@@ -133,18 +137,18 @@ static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_ch_e *ch)
 static void configureHal(dma_handle_t *h, DMA_cfg_t *cfg)
 {
   h->hal.Instance = h->hw->inst;
-  h->Init.Channel = cfg->channel;
-  h->Init.Direction = dir_to_hal[cfg->dir];
-  h->Init.PeriphInc = cfg->inc_periph_addr ? DMA_PINC_ENABLE : DMA_PINC_DISABLE;
-  h->Init.MemInc = cfg->inc_mem_addr ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
-  h->Init.PeriphDataAlignment = size_to_hal[cfg->periph_data_size];
-  h->Init.MemDataAlignment = size_to_hal[cfg->mem_data_size];
-  h->Init.Mode = cfg->circular_mode ? DMA_CIRCULAR : DMA_NORMAL;
-  h->Init.Priority = cfg->priority;
-  h->Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-
-  h->irq_priority = cfg->priority;
   h->hal.Parent   = cfg->parent_handle;
+  h->irq_priority = cfg->priority;
+
+  h->hal.Init.Channel = cfg->channel;
+  h->hal.Init.Direction = dir_to_hal[cfg->dir];
+  h->hal.Init.PeriphInc = cfg->inc_periph_addr ? DMA_PINC_ENABLE : DMA_PINC_DISABLE;
+  h->hal.Init.MemInc = cfg->inc_mem_addr ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
+  h->hal.Init.PeriphDataAlignment = size_to_hal[cfg->periph_data_size];
+  h->hal.Init.MemDataAlignment = size_to_hal[cfg->mem_data_size];
+  h->hal.Init.Mode = cfg->circular_mode ? DMA_CIRCULAR : DMA_NORMAL;
+  h->hal.Init.Priority = cfg->priority;
+  h->hal.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 }
 
 

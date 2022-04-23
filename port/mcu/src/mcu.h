@@ -31,11 +31,6 @@ SOFTWARE.
 #define __MCU_H
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -53,6 +48,7 @@ SOFTWARE.
 
 
 typedef IRQn_Type irq_num_e;
+typedef bool mutex_t;
 
 typedef enum
 {
@@ -114,9 +110,9 @@ extern io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ];
 /* DMA */
 typedef struct
 {
-  periph_e        const periph;
-  DMA_TypeDef *   const inst;
-  irq_num_e       const irq_num;
+  periph_e            const periph;
+  DMA_Stream_TypeDef* const inst;
+  irq_num_e           const irq_num;
 } dma_hw_info_t;
 
 extern dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM];
@@ -149,11 +145,6 @@ typedef struct
 } tim_hw_info_t;
 
 extern tim_hw_info_t const tim_hw_info[TIM_NUM_OF_CH];
-
-
-#ifdef __cplusplus
-}
-#endif
 
 
 #endif

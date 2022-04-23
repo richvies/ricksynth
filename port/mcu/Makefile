@@ -16,22 +16,18 @@ endif
 # sources + flags
 #############################################################
 
+SOURCE_DIR = \
+  src
+
 C_SOURCES = \
-$(MCU_BOARD) \
-src/_hw.c \
-src/_vectors.c \
-src/clk.c \
-src/io.c \
-src/i2c.c \
-src/irq.c \
-src/tim.c
+  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
 C_OBJS := \
   $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
 
 C_INCLUDES =  \
 $(MCU_INCLUDES) \
--I./ \
+-Isrc \
 -I$(MAL_DIR) \
 -I$(MAL_DIR)CMSIS \
 -I$(MAL_DIR)CMSIS/Include \

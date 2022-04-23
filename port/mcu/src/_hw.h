@@ -27,47 +27,14 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __DMA_H
-#define __DMA_H
+#ifndef __HW_H
+#define __HW_H
 
 
-#include "mcu.h"
-
-
-typedef enum
-{
-  DMA_DIR_PERIPH_TO_MEM,
-  DMA_DIR_MEM_TO_PERIPH,
-  DMA_DIR_MEM_TO_MEM,
-  DMA_DIR_NUM_OF,
-} DMA_dir_e;
-
-typedef enum
-{
-  DMA_DATA_SIZE_8BIT,
-  DMA_DATA_SIZE_16BIT,
-  DMA_DATA_SIZE_32BIT,
-  DMA_DATA_SIZE_NUM_OF,
-} DMA_data_size_e;
-
-
-typedef struct
-{
-  void *parent_handle;
-  irq_priority_e priority;
-
-  DMA_ch_e        channel;
-  DMA_dir_e       dir;
-  bool            inc_periph_addr;
-  bool            inc_mem_addr;
-  DMA_data_size_e periph_data_size;
-  DMA_data_size_e mem_data_size;
-  bool            circular_mode;
-} DMA_cfg_t;
-
-
-bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg);
-bool DMA_deinit(DMA_stream_e stream);
+extern void HW_initEarly(void);
+extern void HW_init(void);
+extern void HW_reset(void);
+extern void HW_nop(void);
 
 
 #endif

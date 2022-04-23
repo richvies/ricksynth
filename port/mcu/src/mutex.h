@@ -27,21 +27,21 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __STARTUP_H
-#define __STARTUP_H
+#ifndef __MUT_H
+#define __MUT_H
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+#include "stdbool.h"
+#include "stdint.h"
 
 
-extern void START_resetHandler(void);
+#define MUT_give(m) {m = false;}
 
 
-#ifdef __cplusplus
-}
-#endif
+typedef bool mutex_t;
+
+
+extern bool MUT_take(mutex_t m);
 
 
 #endif

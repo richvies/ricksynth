@@ -27,27 +27,11 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __VECTORS_H
-#define __VECTORS_H
+#ifndef __STARTUP_H
+#define __STARTUP_H
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-
-#include "_startup.h"
-
-
-typedef void (* const irq_vector_t)(void);
-
-
-extern irq_vector_t _vectors[];
-
-
-#ifdef __cplusplus
-}
-#endif
+extern void START_resetHandler(void);
 
 
 #endif

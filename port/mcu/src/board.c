@@ -73,8 +73,8 @@ io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
 /* DMA */
 dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 {
-  {PERIPH_DMA_1, DMA1, DMA1_Stream0_IRQn},
-  {PERIPH_DMA_1, DMA1, DMA1_Stream6_IRQn},
+  {PERIPH_DMA_1, DMA1_Stream0, DMA1_Stream0_IRQn},
+  {PERIPH_DMA_1, DMA1_Stream6, DMA1_Stream6_IRQn},
 };
 
 

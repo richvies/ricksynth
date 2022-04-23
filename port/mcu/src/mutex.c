@@ -27,24 +27,22 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __HW_H
-#define __HW_H
+#include "mutex.h"
+
+#include "mcu.h"
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+bool MUT_take(mutex_t m)
+{
+  bool ret = false;
 
+  __disable_irq();
+  if (false == m)
+  {
+    ret = true;
+    m = true;
+  }
+  __enable_irq();
 
-extern void HW_initEarly(void);
-extern void HW_init(void);
-extern void HW_reset(void);
-extern void HW_nop(void);
-
-
-#ifdef __cplusplus
+  return ret;
 }
-#endif
-
-
-#endif

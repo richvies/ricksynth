@@ -28,7 +28,6 @@ SOFTWARE.
 
 
 #include "common.h"
-#include "_hw.h"
 #include "io.h"
 #include "tim.h"
 

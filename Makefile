@@ -86,8 +86,6 @@ BIN_DIR   = bin/
 
 MCU_INCLUDES = -I$(CURDIR)/mcu
 export MCU_INCLUDES
-MCU_BOARD		= $(CURDIR)/mcu/board.c
-export MCU_BOARD
 export config
 
 include port/mcu/makefile.inc
@@ -120,9 +118,6 @@ SOURCE_DIR = \
 
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
-
-C_SOURCES += \
-	mcu/_startup.c
 
 C_INCLUDES = \
   -I./ \
@@ -226,11 +221,11 @@ erase:
 # File build recipes
 #############################################################
 
-%.a: phony
+build_libs: phony
 	@echo
 	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo;)
 
-$(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
+$(BIN_DIR)$(TARGET).elf: build_libs $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	@echo 'Make arguments:'
 	@echo ----------------
