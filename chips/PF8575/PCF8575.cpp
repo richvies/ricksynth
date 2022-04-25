@@ -36,6 +36,9 @@ PCF8575::PCF8575(I2C_ch_e ch, uint8_t addr)
   _i2c_xfer_info.addr = addr;
   _i2c_xfer_info.cb   = NULL;
   _copy               = 0;
+  _tmp                = 0;
+  _readCb             = NULL;
+  _pin                = 0xff;
 }
 
 bool PCF8575::init(void)
