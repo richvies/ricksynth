@@ -110,7 +110,7 @@ SOURCE_DIR = \
   backbone/peripheral \
   backbone/system \
   backbone/util \
-	chips/PF8575 \
+	chips/PCF8575 \
   modifiers \
   ui \
   voices \
@@ -128,6 +128,7 @@ C_INCLUDES = \
   -I./backbone/system \
   -I./backbone/util \
   -I./config \
+  -I./chips/PCF8575 \
   -I./mcu \
   -I./modifiers \
   -I./port \

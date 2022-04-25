@@ -30,11 +30,16 @@ SOFTWARE.
 #include "common.h"
 #include "io.h"
 #include "tim.h"
+#include "PCF8575.hpp"
 
 
 int main()
 {
   IO_cfg_t cfg;
+  PCF8575 io_exp(I2C_CH_1, 0x40);
+  uint16_t val = 1;
+  // io_exp.init();
+  // io_exp.write16(&val);
 
   IO_init();
 
@@ -47,6 +52,7 @@ int main()
   while(1)
   {
     IO_toggle(IO_pin_builtin_led);
+    // io_exp.rotateRight(1);
     TIM_delayMs(100);
   }
 

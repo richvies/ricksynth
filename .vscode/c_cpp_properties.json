@@ -9,6 +9,8 @@
             "includePath": [
                 "${workspaceFolder}/app/**",
                 "${workspaceFolder}/backbone/**",
+                "${workspaceFolder}/chips/**",
+                "${workspaceFolder}/chips/PCF8575",
                 "${workspaceFolder}/config/**",
                 "${workspaceFolder}/mcu/**",
                 "${workspaceFolder}/modifiers/**",
@@ -21,6 +23,7 @@
                     "${workspaceFolder}/app",
                     "${workspaceFolder}/backbone",
                     "${workspaceFolder}/config",
+                    "${workspaceFolder}/chips",
                     "${workspaceFolder}/mcu",
                     "${workspaceFolder}/modifiers",
                     "${workspaceFolder}/port",
