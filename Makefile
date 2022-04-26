@@ -241,6 +241,7 @@ $(BIN_DIR)$(TARGET).elf: build_libs $(OBJS) $(BUILD_DIR)link.arg
 	@echo Linking target: $(TARGET).elf
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
+	$(NO_ECHO) cp $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/firmware.elf
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)

@@ -55,6 +55,25 @@ static const uint32_t size_to_hal[DMA_DATA_SIZE_NUM_OF] =
   DMA_PDATAALIGN_HALFWORD,
   DMA_PDATAALIGN_WORD,
 };
+static const uint32_t ch_to_dma_ch[DMA_NUM_OF_CH] =
+{
+  DMA_CHANNEL_0,
+  DMA_CHANNEL_1,
+  DMA_CHANNEL_2,
+  DMA_CHANNEL_3,
+  DMA_CHANNEL_4,
+  DMA_CHANNEL_5,
+  DMA_CHANNEL_6,
+  DMA_CHANNEL_7,
+};
+static const uint32_t priority_to_dma_priority[PRIORITY_NUM_OF] =
+{
+  PRIORITY_VERY_HIGH,
+  PRIORITY_HIGH,
+  PRIORITY_MEDIUM,
+  PRIORITY_LOW,
+  PRIORITY_VERY_LOW,
+};
 
 
 static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch);
@@ -85,13 +104,29 @@ bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
   /* configure peripheral */
   configureHal(h, cfg);
 
+  /* enable clock and irq */
+  CLK_periphEnable(h->hw->periph);
+
   if(HAL_OK == HAL_DMA_Init(&h->hal))
   {
     h->init = true;
     ret = true;
   }
 
+  IRQ_config(h->hw->irq_num, h->irq_priority);
+  IRQ_enable(h->hw->irq_num);
+
   return ret;
+}
+
+void* DMA_getHandle(DMA_stream_e stream)
+{
+  if (stream >= DMA_NUM_OF_STREAM)
+  {
+    return NULL;
+  }
+
+  return &(handles[stream].hal);
 }
 
 bool DMA_deinit(DMA_stream_e stream)
@@ -110,6 +145,9 @@ bool DMA_deinit(DMA_stream_e stream)
   {
     h->init = false;
     ret = true;
+
+    /* disable irq but leave clock running for other streams */
+    IRQ_disable(h->hw->irq_num);
   }
 
   return ret;
@@ -140,46 +178,24 @@ static void configureHal(dma_handle_t *h, DMA_cfg_t *cfg)
   h->hal.Parent   = cfg->parent_handle;
   h->irq_priority = cfg->priority;
 
-  h->hal.Init.Channel = cfg->channel;
+  h->hal.Init.Channel = ch_to_dma_ch[cfg->channel];
   h->hal.Init.Direction = dir_to_hal[cfg->dir];
   h->hal.Init.PeriphInc = cfg->inc_periph_addr ? DMA_PINC_ENABLE : DMA_PINC_DISABLE;
   h->hal.Init.MemInc = cfg->inc_mem_addr ? DMA_MINC_ENABLE : DMA_MINC_DISABLE;
   h->hal.Init.PeriphDataAlignment = size_to_hal[cfg->periph_data_size];
   h->hal.Init.MemDataAlignment = size_to_hal[cfg->mem_data_size];
   h->hal.Init.Mode = cfg->circular_mode ? DMA_CIRCULAR : DMA_NORMAL;
-  h->hal.Init.Priority = cfg->priority;
+  h->hal.Init.Priority = priority_to_dma_priority[cfg->priority];
   h->hal.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 }
 
 
-void HAL_DMA_MspInit(DMA_HandleTypeDef *hdma)
+void DMA1_Stream0_IRQHandler( void )
 {
-  DMA_stream_e stream;
-  dma_handle_t *h;
-
-  if (false == streamFromHal(hdma, &stream))
-  {
-    return;
-  }
-
-  h = &handles[stream];
-
-  CLK_periphEnable(h->hw->periph);
-  IRQ_config(h->hw->irq_num, h->irq_priority);
+  HAL_DMA_IRQHandler(&handles[DMA_1_STREAM_0].hal);
 }
 
-void HAL_DMA_MspDeInit(DMA_HandleTypeDef *hdma)
+void DMA1_Stream6_IRQHandler( void )
 {
-  DMA_stream_e stream;
-  dma_handle_t *h;
-
-  if (false == streamFromHal(hdma, &stream))
-  {
-    return;
-  }
-
-  h  = &handles[stream];
-
-  IRQ_disable(h->hw->irq_num);
-  CLK_periphReset(h->hw->periph);
+  HAL_DMA_IRQHandler(&handles[DMA_1_STREAM_6].hal);
 }

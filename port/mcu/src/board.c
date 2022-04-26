@@ -35,10 +35,10 @@ SOFTWARE.
 #define I2C_1_SCL             PORT_PIN_TO_IO(IO_PORT_B, 6)
 #define I2C_1_SDA             PORT_PIN_TO_IO(IO_PORT_B, 7)
 #define I2C_1_PRIORITY        PRIORITY_MEDIUM
-#define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
-#define I2C_1_TX_DMA_CH       DMA_CH_1
 #define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
 #define I2C_1_RX_DMA_CH       DMA_CH_1
+#define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
+#define I2C_1_TX_DMA_CH       DMA_CH_1
 
 #define CHIP_SPI_NSS_PIN      PORT_PIN_TO_IO(IO_PORT_A, 13)
 #define CHIP_IRQ_IO           PORT_PIN_TO_IO(IO_PORT_A, 14)
@@ -73,6 +73,9 @@ io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
 /* DMA */
 dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 {
+  /* DMA_STREAM_NONE: NULL stream to signify not using dma */
+  {0, NULL, 0},
+
   {PERIPH_DMA_1, DMA1_Stream0, DMA1_Stream0_IRQn},
   {PERIPH_DMA_1, DMA1_Stream6, DMA1_Stream6_IRQn},
 };

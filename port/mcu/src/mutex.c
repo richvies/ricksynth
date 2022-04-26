@@ -32,15 +32,15 @@ SOFTWARE.
 #include "mcu.h"
 
 
-bool MUT_take(mutex_t m)
+bool MUT_take(mutex_t *m)
 {
   bool ret = false;
 
   __disable_irq();
-  if (false == m)
+  if (false == *m)
   {
     ret = true;
-    m = true;
+    *m = true;
   }
   __enable_irq();
 

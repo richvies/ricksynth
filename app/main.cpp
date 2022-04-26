@@ -37,11 +37,9 @@ int main()
 {
   IO_cfg_t cfg;
   PCF8575 io_exp(I2C_CH_1, 0x40);
-  uint16_t val = 1;
-  // io_exp.init();
-  // io_exp.write16(&val);
-
   IO_init();
+
+  io_exp.init();
 
   cfg.dir = IO_DIR_OUT_PP;
   cfg.mode = IO_MODE_GPIO;
@@ -52,7 +50,7 @@ int main()
   while(1)
   {
     IO_toggle(IO_pin_builtin_led);
-    // io_exp.rotateRight(1);
+    io_exp.rotateRight(1);
     TIM_delayMs(100);
   }
 

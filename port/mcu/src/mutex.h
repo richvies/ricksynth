@@ -41,7 +41,7 @@ SOFTWARE.
 typedef bool mutex_t;
 
 
-extern bool MUT_take(mutex_t m);
+extern bool MUT_take(mutex_t *m);
 
 
 #endif

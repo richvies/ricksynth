@@ -67,6 +67,7 @@ typedef struct
 
 
 bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg);
+void* DMA_getHandle(DMA_stream_e stream);
 bool DMA_deinit(DMA_stream_e stream);
 
 

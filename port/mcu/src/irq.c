@@ -30,9 +30,18 @@ SOFTWARE.
 #include "irq.h"
 
 
+static uint8_t const irq_to_nvic[PRIORITY_NUM_OF] =
+{
+  1,
+  4,
+  7,
+  11,
+  15,
+};
+
 void IRQ_config(irq_num_e irq, irq_priority_e priority)
 {
-  HAL_NVIC_SetPriority(irq, 0, priority);
+  HAL_NVIC_SetPriority(irq, 0, irq_to_nvic[priority]);
 }
 
 void IRQ_enable(irq_num_e irq)

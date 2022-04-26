@@ -43,7 +43,7 @@ class PCF8575
     bool init(void);
 
     bool read16(uint16_t *value, PCF8575_read_cb cb);
-    bool write16(uint16_t *value);
+    bool write16(uint16_t value);
     bool toggle16(uint16_t mask);
 
     bool read(uint8_t pin, uint16_t *value, PCF8575_read_cb cb);

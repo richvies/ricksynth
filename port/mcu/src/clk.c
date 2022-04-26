@@ -28,6 +28,7 @@ SOFTWARE.
 
 
 #include "clk.h"
+#include "tim.h"
 
 
 /* variables required for stm32 hal library - see mal/system_stm32f4xx.h */
@@ -51,7 +52,8 @@ void CLK_init(void)
 
 void CLK_update(void)
 {
-  uint32_t tmp = 0, pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
+  float pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
+  uint32_t tmp = 0;
 
   /* Get SYSCLK source -------------------------------------------------------*/
   tmp = RCC->CFGR & RCC_CFGR_SWS;
@@ -75,16 +77,16 @@ void CLK_update(void)
       if (pllsource != 0)
       {
         /* HSE used as PLL clock source */
-        pllvco = (HSE_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+        pllvco = ((float)HSE_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
       }
       else
       {
         /* HSI used as PLL clock source */
-        pllvco = (HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+        pllvco = ((float)HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
       }
 
       pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >>16) + 1 ) *2;
-      SystemCoreClock = pllvco/pllp;
+      SystemCoreClock = (float)pllvco/pllp;
       break;
     default:
       SystemCoreClock = HSI_VALUE;
@@ -120,7 +122,7 @@ void CLK_periphEnable(periph_e periph)
       break;
 
     case PERIPH_DMA_1:
-        __HAL_RCC_DMA1_CLK_ENABLE();
+      __HAL_RCC_DMA1_CLK_ENABLE();
       break;
 
     case PERIPH_DMA_2:
@@ -140,20 +142,18 @@ void CLK_periphReset(periph_e periph)
   switch (periph)
   {
     case PERIPH_GPIO_A:
-      __HAL_RCC_GPIOA_CLK_ENABLE();
       break;
 
     case PERIPH_GPIO_B:
-      __HAL_RCC_GPIOB_CLK_ENABLE();
       break;
 
     case PERIPH_GPIO_C:
-      __HAL_RCC_GPIOC_CLK_ENABLE();
       break;
 
     case PERIPH_I2C_1:
-      __HAL_RCC_I2C3_FORCE_RESET();
-      __HAL_RCC_I2C3_RELEASE_RESET();
+      __HAL_RCC_I2C1_FORCE_RESET();
+      TIM_delayMs(100);
+      __HAL_RCC_I2C1_RELEASE_RESET();
       break;
 
     default:
@@ -193,14 +193,14 @@ static void configClocks(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;  /* 25 MHz */
-  RCC_OscInitStruct.PLL.PLLM = 15;                      /* 25 / 25 = 1 */
+  RCC_OscInitStruct.PLL.PLLM = 25;                      /* 25 / 25 = 1 */
 
   /* PLL1  */
-  RCC_OscInitStruct.PLL.PLLN = 144;                     /* 1 * 336 = 336 */
+  RCC_OscInitStruct.PLL.PLLN = 336;                     /* 1 * 336 = 336 */
   /* Periph Clk 84 MHz */
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;           /* 336 / 4 = 84 */
   /* USB clock 48 MHz */
-  RCC_OscInitStruct.PLL.PLLQ = 4;                       /* 336 / 7 = 48 */
+  RCC_OscInitStruct.PLL.PLLQ = 7;                       /* 336 / 7 = 48 */
 
   if (HAL_OK != HAL_RCC_OscConfig(&RCC_OscInitStruct))
   {

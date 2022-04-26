@@ -48,15 +48,15 @@ SOFTWARE.
 
 
 typedef IRQn_Type irq_num_e;
-typedef bool mutex_t;
 
 typedef enum
 {
-  PRIORITY_VERY_HIGH  = 1,
-  PRIORITY_HIGH       = 4,
-  PRIORITY_MEDIUM     = 7,
-  PRIORITY_LOW        = 11,
-  PRIORITY_VERY_LOW   = 15,
+  PRIORITY_VERY_HIGH,
+  PRIORITY_HIGH,
+  PRIORITY_MEDIUM,
+  PRIORITY_LOW,
+  PRIORITY_VERY_LOW,
+  PRIORITY_NUM_OF,
 } irq_priority_e;
 
 

@@ -1,0 +1,5 @@
+device STM32F401CC
+si swd
+speed 4000
+erase
+exit

@@ -71,6 +71,7 @@
 			"vector": "c",
 			"cstdlib": "cpp",
 			"cmath": "cpp"
-		}
+		},
+		"cortex-debug.variableUseNaturalFormat": false
 	}
 }
