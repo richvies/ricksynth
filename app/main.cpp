@@ -50,7 +50,7 @@ int main()
   while(1)
   {
     IO_toggle(IO_pin_builtin_led);
-    io_exp.rotateRight(1);
+    io_exp.rotateRight(1, NULL);
     TIM_delayMs(100);
   }
 
