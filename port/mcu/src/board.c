@@ -40,6 +40,15 @@ SOFTWARE.
 #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
 #define I2C_1_TX_DMA_CH       DMA_CH_1
 
+#define SPI_1_MISO            PORT_PIN_TO_IO(IO_PORT_B, 6)
+#define SPI_1_MOSI            PORT_PIN_TO_IO(IO_PORT_B, 7)
+#define SPI_1_CLK             PORT_PIN_TO_IO(IO_PORT_B, 7)
+#define SPI_1_PRIORITY        PRIORITY_MEDIUM
+#define SPI_1_RX_DMA_STREAM   DMA_1_STREAM_0
+#define SPI_1_RX_DMA_CH       DMA_CH_1
+#define SPI_1_TX_DMA_STREAM   DMA_1_STREAM_6
+#define SPI_1_TX_DMA_CH       DMA_CH_1
+
 #define CHIP_SPI_NSS_PIN      PORT_PIN_TO_IO(IO_PORT_A, 13)
 #define CHIP_IRQ_IO           PORT_PIN_TO_IO(IO_PORT_A, 14)
 
@@ -97,5 +106,25 @@ i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
     I2C_1_TX_DMA_CH,
     I2C_1_RX_DMA_STREAM,
     I2C_1_RX_DMA_CH
+  },
+};
+
+
+/* SPI */
+spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH] =
+{
+  {
+    PERIPH_SPI_1,
+    SPI1,
+    SPI_1_MISO,
+    SPI_1_MOSI,
+    SPI_1_CLK,
+    {GPIO_AF5_SPI1},
+    SPI1_IRQn,
+    SPI_1_PRIORITY,
+    SPI_1_TX_DMA_STREAM,
+    SPI_1_TX_DMA_CH,
+    SPI_1_RX_DMA_STREAM,
+    SPI_1_RX_DMA_CH
   },
 };

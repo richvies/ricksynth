@@ -39,6 +39,7 @@ extern void CLK_update(void);
 extern void CLK_periphEnable(periph_e periph);
 extern void CLK_periphReset(periph_e periph);
 extern void CLK_periphResetAll(void);
+extern uint32_t CLK_getPeriphBaseClkHz(periph_e periph);
 
 
 #endif

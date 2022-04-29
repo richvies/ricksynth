@@ -42,6 +42,8 @@ const uint8_t  APBPrescTable[8] =
 
 
 static void configClocks(void);
+static uint32_t getApb1FreqHz(void);
+static uint32_t getApb2FreqHz(void);
 
 
 void CLK_init(void)
@@ -167,10 +169,22 @@ void CLK_periphResetAll(void)
   HAL_DeInit();
 }
 
-uint32_t CLK_getPeriphFreqHz(periph_e periph)
+uint32_t CLK_getPeriphBaseClkHz(periph_e periph)
 {
-  (void)periph;
-  return 0;
+  uint32_t ret = 0;
+
+  switch (periph)
+  {
+    case PERIPH_SPI_1:
+      ret = getApb2FreqHz();
+      break;
+
+    default:
+      PRINTF_WARN("%u unknown", periph);
+      break;
+  }
+
+  return ret;
 }
 
 
@@ -233,4 +247,14 @@ static void configClocks(void)
   {
     while (1);
   }
+}
+
+static uint32_t getApb1FreqHz(void)
+{
+  return SystemCoreClock >> APBPrescTable[((RCC->CFGR & RCC_CFGR_PPRE1) >> 4)];
+}
+
+static uint32_t getApb2FreqHz(void)
+{
+  return SystemCoreClock >> APBPrescTable[((RCC->CFGR & RCC_CFGR_PPRE2) >> 4)];
 }

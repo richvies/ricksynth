@@ -187,11 +187,11 @@ bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
   handles[ch].xfer = info;
   if (handles[ch].hw->dma_rx_stream)
   {
-    ret = writeDma(ch, info->addr, info->data, info->length);
+    ret = readDma(ch, info->addr, info->data, info->length);
   }
   else
   {
-    ret = writeIrq(ch, info->addr, info->data, info->length);
+    ret = readIrq(ch, info->addr, info->data, info->length);
   }
 
   if (false == ret)

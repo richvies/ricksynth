@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef __SPI_H
+#define __SPI_H
 
 
 #ifdef __cplusplus
@@ -36,108 +36,66 @@ SOFTWARE.
 #endif
 
 
-#include "stdint.h"
-#include "stdbool.h"
-#include "stdlib.h"
-#include "string.h"
+#include "board.h"
 
-
-// DBG_Printf(INFO_LVL, RAD_ID, x, ##__VA_ARGS__)
-#define PRINTF_VERB(x, ...)
-#define PRINTF_INFO(x, ...)
-#define PRINTF_WARN(x, ...)
-#define PRINTF_ERRO(x, ...)
-
-
-/* IO Pins */
-typedef uint16_t IO_num_e;
-
-extern IO_num_e const CHIP_spi_nss_pin;
-extern IO_num_e const IO_pin_builtin_led;
-
-/* IO External interrupt */
-typedef enum
-{
-  IO_EXT_IRQ_FIRST = 0,
-  IO_EXT_IRQ_1 = IO_EXT_IRQ_FIRST,
-  IO_NUM_OF_EXT_IRQ,
-} IO_ext_irq_e;
-
-
-/* DMA */
-typedef enum
-{
-  DMA_STREAM_NONE  = 0,
-  DMA_STREAM_FIRST = 1,
-  DMA_1_STREAM_0 = DMA_STREAM_FIRST,
-  DMA_1_STREAM_6,
-  DMA_NUM_OF_STREAM,
-} DMA_stream_e;
 
 typedef enum
 {
-  DMA_CH_FIRST = 0,
-  DMA_CH_0 = DMA_CH_FIRST,
-  DMA_CH_1,
-  DMA_CH_2,
-  DMA_CH_3,
-  DMA_CH_4,
-  DMA_CH_5,
-  DMA_CH_6,
-  DMA_CH_7,
-  DMA_NUM_OF_CH,
-} DMA_ch_e;
-
-
-/* I2C */
-typedef enum
-{
-  I2C_CH_FIRST = 0,
-  I2C_CH_1 = I2C_CH_FIRST,
-  I2C_NUM_OF_CH,
-} I2C_ch_e;
-
-
-/* SPI */
-typedef enum
-{
-  SPI_CH_FIRST = 0,
-  SPI_CH_1 = SPI_CH_FIRST,
-  SPI_NUM_OF_CH,
-} SPI_ch_e;
-
-
-/* Timers */
-typedef enum
-{
-  TIM_CH_1,
-  TIM_CH_2,
-  TIM_CH_3,
-  TIM_CH_4,
-  TIM_CH_5,
-  TIM_CH_9,
-  TIM_CH_10,
-  TIM_CH_11,
-  TIM_NUM_OF_CH,
-} TIM_ch_e;
+  SPI_MASTER_MODE,
+  SPI_SLAVE_MODE,
+  SPI_NUM_OF_MASTER_MODES,
+} SPI_master_mode_e;
 
 typedef enum
 {
-  TIM_SUB_CH_1,
-  TIM_SUB_CH_2,
-  TIM_SUB_CH_3,
-  TIM_SUB_CH_4,
-  TIM_NUM_OF_SUB_CH,
-} TIM_sub_ch_e;
+  SPI_CLK_POLARITY_IDLE_LOW,
+  SPI_CLK_POLARITY_IDLE_HIGH,
+  SPI_NUM_OF_CLK_POLARITY,
+} SPI_clk_polarity_e;
 
 typedef enum
 {
-  ALARM_CH_1,
-  ALARM_CH_2,
-  ALARM_CH_3,
-  ALARM_CH_4,
-  ALARM_NUM_OF_CH,
-} ALARM_ch_e;
+  SPI_CLK_PHASE_SAMPLE_FIRST_EDGE,
+  SPI_CLK_PHASE_SAMPLE_SECOND_EDGE,
+  SPI_NUM_OF_CLK_PHASES,
+} SPI_clk_phase_e;
+
+typedef enum
+{
+  SPI_BIT_ORDER_MSB_FIRST,
+  SPI_BIT_ORDER_LSB_FIRST,
+  SPI_NUM_OF_BIT_ORDER,
+} SPI_bit_order_e;
+
+
+typedef struct
+{
+  SPI_master_mode_e   master_mode;
+  SPI_clk_polarity_e  clk_polarity;
+  SPI_clk_phase_e     clk_phase;
+  SPI_bit_order_e     bit_order;
+  uint32_t            clk_speed_hz;
+} SPI_cfg_t;
+
+typedef void (*SPI_xfer_cb)(bool error, void *ctx);
+
+typedef struct
+{
+  IO_num_e    cs_pin;
+  uint8_t*    tx_data;
+  uint8_t*    rx_data;
+  uint16_t    length;
+  SPI_xfer_cb cb;
+  void*       ctx;
+} SPI_xfer_info_t;
+
+
+extern bool SPI_init      (SPI_ch_e ch, SPI_cfg_t *cfg);
+extern bool SPI_deInit    (SPI_ch_e ch);
+extern bool SPI_isBusy    (SPI_ch_e ch);
+extern bool SPI_write     (SPI_ch_e ch, SPI_xfer_info_t *info);
+extern bool SPI_read      (SPI_ch_e ch, SPI_xfer_info_t *info);
+extern bool SPI_writeRead (SPI_ch_e ch, SPI_xfer_info_t *info);
 
 
 #ifdef __cplusplus

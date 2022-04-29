@@ -68,6 +68,10 @@ typedef enum
   PERIPH_I2C_1,
   PERIPH_I2C_2,
   PERIPH_I2C_3,
+  PERIPH_SPI_1,
+  PERIPH_SPI_2,
+  PERIPH_SPI_3,
+  PERIPH_SPI_4,
   PERIPH_DMA_1,
   PERIPH_DMA_2,
 } periph_e;
@@ -136,6 +140,26 @@ typedef struct
 } i2c_hw_info_t;
 
 extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];
+
+
+/* SPI */
+typedef struct
+{
+  periph_e              const periph;
+  SPI_TypeDef *         const inst;
+  IO_num_e              const miso_pin;
+  IO_num_e              const mosi_pin;
+  IO_num_e              const sck_pin;
+  io_cfg_extend_t       const io_cfg_ext;
+  irq_num_e             const irq_num;
+  irq_priority_e        const irq_priority;
+  DMA_stream_e          const dma_tx_stream;
+  DMA_ch_e              const dma_tx_ch;
+  DMA_stream_e          const dma_rx_stream;
+  DMA_ch_e              const dma_rx_ch;
+} spi_hw_info_t;
+
+extern spi_hw_info_t const spi_hw_info[I2C_NUM_OF_CH];
 
 /* Timer */
 typedef struct
