@@ -28,32 +28,9 @@ SOFTWARE.
 
 
 #include "board_test.h"
-#include "common.h"
-#include "io.h"
-#include "tim.h"
-#include "PCF8575.hpp"
+#include "mcu.h"
 
-
-int main()
+void BOARD_test(void)
 {
-  IO_cfg_t cfg;
-  PCF8575 io_exp(I2C_CH_1, 0x40);
-  IO_init();
 
-  io_exp.init();
-
-  cfg.dir = IO_DIR_OUT_PP;
-  cfg.mode = IO_MODE_GPIO;
-  cfg.pullup = IO_PULL_NONE;
-  cfg.speed = IO_SPEED_FAST;
-  IO_configure(IO_pin_builtin_led, &cfg);
-
-  while(1)
-  {
-    IO_toggle(IO_pin_builtin_led);
-    io_exp.rotateRight(1, NULL);
-    TIM_delayMs(100);
-  }
-
-  return 0;
 }
