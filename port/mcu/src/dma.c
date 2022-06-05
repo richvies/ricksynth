@@ -199,3 +199,13 @@ void DMA1_Stream6_IRQHandler( void )
 {
   HAL_DMA_IRQHandler(&handles[DMA_1_STREAM_6].hal);
 }
+
+void DMA2_Stream0_IRQHandler( void )
+{
+  HAL_DMA_IRQHandler(&handles[DMA_2_STREAM_0].hal);
+}
+
+void DMA2_Stream3_IRQHandler( void )
+{
+  HAL_DMA_IRQHandler(&handles[DMA_2_STREAM_3].hal);
+}

@@ -77,7 +77,7 @@ typedef struct
   uint32_t            clk_speed_hz;
 } SPI_cfg_t;
 
-typedef void (*SPI_xfer_cb)(bool error, void *ctx);
+typedef void (*SPI_xfer_cb)(bool error, bool done, void *ctx);
 
 typedef struct
 {

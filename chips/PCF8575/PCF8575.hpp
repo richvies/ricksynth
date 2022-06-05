@@ -61,10 +61,10 @@ class PCF8575
     static void i2cReadCb(bool error, void *ctx);
     static void i2cWriteCb(bool error, void *ctx);
 
-    PCF8575_xfer_cb _xferCb;
-    uint16_t  _copy, _tmp;
-    uint8_t _pin;
     bool _busy;
+    uint8_t _pin;
+    uint16_t _write;
+    PCF8575_xfer_cb _xferCb;
 };
 
 #endif

@@ -19,7 +19,7 @@ endif
 LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
 
 # Toolchain commands
-TOOLCHAIN_BIN_PATH  := /usr/local/bin/
+TOOLCHAIN_BIN_PATH  := /Users/admin/Desktop/projects/gcc-arm-none-eabi-10.3-2021.10/bin/
 TOOLCHAIN_PREFIX    := arm-none-eabi
 CPP                 := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-g++'
 CC                  := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-gcc'

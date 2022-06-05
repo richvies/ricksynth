@@ -27,38 +27,46 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "board_test.h"
-#include "common.h"
+#ifndef _TLC5928_H
+#define _TLC5928_H
+
+
 #include "io.h"
-#include "tim.h"
-#include "PCF8575.hpp"
-#include "TLC5928.hpp"
+#include "spi.h"
 
 
-int main()
+using TLC5928_xfer_cb = void(*)(bool error);
+
+
+class TLC5928
 {
-  IO_cfg_t cfg;
-  PCF8575 io_exp(I2C_CH_1, 0x40);
-  TLC5928 leds(SPI_CH_1, TLC5928_spi_nss_pin);
+  public:
+    TLC5928(SPI_ch_e ch, IO_num_e cs_pin);
 
-  IO_init();
+    bool init(void);
 
-  io_exp.init();
-  leds.init();
+    uint16_t getCopy16(void);
+    bool write16(uint16_t value, TLC5928_xfer_cb cb);
+    bool toggle16(uint16_t mask, TLC5928_xfer_cb cb);
 
-  cfg.dir = IO_DIR_OUT_PP;
-  cfg.mode = IO_MODE_GPIO;
-  cfg.pullup = IO_PULL_NONE;
-  cfg.speed = IO_SPEED_FAST;
-  IO_configure(IO_pin_builtin_led, &cfg);
+    bool getCopy(uint8_t pin);
+    bool write(uint8_t pin, bool high, TLC5928_xfer_cb cb);
+    bool toggle(uint8_t pin, TLC5928_xfer_cb cb);
 
-  while(1)
-  {
-    IO_toggle(IO_pin_builtin_led);
-    io_exp.rotateRight(1, NULL);
-    leds.rotateRight(1, NULL);
-    TIM_delayMs(100);
-  }
+    bool shiftRight(uint8_t n, TLC5928_xfer_cb cb);
+    bool shiftLeft(uint8_t n, TLC5928_xfer_cb cb);
+    bool rotateRight(uint8_t n, TLC5928_xfer_cb cb);
+    bool rotateLeft(uint8_t n, TLC5928_xfer_cb cb);
 
-  return 0;
-}
+  private:
+    SPI_ch_e        _spi_ch;
+    SPI_xfer_info_t _spi_xfer_info;
+    static void spiWriteCb(bool error, bool done, void *ctx);
+
+    TLC5928_xfer_cb _xferCb;
+    uint16_t  _copy, _tmp;
+    bool _busy;
+};
+
+
+#endif

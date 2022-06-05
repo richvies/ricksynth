@@ -40,25 +40,27 @@ SOFTWARE.
 #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
 #define I2C_1_TX_DMA_CH       DMA_CH_1
 
-#define SPI_1_MISO            PORT_PIN_TO_IO(IO_PORT_B, 6)
-#define SPI_1_MOSI            PORT_PIN_TO_IO(IO_PORT_B, 7)
-#define SPI_1_CLK             PORT_PIN_TO_IO(IO_PORT_B, 7)
+#define SPI_1_MOSI            PORT_PIN_TO_IO(IO_PORT_A, 7)
+#define SPI_1_MISO            PORT_PIN_TO_IO(IO_PORT_A, 6)
+#define SPI_1_CLK             PORT_PIN_TO_IO(IO_PORT_A, 5)
 #define SPI_1_PRIORITY        PRIORITY_MEDIUM
-#define SPI_1_RX_DMA_STREAM   DMA_1_STREAM_0
-#define SPI_1_RX_DMA_CH       DMA_CH_1
-#define SPI_1_TX_DMA_STREAM   DMA_1_STREAM_6
-#define SPI_1_TX_DMA_CH       DMA_CH_1
+#define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
+#define SPI_1_RX_DMA_CH       DMA_CH_3
+#define SPI_1_TX_DMA_STREAM   DMA_STREAM_NONE
+#define SPI_1_TX_DMA_CH       DMA_CH_3
 
-#define CHIP_SPI_NSS_PIN      PORT_PIN_TO_IO(IO_PORT_A, 13)
+#define CHIP_TLC5928_CS_PIN   PORT_PIN_TO_IO(IO_PORT_A, 12)
 #define CHIP_IRQ_IO           PORT_PIN_TO_IO(IO_PORT_A, 14)
 
 #define BUILTIN_LED           PORT_PIN_TO_IO(IO_PORT_C, 13)
 
 #define IO_EXT_1_PIN          CHIP_IRQ_IO
 
+#define ADC_1_DMA_STREAM      DMA_1_STREAM_0
+
 
 /* Link pins to devices */
-IO_num_e const CHIP_spi_nss_pin = CHIP_SPI_NSS_PIN;
+IO_num_e const TLC5928_spi_nss_pin = CHIP_TLC5928_CS_PIN;
 IO_num_e const IO_pin_builtin_led = BUILTIN_LED;
 
 /* IO Ports */
@@ -87,6 +89,8 @@ dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 
   {PERIPH_DMA_1, DMA1_Stream0, DMA1_Stream0_IRQn},
   {PERIPH_DMA_1, DMA1_Stream6, DMA1_Stream6_IRQn},
+  {PERIPH_DMA_2, DMA2_Stream0, DMA2_Stream0_IRQn},
+  {PERIPH_DMA_2, DMA2_Stream3, DMA2_Stream3_IRQn},
 };
 
 

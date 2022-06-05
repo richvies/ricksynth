@@ -52,8 +52,8 @@ static spi_handle_t handles[SPI_NUM_OF_CH] = {0};
 
 static const uint32_t master_mode_to_hal[SPI_NUM_OF_MASTER_MODES] =
 {
-  SPI_MODE_SLAVE,
   SPI_MODE_MASTER,
+  SPI_MODE_SLAVE,
 };
 static const uint32_t clk_polarity_to_hal[SPI_NUM_OF_CLK_POLARITY] =
 {
@@ -180,6 +180,11 @@ bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
     return false;
   }
 
+  if (info->cs_pin)
+  {
+    IO_clear(info->cs_pin);
+  }
+
   handles[ch].xfer = info;
   if (handles[ch].hw->dma_tx_stream)
   {
@@ -195,6 +200,12 @@ bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
     MUT_give(handles[ch].mutex)
   }
 
+  MUT_give(handles[ch].mutex)
+  if (info->cs_pin)
+  {
+    IO_set(info->cs_pin);
+  }
+
   return ret;
 }
 
@@ -206,6 +217,11 @@ bool SPI_read       (SPI_ch_e ch, SPI_xfer_info_t *info)
   ||  (false == MUT_take(&handles[ch].mutex)))
   {
     return false;
+  }
+
+  if (info->cs_pin)
+  {
+    IO_clear(info->cs_pin);
   }
 
   handles[ch].xfer = info;
@@ -236,6 +252,11 @@ bool SPI_writeRead  (SPI_ch_e ch, SPI_xfer_info_t *info)
     return false;
   }
 
+  if (info->cs_pin)
+  {
+    IO_clear(info->cs_pin);
+  }
+
   handles[ch].xfer = info;
   if (handles[ch].hw->dma_tx_stream && handles[ch].hw->dma_rx_stream)
   {
@@ -257,17 +278,17 @@ bool SPI_writeRead  (SPI_ch_e ch, SPI_xfer_info_t *info)
 
 static bool writeIrq      (SPI_ch_e ch, uint8_t *d, uint16_t l)
 {
-  return (HAL_OK == HAL_SPI_Transmit_IT(&handles[ch].hal, d, l));
+  return (HAL_OK == HAL_SPI_Transmit(&handles[ch].hal, d, l, 1000));
 }
 
 static bool readIrq       (SPI_ch_e ch, uint8_t *d, uint16_t l)
 {
-  return (HAL_OK == HAL_SPI_Receive_IT(&handles[ch].hal, d, l));
+  return (HAL_OK == HAL_SPI_Receive(&handles[ch].hal, d, l, 1000));
 }
 
 static bool writeReadIrq  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l)
 {
-  return (HAL_OK == HAL_SPI_TransmitReceive_IT(&handles[ch].hal, t, r, l));
+  return (HAL_OK == HAL_SPI_TransmitReceive(&handles[ch].hal, t, r, l, 1000));
 }
 
 static bool writeDma      (SPI_ch_e ch, uint8_t *d, uint16_t l)
@@ -439,7 +460,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 }
 
 
-static void irqHandler(periph_e periph, bool error)
+static void irqHandler(periph_e periph)
 {
   SPI_ch_e ch;
 
@@ -451,26 +472,26 @@ static void irqHandler(periph_e periph, bool error)
 
 void SPI1_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_1, false);
+  irqHandler(PERIPH_SPI_1);
 }
 
 void SPI2_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_2, false);
+  irqHandler(PERIPH_SPI_2);
 }
 
 void SPI3_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_3, false);
+  irqHandler(PERIPH_SPI_3);
 }
 
 void SPI4_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_4, false);
+  irqHandler(PERIPH_SPI_4);
 }
 
 
-static void callXferCb(SPI_HandleTypeDef *hspi, bool error)
+static void callXferCb(SPI_HandleTypeDef *hspi, bool error, bool done)
 {
   SPI_ch_e ch;
 
@@ -478,48 +499,56 @@ static void callXferCb(SPI_HandleTypeDef *hspi, bool error)
   {
     if (handles[ch].xfer->cb)
     {
-      handles[ch].xfer->cb(error, handles[ch].xfer->ctx);
+      handles[ch].xfer->cb(error, done, handles[ch].xfer->ctx);
     }
-    MUT_give(handles[ch].mutex);
+
+    if (done)
+    {
+      if (handles[ch].xfer->cs_pin)
+      {
+        IO_set(handles[ch].xfer->cs_pin);
+      }
+      MUT_give(handles[ch].mutex);
+    }
   }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, true);
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, true);
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, true);
 }
 
 void HAL_SPI_TxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, false);
 }
 
 void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, false);
 }
 
 void HAL_SPI_TxRxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false);
+  callXferCb(hspi, false, false);
 }
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, true);
+  callXferCb(hspi, true, true);
 }
 
 void HAL_SPI_AbortCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, true);
+  callXferCb(hspi, true, true);
 }

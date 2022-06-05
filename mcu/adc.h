@@ -27,38 +27,27 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "board_test.h"
-#include "common.h"
-#include "io.h"
-#include "tim.h"
-#include "PCF8575.hpp"
-#include "TLC5928.hpp"
+#ifndef __ADC_H
+#define __ADC_H
 
 
-int main()
-{
-  IO_cfg_t cfg;
-  PCF8575 io_exp(I2C_CH_1, 0x40);
-  TLC5928 leds(SPI_CH_1, TLC5928_spi_nss_pin);
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
-  IO_init();
 
-  io_exp.init();
-  leds.init();
+#include "board.h"
 
-  cfg.dir = IO_DIR_OUT_PP;
-  cfg.mode = IO_MODE_GPIO;
-  cfg.pullup = IO_PULL_NONE;
-  cfg.speed = IO_SPEED_FAST;
-  IO_configure(IO_pin_builtin_led, &cfg);
 
-  while(1)
-  {
-    IO_toggle(IO_pin_builtin_led);
-    io_exp.rotateRight(1, NULL);
-    leds.rotateRight(1, NULL);
-    TIM_delayMs(100);
-  }
+extern bool  ADC_init   (void);
+extern bool  ADC_deInit (void);
+extern bool  ADC_start  (void);
+extern bool  ADC_stop   (void);
 
-  return 0;
+
+#ifdef __cplusplus
 }
+#endif
+
+
+#endif

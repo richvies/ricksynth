@@ -35,10 +35,10 @@ PCF8575::PCF8575(I2C_ch_e ch, uint8_t addr)
   _i2c_ch             = ch;
   _i2c_xfer_info.addr = addr;
   _i2c_xfer_info.cb   = NULL;
-  _copy               = 0;
-  _tmp                = 0;
-  _xferCb             = NULL;
   _pin                = 0xff;
+  _write              = 0;
+  _xferCb             = NULL;
+  _busy               = true;
 }
 
 bool PCF8575::init(void)
@@ -52,10 +52,9 @@ bool PCF8575::init(void)
   cfg.own_address   = 0;
   cfg.stretch_mode  = I2C_STRETCH_MODE_DISABLE;
 
-  _busy = false;
-
   if (true == I2C_init(_i2c_ch, &cfg))
   {
+    _busy = false;
     while (false == write16(9, NULL));
     ret = true;
   }
@@ -95,11 +94,11 @@ bool PCF8575::write16(uint16_t value, PCF8575_xfer_cb cb)
   if (false == _busy)
   {
     _busy = true;
-    _tmp = value;
+    _write = value;
     _xferCb = cb;
 
     _i2c_xfer_info.length = 2;
-    _i2c_xfer_info.data   = (uint8_t*)&_tmp;
+    _i2c_xfer_info.data   = (uint8_t*)&_write;
     _i2c_xfer_info.cb     = i2cWriteCb;
     _i2c_xfer_info.ctx    = this;
 
@@ -115,8 +114,8 @@ bool PCF8575::write16(uint16_t value, PCF8575_xfer_cb cb)
 
 bool PCF8575::toggle16(uint16_t mask, PCF8575_xfer_cb cb)
 {
-  uint16_t v = _copy ^ mask;
-  return write16(v, cb);
+  uint16_t tmp = _write ^ mask;
+  return write16(tmp, cb);
 }
 
 
@@ -128,18 +127,18 @@ bool PCF8575::read(uint8_t pin, uint16_t *value, PCF8575_xfer_cb cb)
 
 bool PCF8575::write(uint8_t pin, bool high, PCF8575_xfer_cb cb)
 {
-  uint16_t v = _copy;
+  uint16_t tmp;
 
   if (high)
   {
-    _tmp |= (1 << pin);
+    tmp = _write | (1 << pin);
   }
   else
   {
-    _tmp &= ~(1 << pin);
+    tmp = _write & ~(1 << pin);
   }
 
-  return write16(v, cb);
+  return write16(tmp, cb);
 }
 
 bool PCF8575::toggle(uint8_t pin, PCF8575_xfer_cb cb)
@@ -150,21 +149,21 @@ bool PCF8575::toggle(uint8_t pin, PCF8575_xfer_cb cb)
 
 bool PCF8575::shiftRight(uint8_t n, PCF8575_xfer_cb cb)
 {
-  uint16_t v = _copy >> n;
-  return write16(v, cb);
+  uint16_t tmp = _write >> n;
+  return write16(tmp, cb);
 }
 
 bool PCF8575::shiftLeft(uint8_t n, PCF8575_xfer_cb cb)
 {
-  uint16_t v = _copy << n;
-  return write16(v, cb);
+  uint16_t tmp = _write << n;
+  return write16(tmp, cb);
 }
 
 bool PCF8575::rotateRight(uint8_t n, PCF8575_xfer_cb cb)
 {
-  n &= 15;
-  uint16_t v = (_copy >> n) | (_copy << (16 - n));
-  return write16(v, cb);
+  n &= 0xF;
+  uint16_t tmp = (_write >> n) | (_write << (16 - n));
+  return write16(tmp, cb);
 }
 
 bool PCF8575::rotateLeft(uint8_t n, PCF8575_xfer_cb cb)
@@ -178,10 +177,6 @@ void PCF8575::i2cWriteCb(bool error, void *ctx)
 {
   PCF8575 *t = (PCF8575*)ctx;
 
-  if (false == error)
-  {
-    t->_copy = *((uint16_t*)t->_i2c_xfer_info.data);
-  }
   t->_busy = false;
   if (t->_xferCb)
   {
@@ -191,18 +186,17 @@ void PCF8575::i2cWriteCb(bool error, void *ctx)
 
 void PCF8575::i2cReadCb(bool error, void *ctx)
 {
-  uint16_t value;
   PCF8575 *t = (PCF8575*)ctx;
+  uint16_t *val = (uint16_t*)t->_i2c_xfer_info.data;
 
+  /* get value of specified pin from entire 16 bit read */
   if ((0xff != t->_pin)
   &&  (false == error))
   {
-    /* get value of specified pin from entire 16 bit read */
-    value   = *((uint16_t*)t->_i2c_xfer_info.data);
-    t->_i2c_xfer_info.data[0] = value & (1 << t->_pin);
-
+    *val &= (1 << t->_pin);
     t->_pin = 0xff;
   }
+
   t->_busy = false;
   if (t->_xferCb)
   {

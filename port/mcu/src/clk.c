@@ -131,6 +131,14 @@ void CLK_periphEnable(periph_e periph)
       __HAL_RCC_DMA2_CLK_ENABLE();
       break;
 
+    case PERIPH_SPI_1:
+      __HAL_RCC_SPI1_CLK_ENABLE();
+      break;
+
+    case PERIPH_ADC_1:
+      __HAL_RCC_ADC1_CLK_ENABLE();
+      break;
+
     default:
       PRINTF_WARN("%u unknown", periph);
       break;
@@ -156,6 +164,12 @@ void CLK_periphReset(periph_e periph)
       __HAL_RCC_I2C1_FORCE_RESET();
       TIM_delayMs(100);
       __HAL_RCC_I2C1_RELEASE_RESET();
+      break;
+
+    case PERIPH_ADC_1:
+      __HAL_RCC_ADC_FORCE_RESET();
+      TIM_delayMs(100);
+      __HAL_RCC_ADC_RELEASE_RESET();
       break;
 
     default:

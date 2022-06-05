@@ -46,6 +46,8 @@ SOFTWARE.
 #define IO_NULL_PIN                 (0)
 #define IRQ_NUM_OF                  (85)
 
+#define ADC_NUM_OF_PERIPH           (1)
+
 
 typedef IRQn_Type irq_num_e;
 
@@ -74,6 +76,7 @@ typedef enum
   PERIPH_SPI_4,
   PERIPH_DMA_1,
   PERIPH_DMA_2,
+  PERIPH_ADC_1,
 } periph_e;
 
 
@@ -161,6 +164,7 @@ typedef struct
 
 extern spi_hw_info_t const spi_hw_info[I2C_NUM_OF_CH];
 
+
 /* Timer */
 typedef struct
 {
@@ -169,6 +173,28 @@ typedef struct
 } tim_hw_info_t;
 
 extern tim_hw_info_t const tim_hw_info[TIM_NUM_OF_CH];
+
+
+/* ADC */
+typedef struct
+{
+  IO_num_e            const io_pin;
+  uint32_t            const channel;
+} adc_ch_info_t;
+
+typedef struct
+{
+  periph_e        const periph;
+  ADC_TypeDef *   const inst;
+  irq_num_e       const irq_num;
+  irq_priority_e  const irq_priority;
+  DMA_stream_e    const dma_stream;
+  DMA_ch_e        const dma_ch;
+  adc_ch_info_t   const ch_info[ADC_NUM_OF_CH];
+} adc_hw_info_t;
+
+
+extern adc_hw_info_t const adc_hw_info[ADC_NUM_OF_PERIPH];
 
 
 #endif

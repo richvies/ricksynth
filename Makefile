@@ -111,6 +111,7 @@ SOURCE_DIR = \
   backbone/system \
   backbone/util \
 	chips/PCF8575 \
+	chips/TLC5928 \
   modifiers \
   ui \
   voices \
@@ -129,6 +130,7 @@ C_INCLUDES = \
   -I./backbone/util \
   -I./config \
   -I./chips/PCF8575 \
+  -I./chips/TLC5928 \
   -I./mcu \
   -I./modifiers \
   -I./port \

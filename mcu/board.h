@@ -52,7 +52,7 @@ SOFTWARE.
 /* IO Pins */
 typedef uint16_t IO_num_e;
 
-extern IO_num_e const CHIP_spi_nss_pin;
+extern IO_num_e const TLC5928_spi_nss_pin;
 extern IO_num_e const IO_pin_builtin_led;
 
 /* IO External interrupt */
@@ -71,6 +71,8 @@ typedef enum
   DMA_STREAM_FIRST = 1,
   DMA_1_STREAM_0 = DMA_STREAM_FIRST,
   DMA_1_STREAM_6,
+  DMA_2_STREAM_0,
+  DMA_2_STREAM_3,
   DMA_NUM_OF_STREAM,
 } DMA_stream_e;
 
@@ -110,7 +112,8 @@ typedef enum
 /* Timers */
 typedef enum
 {
-  TIM_CH_1,
+  TIM_CH_FIRST,
+  TIM_CH_1 = TIM_CH_FIRST,
   TIM_CH_2,
   TIM_CH_3,
   TIM_CH_4,
@@ -123,7 +126,8 @@ typedef enum
 
 typedef enum
 {
-  TIM_SUB_CH_1,
+  TIM_SUB_CH_FIRST,
+  TIM_SUB_CH_1 = TIM_SUB_CH_FIRST,
   TIM_SUB_CH_2,
   TIM_SUB_CH_3,
   TIM_SUB_CH_4,
@@ -132,12 +136,29 @@ typedef enum
 
 typedef enum
 {
-  ALARM_CH_1,
+  ALARM_CH_FIRST,
+  ALARM_CH_1 = ALARM_CH_FIRST,
   ALARM_CH_2,
   ALARM_CH_3,
   ALARM_CH_4,
   ALARM_NUM_OF_CH,
 } ALARM_ch_e;
+
+
+/* ADC */
+typedef enum
+{
+  ADC_CH_FIRST,
+  ADC_1_CH_1 = ADC_CH_FIRST,
+  ADC_1_CH_2,
+  ADC_1_CH_3,
+  ADC_1_CH_4,
+  ADC_1_CH_5,
+  ADC_1_CH_6,
+  ADC_1_CH_7,
+  ADC_1_CH_8,
+  ADC_NUM_OF_CH,
+} ADC_ch_e;
 
 
 #ifdef __cplusplus
