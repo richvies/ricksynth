@@ -29,8 +29,10 @@ SOFTWARE.
 
 #include "irq.h"
 
+#include "mcu_private.h"
 
-static uint8_t const irq_to_nvic[PRIORITY_NUM_OF] =
+
+static uint8_t const irq_to_nvic[priority_NUM_OF] =
 {
   1,
   4,
@@ -39,22 +41,22 @@ static uint8_t const irq_to_nvic[PRIORITY_NUM_OF] =
   15,
 };
 
-void IRQ_config(irq_num_e irq, irq_priority_e priority)
+void irq_config(irq_num_e irq, irq_priority_e priority)
 {
   HAL_NVIC_SetPriority(irq, 0, irq_to_nvic[priority]);
 }
 
-void IRQ_enable(irq_num_e irq)
+void irq_enable(irq_num_e irq)
 {
   HAL_NVIC_EnableIRQ(irq);
 }
 
-void IRQ_disable(irq_num_e irq)
+void irq_disable(irq_num_e irq)
 {
   HAL_NVIC_DisableIRQ(irq);
 }
 
-void IRQ_disableAll(void)
+void irq_disableAll(void)
 {
   irq_num_e irq;
 

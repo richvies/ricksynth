@@ -29,7 +29,8 @@ SOFTWARE.
 
 #include "i2c.h"
 
-#include "mcu.h"
+#include "mcu_private.h"
+
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
@@ -129,12 +130,12 @@ bool I2C_deInit (I2C_ch_e ch)
 
     if (h->hw->dma_rx_stream)
     {
-      DMA_deinit(h->hw->dma_rx_stream);
+      dma_deinit(h->hw->dma_rx_stream);
     }
 
     if (h->hw->dma_tx_stream)
     {
-      DMA_deinit(h->hw->dma_tx_stream);
+      dma_deinit(h->hw->dma_tx_stream);
     }
   }
 
@@ -276,7 +277,7 @@ static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
 static bool initDma(i2c_handle_t *h)
 {
   bool ret = true;
-  DMA_cfg_t dma_cfg;
+  dma_cfg_t dma_cfg;
 
   dma_cfg.priority          = h->hw->irq_priority;
   dma_cfg.parent_handle     = &h->hal;
@@ -290,16 +291,16 @@ static bool initDma(i2c_handle_t *h)
   {
     dma_cfg.dir = DMA_DIR_PERIPH_TO_MEM;
     dma_cfg.channel = h->hw->dma_rx_ch;
-    ret &= DMA_init(h->hw->dma_rx_stream, &dma_cfg);
-    h->hal.hdmarx = DMA_getHandle(h->hw->dma_rx_stream);
+    ret &= dma_init(h->hw->dma_rx_stream, &dma_cfg);
+    h->hal.hdmarx = dma_getHandle(h->hw->dma_rx_stream);
   }
 
   if (h->hw->dma_tx_stream)
   {
     dma_cfg.dir = DMA_DIR_MEM_TO_PERIPH;
     dma_cfg.channel = h->hw->dma_tx_ch;
-    ret &= DMA_init(h->hw->dma_tx_stream, &dma_cfg);
-    h->hal.hdmatx = DMA_getHandle(h->hw->dma_tx_stream);
+    ret &= dma_init(h->hw->dma_tx_stream, &dma_cfg);
+    h->hal.hdmatx = dma_getHandle(h->hw->dma_tx_stream);
   }
 
   return ret;
@@ -327,15 +328,15 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
   IO_configure(h->hw->sda_pin, &io_cfg);
   IO_configure(h->hw->scl_pin, &io_cfg);
 
-  CLK_periphEnable(h->hw->periph);
+  clk_periphEnable(h->hw->periph);
   HAL_I2C_ClearBusyFlagErrata_2_14_7(h);
 
   initDma(&handles[ch]);
 
-  IRQ_config(h->hw->event_irq_num, h->hw->irq_priority);
-  IRQ_config(h->hw->error_irq_num, h->hw->irq_priority);
-  IRQ_enable(h->hw->event_irq_num);
-  IRQ_enable(h->hw->error_irq_num);
+  irq_config(h->hw->event_irq_num, h->hw->irq_priority);
+  irq_config(h->hw->error_irq_num, h->hw->irq_priority);
+  irq_enable(h->hw->event_irq_num);
+  irq_enable(h->hw->error_irq_num);
 }
 
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
@@ -350,13 +351,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 
   h  = &handles[ch];
 
-  IRQ_disable(h->hw->event_irq_num);
-  IRQ_disable(h->hw->error_irq_num);
+  irq_disable(h->hw->event_irq_num);
+  irq_disable(h->hw->error_irq_num);
 
   IO_deinit(h->hw->sda_pin);
   IO_deinit(h->hw->scl_pin);
 
-  CLK_periphReset(h->hw->periph);
+  clk_periphReset(h->hw->periph);
 }
 
 
@@ -379,32 +380,32 @@ static void irqHandler(periph_e periph, bool error)
 
 void I2C1_EV_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_1, false);
+  irqHandler(periph_I2C_1, false);
 }
 
 void I2C1_ER_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_1, true);
+  irqHandler(periph_I2C_1, true);
 }
 
 void I2C2_EV_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_2, false);
+  irqHandler(periph_I2C_2, false);
 }
 
 void I2C2_ER_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_2, true);
+  irqHandler(periph_I2C_2, true);
 }
 
 void I2C3_EV_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_3, false);
+  irqHandler(periph_I2C_3, false);
 }
 
 void I2C3_ER_IRQHandler(void)
 {
-  irqHandler(PERIPH_I2C_3, true);
+  irqHandler(periph_I2C_3, true);
 }
 
 

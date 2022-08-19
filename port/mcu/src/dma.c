@@ -28,6 +28,9 @@ SOFTWARE.
 
 
 #include "dma.h"
+
+#include "mcu_private.h"
+
 #include "clk.h"
 #include "irq.h"
 
@@ -66,21 +69,21 @@ static const uint32_t ch_to_dma_ch[DMA_NUM_OF_CH] =
   DMA_CHANNEL_6,
   DMA_CHANNEL_7,
 };
-static const uint32_t priority_to_dma_priority[PRIORITY_NUM_OF] =
+static const uint32_t priority_to_dma_priority[priority_NUM_OF] =
 {
-  PRIORITY_VERY_HIGH,
-  PRIORITY_HIGH,
-  PRIORITY_MEDIUM,
-  PRIORITY_LOW,
-  PRIORITY_VERY_LOW,
+  priority_VERY_HIGH,
+  priority_HIGH,
+  priority_MEDIUM,
+  priority_LOW,
+  priority_VERY_LOW,
 };
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch);
-static void configureHal(dma_handle_t *h, DMA_cfg_t *cfg);
+static bool streamFromHal(DMA_HandleTypeDef *hdma, dma_stream_e *ch);
+static void configureHal(dma_handle_t *h, dma_cfg_t *cfg);
 
 
-bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
+bool dma_init(dma_stream_e stream, dma_cfg_t *cfg)
 {
   bool ret = false;
   dma_handle_t *h;
@@ -105,7 +108,7 @@ bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
   configureHal(h, cfg);
 
   /* enable clock and irq */
-  CLK_periphEnable(h->hw->periph);
+  clk_periphEnable(h->hw->periph);
 
   if(HAL_OK == HAL_DMA_Init(&h->hal))
   {
@@ -113,13 +116,13 @@ bool DMA_init(DMA_stream_e stream, DMA_cfg_t *cfg)
     ret = true;
   }
 
-  IRQ_config(h->hw->irq_num, h->irq_priority);
-  IRQ_enable(h->hw->irq_num);
+  irq_config(h->hw->irq_num, h->irq_priority);
+  irq_enable(h->hw->irq_num);
 
   return ret;
 }
 
-void* DMA_getHandle(DMA_stream_e stream)
+void* dma_getHandle(dma_stream_e stream)
 {
   if (stream >= DMA_NUM_OF_STREAM)
   {
@@ -129,7 +132,7 @@ void* DMA_getHandle(DMA_stream_e stream)
   return &(handles[stream].hal);
 }
 
-bool DMA_deinit(DMA_stream_e stream)
+bool dma_deinit(dma_stream_e stream)
 {
   bool ret = false;
   dma_handle_t *h;
@@ -147,17 +150,17 @@ bool DMA_deinit(DMA_stream_e stream)
     ret = true;
 
     /* disable irq but leave clock running for other streams */
-    IRQ_disable(h->hw->irq_num);
+    irq_disable(h->hw->irq_num);
   }
 
   return ret;
 }
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch)
+static bool streamFromHal(DMA_HandleTypeDef *hdma, dma_stream_e *ch)
 {
   bool ret = false;
-  DMA_stream_e i;
+  dma_stream_e i;
 
   for (i = DMA_STREAM_FIRST; i < DMA_NUM_OF_STREAM; i++)
   {
@@ -172,7 +175,7 @@ static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch)
   return ret;
 }
 
-static void configureHal(dma_handle_t *h, DMA_cfg_t *cfg)
+static void configureHal(dma_handle_t *h, dma_cfg_t *cfg)
 {
   h->hal.Instance = h->hw->inst;
   h->hal.Parent   = cfg->parent_handle;

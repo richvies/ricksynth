@@ -28,6 +28,9 @@ SOFTWARE.
 
 
 #include "clk.h"
+
+#include "mcu_private.h"
+
 #include "tim.h"
 
 
@@ -46,13 +49,13 @@ static uint32_t getApb1FreqHz(void);
 static uint32_t getApb2FreqHz(void);
 
 
-void CLK_init(void)
+void clk_init(void)
 {
   configClocks();
-  CLK_update();
+  clk_update();
 }
 
-void CLK_update(void)
+void clk_update(void)
 {
   float pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
   uint32_t tmp = 0;
@@ -101,41 +104,41 @@ void CLK_update(void)
   SystemCoreClock >>= tmp;
 }
 
-void CLK_periphEnable(periph_e periph)
+void clk_periphEnable(periph_e periph)
 {
   PRINTF_INFO("enable %u", periph);
 
   switch (periph)
   {
-    case PERIPH_GPIO_A:
+    case periph_GPIO_A:
       __HAL_RCC_GPIOA_CLK_ENABLE();
       break;
 
-    case PERIPH_GPIO_B:
+    case periph_GPIO_B:
       __HAL_RCC_GPIOB_CLK_ENABLE();
       break;
 
-    case PERIPH_GPIO_C:
+    case periph_GPIO_C:
       __HAL_RCC_GPIOC_CLK_ENABLE();
       break;
 
-    case PERIPH_I2C_1:
+    case periph_I2C_1:
       __HAL_RCC_I2C1_CLK_ENABLE();
       break;
 
-    case PERIPH_DMA_1:
+    case periph_DMA_1:
       __HAL_RCC_DMA1_CLK_ENABLE();
       break;
 
-    case PERIPH_DMA_2:
+    case periph_DMA_2:
       __HAL_RCC_DMA2_CLK_ENABLE();
       break;
 
-    case PERIPH_SPI_1:
+    case periph_SPI_1:
       __HAL_RCC_SPI1_CLK_ENABLE();
       break;
 
-    case PERIPH_ADC_1:
+    case periph_ADC_1:
       __HAL_RCC_ADC1_CLK_ENABLE();
       break;
 
@@ -145,28 +148,28 @@ void CLK_periphEnable(periph_e periph)
   }
 }
 
-void CLK_periphReset(periph_e periph)
+void clk_periphReset(periph_e periph)
 {
   PRINTF_INFO("reset %u", periph);
 
   switch (periph)
   {
-    case PERIPH_GPIO_A:
+    case periph_GPIO_A:
       break;
 
-    case PERIPH_GPIO_B:
+    case periph_GPIO_B:
       break;
 
-    case PERIPH_GPIO_C:
+    case periph_GPIO_C:
       break;
 
-    case PERIPH_I2C_1:
+    case periph_I2C_1:
       __HAL_RCC_I2C1_FORCE_RESET();
       TIM_delayMs(100);
       __HAL_RCC_I2C1_RELEASE_RESET();
       break;
 
-    case PERIPH_ADC_1:
+    case periph_ADC_1:
       __HAL_RCC_ADC_FORCE_RESET();
       TIM_delayMs(100);
       __HAL_RCC_ADC_RELEASE_RESET();
@@ -178,18 +181,18 @@ void CLK_periphReset(periph_e periph)
   }
 }
 
-void CLK_periphResetAll(void)
+void clk_periphResetAll(void)
 {
   HAL_DeInit();
 }
 
-uint32_t CLK_getPeriphBaseClkHz(periph_e periph)
+uint32_t clk_getPeriphBaseClkHz(periph_e periph)
 {
   uint32_t ret = 0;
 
   switch (periph)
   {
-    case PERIPH_SPI_1:
+    case periph_SPI_1:
       ret = getApb2FreqHz();
       break;
 

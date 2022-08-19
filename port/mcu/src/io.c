@@ -29,8 +29,9 @@ SOFTWARE.
 
 #include "io.h"
 
+#include "mcu_private.h"
+
 #include "clk.h"
-#include "mcu.h"
 #include "irq.h"
 
 
@@ -91,7 +92,7 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
 {
   GPIO_InitTypeDef init;
 
-  CLK_periphEnable(io_ports_hw_info[IO_TO_PORT(num)].periph);
+  clk_periphEnable(io_ports_hw_info[IO_TO_PORT(num)].periph);
 
   init.Pin   = IO_TO_PIN(num);
   init.Pull  = pullup_to_hal[cfg->pullup];
@@ -149,8 +150,8 @@ bool IO_enableExtIrq(IO_num_e num)
   if (true == ioToExt(num, &ext_irq))
   {
     info = &ext_irq_info[ext_irq];
-    IRQ_config(info->hw->irq_num, info->hw->priority);
-    IRQ_enable(info->hw->irq_num);
+    irq_config(info->hw->irq_num, info->hw->priority);
+    irq_enable(info->hw->irq_num);
     ret = true;
   }
 

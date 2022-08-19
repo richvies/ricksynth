@@ -29,13 +29,13 @@ SOFTWARE.
 
 #include "_hw.h"
 
-#include "mcu.h"
+#include "mcu_private.h"
 #include "_vectors.h"
 #include "clk.h"
 #include "tim.h"
 
 
-void HW_initEarly(void)
+void hw_initEarly(void)
 {
   /* FPU settings */
   SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));
@@ -63,7 +63,7 @@ void HW_initEarly(void)
   SCB->VTOR = (uint32_t)&_vectors;
 }
 
-void HW_init(void)
+void hw_init(void)
 {
   __HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
   __HAL_FLASH_DATA_CACHE_ENABLE();
@@ -72,16 +72,16 @@ void HW_init(void)
   /* Allow irq to preempt */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
-  CLK_init();
+  clk_init();
   TIM_initSystemTimer();
 }
 
-void HW_reset(void)
+void hw_reset(void)
 {
   NVIC_SystemReset();
 }
 
-void HW_nop(void)
+void hw_nop(void)
 {
   __NOP();
 }

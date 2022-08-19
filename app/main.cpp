@@ -39,7 +39,7 @@ int main()
 {
   IO_cfg_t cfg;
   PCF8575 io_exp(I2C_CH_1, 0x40);
-  TLC5928 leds(SPI_CH_1, TLC5928_spi_nss_pin);
+  TLC5928 leds(SPI_CH_1, TLC5928_SPI_NSS_PIN);
 
   IO_init();
 
@@ -50,11 +50,11 @@ int main()
   cfg.mode = IO_MODE_GPIO;
   cfg.pullup = IO_PULL_NONE;
   cfg.speed = IO_SPEED_FAST;
-  IO_configure(IO_pin_builtin_led, &cfg);
+  IO_configure(BUILTIN_LED_PIN, &cfg);
 
   while(1)
   {
-    IO_toggle(IO_pin_builtin_led);
+    IO_toggle(BUILTIN_LED_PIN);
     io_exp.rotateRight(1, NULL);
     leds.rotateRight(1, NULL);
     TIM_delayMs(100);

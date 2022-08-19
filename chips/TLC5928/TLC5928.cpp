@@ -29,6 +29,8 @@ SOFTWARE.
 
 #include "TLC5928.hpp"
 
+#include "stddef.h"
+
 
 TLC5928::TLC5928(SPI_ch_e ch, IO_num_e cs_pin)
 {

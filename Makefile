@@ -133,8 +133,7 @@ C_INCLUDES = \
   -I./chips/TLC5928 \
   -I./mcu \
   -I./modifiers \
-  -I./port \
-  -I./port/mcu \
+  -I./port/mcu/include \
   -I./ui \
   -I./voices \
   -I./voices/generators
@@ -163,7 +162,8 @@ LD_FLAGS = \
   $(MCU_LD_FLAGS) \
   -Wl,--start-group $(LIBS_INCLUDE) -Wl,--end-group\
   -Wl,-Map=$(BIN_DIR)$(TARGET).map,--cref \
-  -Wl,--gc-sections
+  -Wl,--gc-sections \
+  -Wl,--print-memory-usage
 
 #############################################################
 # Top builds recipes
@@ -180,16 +180,12 @@ ifndef TOOLCHAIN_PREFIX
 endif
 
 all:  check \
-		  $(BIN_DIR)$(TARGET).elf \
-		  $(BIN_DIR)$(TARGET).hex \
-	    $(BIN_DIR)$(TARGET).bin \
-	    $(BIN_DIR)$(TARGET).lss \
-			$(BIN_DIR)$(TARGET).list
+	$(BIN_DIR)$(TARGET).elf \
+	$(BIN_DIR)$(TARGET).hex \
+	$(BIN_DIR)$(TARGET).bin \
+	$(BIN_DIR)$(TARGET).lss \
+	$(BIN_DIR)$(TARGET).list
 	$(PYTHON) finalize.py $(BIN_DIR)$(TARGET).bin
-	@echo
-	@echo Size:
-	@echo -----
-	$(NO_ECHO)$(SIZE) $(BIN_DIR)$(TARGET).elf
 	@echo
 
 help:
@@ -241,9 +237,11 @@ $(BIN_DIR)$(TARGET).elf: build_libs $(OBJS) $(BUILD_DIR)link.arg
 	@echo ----------------
 	@echo
 	@echo Linking target: $(TARGET).elf
+	@echo
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
 	$(NO_ECHO) cp $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/firmware.elf
+	@echo
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)

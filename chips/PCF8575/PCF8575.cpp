@@ -29,6 +29,8 @@ SOFTWARE.
 
 #include "PCF8575.hpp"
 
+#include "stddef.h"
+
 
 PCF8575::PCF8575(I2C_ch_e ch, uint8_t addr)
 {

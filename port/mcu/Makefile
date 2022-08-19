@@ -27,6 +27,7 @@ C_OBJS := \
 
 C_INCLUDES =  \
 $(MCU_INCLUDES) \
+-Iinclude \
 -Isrc \
 -I$(MAL_DIR) \
 -I$(MAL_DIR)CMSIS \

@@ -31,15 +31,15 @@ SOFTWARE.
 #define __CLK_H
 
 
-#include "mcu.h"
+#include "mcu_private.h"
 
 
-extern void CLK_init(void);
-extern void CLK_update(void);
-extern void CLK_periphEnable(periph_e periph);
-extern void CLK_periphReset(periph_e periph);
-extern void CLK_periphResetAll(void);
-extern uint32_t CLK_getPeriphBaseClkHz(periph_e periph);
+extern void clk_init(void);
+extern void clk_update(void);
+extern void clk_periphEnable(periph_e periph);
+extern void clk_periphReset(periph_e periph);
+extern void clk_periphResetAll(void);
+extern uint32_t clk_getPeriphBaseClkHz(periph_e periph);
 
 
 #endif

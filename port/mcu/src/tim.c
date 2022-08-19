@@ -29,7 +29,10 @@ SOFTWARE.
 
 #include "tim.h"
 
-#include "mcu.h"
+#include "string.h"
+
+#include "mcu_private.h"
+
 #include "clk.h"
 #include "irq.h"
 
@@ -63,8 +66,8 @@ void TIM_initSystemTimer(void)
 {
   /* 1ms systick */
   SysTick_Config(SystemCoreClock / 1000);
-  IRQ_config(SysTick_IRQn, PRIORITY_VERY_LOW);
-  IRQ_enable(SysTick_IRQn);
+  irq_config(SysTick_IRQn, priority_VERY_LOW);
+  irq_enable(SysTick_IRQn);
 }
 
 

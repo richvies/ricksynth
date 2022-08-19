@@ -31,13 +31,13 @@ SOFTWARE.
 #define __IRQ_H
 
 
-#include "mcu.h"
+#include "mcu_private.h"
 
 
-extern void IRQ_config(irq_num_e irq, irq_priority_e priority);
-extern void IRQ_enable(irq_num_e irq);
-extern void IRQ_disable(irq_num_e irq);
-extern void IRQ_disableAll(void);
+extern void irq_config(irq_num_e irq, irq_priority_e priority);
+extern void irq_enable(irq_num_e irq);
+extern void irq_disable(irq_num_e irq);
+extern void irq_disableAll(void);
 
 
 #endif

@@ -57,7 +57,7 @@ FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 256K
 }
 
 /* Entry Point */
-ENTRY(START_resetHandler)
+ENTRY(start_resetHandler)
 
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM);    /* end of RAM */

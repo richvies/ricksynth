@@ -31,7 +31,7 @@ SOFTWARE.
 #define __STARTUP_H
 
 
-extern void START_resetHandler(void);
+extern void start_resetHandler(void);
 
 
 #endif

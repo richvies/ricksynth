@@ -31,10 +31,10 @@ SOFTWARE.
 #define __HW_H
 
 
-extern void HW_initEarly(void);
-extern void HW_init(void);
-extern void HW_reset(void);
-extern void HW_nop(void);
+extern void hw_initEarly(void);
+extern void hw_init(void);
+extern void hw_reset(void);
+extern void hw_nop(void);
 
 
 #endif

@@ -31,9 +31,6 @@ SOFTWARE.
 #define __VECTORS_H
 
 
-#include "_startup.h"
-
-
 typedef void (* const irq_vector_t)(void);
 
 

@@ -36,7 +36,7 @@ SOFTWARE.
 #endif
 
 
-#include "board.h"
+#include "mcu.h"
 
 
 extern bool  ADC_init   (void);

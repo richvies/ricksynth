@@ -27,8 +27,11 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include <stdint.h>
 #include "_vectors.h"
+
+#include <stdint.h>
+
+#include "_startup.h"
 
 
 #define WEAK_REF_ATTRIBUTE    __attribute__((weak, alias("defaultHandler")))
@@ -113,7 +116,7 @@ void SPI4_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
 {
   (irq_vector_t)&_estack,         /*      Initial Stack Pointer     */
-  START_resetHandler,             /*      Reset Handler             */
+  start_resetHandler,             /*      Reset Handler             */
   NMI_Handler,                    /*      NMI Handler               */
   HardFault_Handler,              /*      Hard Fault Handler        */
   MemManage_Handler,              /*      MPU Fault Handler         */

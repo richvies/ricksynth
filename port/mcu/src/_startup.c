@@ -27,7 +27,10 @@ SOFTWARE.
 ****************************************************************************/
 
 
+#include "_startup.h"
+
 #include <stdint.h>
+
 #include "_hw.h"
 
 
@@ -55,14 +58,14 @@ static void runInitArray(void);
 static void runFiniArray(void);
 
 
-void START_resetHandler(void)
+void start_resetHandler(void)
 {
-  HW_initEarly();
+  hw_initEarly();
 
   initData(&_data_start_internal, &_data_start, &_data_end);
   initBss(&_bss_start, &_bss_end);
 
-  HW_init();
+  hw_init();
 
   runInitArray();
 
@@ -70,7 +73,7 @@ void START_resetHandler(void)
 
   runFiniArray();
 
-  HW_reset();
+  hw_reset();
 
   while (1){};
 }

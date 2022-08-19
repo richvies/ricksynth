@@ -29,7 +29,8 @@ SOFTWARE.
 
 #include "spi.h"
 
-#include "mcu.h"
+#include "mcu_private.h"
+
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
@@ -153,12 +154,12 @@ bool SPI_deInit (SPI_ch_e ch)
 
     if (h->hw->dma_rx_stream)
     {
-      DMA_deinit(h->hw->dma_rx_stream);
+      dma_deinit(h->hw->dma_rx_stream);
     }
 
     if (h->hw->dma_tx_stream)
     {
-      DMA_deinit(h->hw->dma_tx_stream);
+      dma_deinit(h->hw->dma_tx_stream);
     }
   }
 
@@ -362,7 +363,7 @@ static void configureHal(spi_handle_t *h, SPI_cfg_t *cfg)
 static uint32_t hzToPrescaler(spi_handle_t *h, uint32_t hz)
 {
   uint8_t i = 0;
-  uint32_t clk_hz = CLK_getPeriphBaseClkHz(h->hw->periph);
+  uint32_t clk_hz = clk_getPeriphBaseClkHz(h->hw->periph);
 
   while ((clk_hz >> PrescTable[i] > hz)
   &&     (i < sizeof(PrescTable)))
@@ -376,7 +377,7 @@ static uint32_t hzToPrescaler(spi_handle_t *h, uint32_t hz)
 static bool initDma(spi_handle_t *h)
 {
   bool ret = true;
-  DMA_cfg_t dma_cfg;
+  dma_cfg_t dma_cfg;
 
   dma_cfg.priority          = h->hw->irq_priority;
   dma_cfg.parent_handle     = &h->hal;
@@ -390,16 +391,16 @@ static bool initDma(spi_handle_t *h)
   {
     dma_cfg.dir = DMA_DIR_PERIPH_TO_MEM;
     dma_cfg.channel = h->hw->dma_rx_ch;
-    ret &= DMA_init(h->hw->dma_rx_stream, &dma_cfg);
-    h->hal.hdmarx = DMA_getHandle(h->hw->dma_rx_stream);
+    ret &= dma_init(h->hw->dma_rx_stream, &dma_cfg);
+    h->hal.hdmarx = dma_getHandle(h->hw->dma_rx_stream);
   }
 
   if (h->hw->dma_tx_stream)
   {
     dma_cfg.dir = DMA_DIR_MEM_TO_PERIPH;
     dma_cfg.channel = h->hw->dma_tx_ch;
-    ret &= DMA_init(h->hw->dma_tx_stream, &dma_cfg);
-    h->hal.hdmatx = DMA_getHandle(h->hw->dma_tx_stream);
+    ret &= dma_init(h->hw->dma_tx_stream, &dma_cfg);
+    h->hal.hdmatx = dma_getHandle(h->hw->dma_tx_stream);
   }
 
   return ret;
@@ -430,12 +431,12 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
   io_cfg.dir     = IO_DIR_IN;
   IO_configure(h->hw->miso_pin, &io_cfg);
 
-  CLK_periphEnable(h->hw->periph);
+  clk_periphEnable(h->hw->periph);
 
   initDma(&handles[ch]);
 
-  IRQ_config(h->hw->irq_num, h->hw->irq_priority);
-  IRQ_enable(h->hw->irq_num);
+  irq_config(h->hw->irq_num, h->hw->irq_priority);
+  irq_enable(h->hw->irq_num);
 }
 
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
@@ -450,13 +451,13 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 
   h  = &handles[ch];
 
-  IRQ_disable(h->hw->irq_num);
+  irq_disable(h->hw->irq_num);
 
   IO_deinit(h->hw->sck_pin);
   IO_deinit(h->hw->miso_pin);
   IO_deinit(h->hw->mosi_pin);
 
-  CLK_periphReset(h->hw->periph);
+  clk_periphReset(h->hw->periph);
 }
 
 
@@ -472,22 +473,22 @@ static void irqHandler(periph_e periph)
 
 void SPI1_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_1);
+  irqHandler(periph_SPI_1);
 }
 
 void SPI2_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_2);
+  irqHandler(periph_SPI_2);
 }
 
 void SPI3_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_3);
+  irqHandler(periph_SPI_3);
 }
 
 void SPI4_IRQHandler(void)
 {
-  irqHandler(PERIPH_SPI_4);
+  irqHandler(periph_SPI_4);
 }
 
 

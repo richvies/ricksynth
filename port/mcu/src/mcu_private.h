@@ -27,17 +27,38 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __MCU_H
-#define __MCU_H
+#ifndef __MCU_PRIVATE_H
+#define __MCU_PRIVATE_H
 
+
+/**
+ * @file mcu_private.h
+ * @author Rick Davies (richvies@gmail.com)
+ * @brief
+ * Defines internal peripheral enums e.g. gpio ports, irq priorities
+ * Also declares hardware information e.g. i2c_hw_info which are
+ * defined in mcu.c and used in src files i.e. i2c.c
+ * @version 0.1
+ * @date 2022-08-19
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
+
+#include "mcu.h"
 
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "stm32f4xx_hal.h"
 
-#include "board.h"
 
+// DBG_Printf(INFO_LVL, RAD_ID, x, ##__VA_ARGS__)
+#define PRINTF_VERB(x, ...)
+#define PRINTF_INFO(x, ...)
+#define PRINTF_WARN(x, ...)
+#define PRINTF_ERRO(x, ...)
 
 #define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
 #define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
@@ -46,47 +67,48 @@ SOFTWARE.
 #define IO_NULL_PIN                 (0)
 #define IRQ_NUM_OF                  (85)
 
-#define ADC_NUM_OF_PERIPH           (1)
+#define ADC_NUM_OF_PERIPH       (1)
 
 
 typedef IRQn_Type irq_num_e;
 
 typedef enum
 {
-  PRIORITY_VERY_HIGH,
-  PRIORITY_HIGH,
-  PRIORITY_MEDIUM,
-  PRIORITY_LOW,
-  PRIORITY_VERY_LOW,
-  PRIORITY_NUM_OF,
+  priority_VERY_HIGH,
+  priority_HIGH,
+  priority_MEDIUM,
+  priority_LOW,
+  priority_VERY_LOW,
+  priority_NUM_OF,
 } irq_priority_e;
 
 
+/* for use with clk module */
 typedef enum
 {
-  PERIPH_GPIO_A,
-  PERIPH_GPIO_B,
-  PERIPH_GPIO_C,
-  PERIPH_I2C_1,
-  PERIPH_I2C_2,
-  PERIPH_I2C_3,
-  PERIPH_SPI_1,
-  PERIPH_SPI_2,
-  PERIPH_SPI_3,
-  PERIPH_SPI_4,
-  PERIPH_DMA_1,
-  PERIPH_DMA_2,
-  PERIPH_ADC_1,
+  periph_GPIO_A,
+  periph_GPIO_B,
+  periph_GPIO_C,
+  periph_I2C_1,
+  periph_I2C_2,
+  periph_I2C_3,
+  periph_SPI_1,
+  periph_SPI_2,
+  periph_SPI_3,
+  periph_SPI_4,
+  periph_DMA_1,
+  periph_DMA_2,
+  periph_ADC_1,
 } periph_e;
 
 
 /* IO */
 typedef enum
 {
-  IO_PORT_NULL,
-  IO_PORT_A,
-  IO_PORT_B,
-  IO_PORT_C,
+  io_port_NULL,
+  io_port_A,
+  io_port_B,
+  io_port_C,
   IO_NUM_OF_PORT,
 } io_port_e;
 
@@ -136,10 +158,10 @@ typedef struct
   irq_num_e             const event_irq_num;
   irq_num_e             const error_irq_num;
   irq_priority_e        const irq_priority;
-  DMA_stream_e          const dma_tx_stream;
-  DMA_ch_e              const dma_tx_ch;
-  DMA_stream_e          const dma_rx_stream;
-  DMA_ch_e              const dma_rx_ch;
+  dma_stream_e          const dma_tx_stream;
+  dma_ch_e              const dma_tx_ch;
+  dma_stream_e          const dma_rx_stream;
+  dma_ch_e              const dma_rx_ch;
 } i2c_hw_info_t;
 
 extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];
@@ -156,10 +178,10 @@ typedef struct
   io_cfg_extend_t       const io_cfg_ext;
   irq_num_e             const irq_num;
   irq_priority_e        const irq_priority;
-  DMA_stream_e          const dma_tx_stream;
-  DMA_ch_e              const dma_tx_ch;
-  DMA_stream_e          const dma_rx_stream;
-  DMA_ch_e              const dma_rx_ch;
+  dma_stream_e          const dma_tx_stream;
+  dma_ch_e              const dma_tx_ch;
+  dma_stream_e          const dma_rx_stream;
+  dma_ch_e              const dma_rx_ch;
 } spi_hw_info_t;
 
 extern spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH];
@@ -188,8 +210,8 @@ typedef struct
   ADC_TypeDef *   const inst;
   irq_num_e       const irq_num;
   irq_priority_e  const irq_priority;
-  DMA_stream_e    const dma_stream;
-  DMA_ch_e        const dma_ch;
+  dma_stream_e    const dma_stream;
+  dma_ch_e        const dma_ch;
   adc_ch_info_t   const ch_info[ADC_NUM_OF_CH];
 } adc_hw_info_t;
 

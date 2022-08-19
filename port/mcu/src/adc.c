@@ -29,7 +29,8 @@ SOFTWARE.
 
 #include "adc.h"
 
-#include "mcu.h"
+#include "mcu_private.h"
+
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
@@ -104,7 +105,7 @@ bool ADC_deInit (void)
 
     if (h->hw->dma_stream)
     {
-      DMA_deinit(h->hw->dma_stream);
+      dma_deinit(h->hw->dma_stream);
     }
   }
 
@@ -149,7 +150,7 @@ bool ADC_stop   (void)
 static bool initDma(adc_handle_t *h)
 {
   bool ret = true;
-  DMA_cfg_t dma_cfg;
+  dma_cfg_t dma_cfg;
 
   dma_cfg.priority          = h->hw->irq_priority;
   dma_cfg.parent_handle     = &h->hal;
@@ -163,8 +164,8 @@ static bool initDma(adc_handle_t *h)
   {
     dma_cfg.dir = DMA_DIR_PERIPH_TO_MEM;
     dma_cfg.channel = h->hw->dma_ch;
-    ret &= DMA_init(h->hw->dma_stream, &dma_cfg);
-    h->hal.DMA_Handle = DMA_getHandle(h->hw->dma_stream);
+    ret &= dma_init(h->hw->dma_stream, &dma_cfg);
+    h->hal.DMA_Handle = dma_getHandle(h->hw->dma_stream);
   }
 
   return ret;
@@ -187,12 +188,12 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
     IO_configure(h->hw->ch_info[ch].io_pin, &io_cfg);
   }
 
-  CLK_periphEnable(h->hw->periph);
+  clk_periphEnable(h->hw->periph);
 
   initDma(h);
 
-  IRQ_config(h->hw->irq_num, h->hw->irq_priority);
-  IRQ_enable(h->hw->irq_num);
+  irq_config(h->hw->irq_num, h->hw->irq_priority);
+  irq_enable(h->hw->irq_num);
 }
 
 void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
@@ -200,12 +201,12 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
   ADC_ch_e ch;
   adc_handle_t *h = &handles[0];
 
-  IRQ_disable(h->hw->irq_num);
+  irq_disable(h->hw->irq_num);
 
   for (ch = ADC_CH_FIRST; ch < ADC_NUM_OF_CH; ch++)
   {
     IO_deinit(h->hw->ch_info[ch].io_pin);
   }
 
-  CLK_periphReset(h->hw->periph);
+  clk_periphReset(h->hw->periph);
 }

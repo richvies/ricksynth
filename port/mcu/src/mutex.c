@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "mutex.h"
 
-#include "mcu.h"
+#include "mcu_private.h"
 
 
 bool MUT_take(mutex_t *m)
