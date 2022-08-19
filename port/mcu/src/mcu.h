@@ -162,7 +162,7 @@ typedef struct
   DMA_ch_e              const dma_rx_ch;
 } spi_hw_info_t;
 
-extern spi_hw_info_t const spi_hw_info[I2C_NUM_OF_CH];
+extern spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH];
 
 
 /* Timer */
