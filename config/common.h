@@ -44,6 +44,9 @@ SOFTWARE.
 #include "config.h"
 
 
+#define SIZEOF(x) (sizeof(x)/sizeof(*x))
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -29,23 +29,37 @@ SOFTWARE.
 
 #include "spi.h"
 
+#include "common.h"
+
 #include "mcu_private.h"
 
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
 #include "irq.h"
-#include "mutex.h"
 #include "tim.h"
+
+
+typedef enum
+{
+  WRITE,
+  READ,
+  WRITE_READ,
+} spi_dir_e;
 
 
 typedef struct
 {
   bool init;
-  mutex_t mutex;
-  SPI_xfer_info_t *xfer;
   SPI_HandleTypeDef hal;
   const spi_hw_info_t *hw;
+  SPI_xfer_info_t *xfer;
+
+  /* xfer queue */
+  SPI_xfer_info_t *q[3];
+  spi_dir_e q_dir[3];
+  uint8_t q_n;
+  uint8_t q_tail;
 } spi_handle_t;
 
 
@@ -101,7 +115,7 @@ static uint32_t hzToPrescaler(spi_handle_t *h, uint32_t hz);
 static bool initDma(spi_handle_t *h);
 
 
-bool SPI_init   (SPI_ch_e ch, SPI_cfg_t *cfg)
+bool SPI_init       (SPI_ch_e ch, SPI_cfg_t *cfg)
 {
   bool ret = false;
   spi_handle_t *h;
@@ -135,7 +149,7 @@ bool SPI_init   (SPI_ch_e ch, SPI_cfg_t *cfg)
   return ret;
 }
 
-bool SPI_deInit (SPI_ch_e ch)
+bool SPI_deInit     (SPI_ch_e ch)
 {
   bool ret = false;
   spi_handle_t *h;
@@ -166,45 +180,90 @@ bool SPI_deInit (SPI_ch_e ch)
   return ret;
 }
 
-bool SPI_isBusy (SPI_ch_e ch)
+bool SPI_isBusy     (SPI_ch_e ch)
 {
   return (HAL_SPI_STATE_READY != HAL_SPI_GetState(&handles[ch].hal));
 }
 
-bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
+void SPI_task       (void)
 {
+  SPI_ch_e ch;
+  spi_handle_t *h;
   bool ret;
 
-  if ((true == SPI_isBusy(ch))
-  ||  (false == MUT_take(&handles[ch].mutex)))
+  /* check if xfer on queue for each channel */
+  for (ch = SPI_CH_FIRST; ch < SPI_NUM_OF_CH; ch++)
   {
-    return false;
-  }
+    h = &handles[ch];
 
-  if (info->cs_pin)
-  {
-    IO_clear(info->cs_pin);
-  }
+    if ((h->q_n)
+    &&  (false == SPI_isBusy(ch)))
+    {
+      switch (h->q_dir[h->q_tail])
+      {
+      case WRITE:
+        ret = SPI_write(ch, h->q[h->q_tail]);
+        break;
 
-  handles[ch].xfer = info;
-  if (handles[ch].hw->dma_tx_stream)
-  {
-    ret = writeDma(ch, info->tx_data, info->length);
+      case READ:
+        ret = SPI_read(ch, h->q[h->q_tail]);
+        break;
+
+      case WRITE_READ:
+        ret = SPI_writeRead(ch, h->q[h->q_tail]);
+        break;
+
+      default:
+        ret = false;
+        break;
+      }
+
+      /* increment queue if xfer started */
+      if (true == ret)
+      {
+        --h->q_n;
+        ++h->q_tail;
+        if (h->q_tail >= SIZEOF(h->q))
+        {
+          h->q_tail = 0;
+        }
+      }
+    }
   }
+}
+
+bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
+{
+  bool ret = false;
+  spi_handle_t *h = &handles[ch];
+
+  /* if busy, add to queue */
+  if (true == SPI_isBusy(ch))
+  {
+    if (h->q_n < SIZEOF(h->q))
+    {
+      h->q_dir[h->q_tail + h->q_n] = WRITE;
+      h->q[h->q_tail + h->q_n++] = info;
+      ret = true;
+    }
+  }
+  /* otherwise send now */
   else
   {
-    ret = writeIrq(ch, info->tx_data, info->length);
-  }
+    if (info->cs_pin)
+    {
+      IO_clear(info->cs_pin);
+    }
 
-  if (false == ret)
-  {
-    MUT_give(handles[ch].mutex)
-  }
-
-  MUT_give(handles[ch].mutex)
-  if (info->cs_pin)
-  {
-    IO_set(info->cs_pin);
+    h->xfer = info;
+    if (h->hw->dma_tx_stream)
+    {
+      ret = writeDma(ch, info->tx_data, info->length);
+    }
+    else
+    {
+      ret = writeIrq(ch, info->tx_data, info->length);
+    }
   }
 
   return ret;
@@ -212,32 +271,36 @@ bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
 
 bool SPI_read       (SPI_ch_e ch, SPI_xfer_info_t *info)
 {
-  bool ret;
+  bool ret = false;
+  spi_handle_t *h = &handles[ch];
 
-  if ((true == SPI_isBusy(ch))
-  ||  (false == MUT_take(&handles[ch].mutex)))
+  /* if busy, add to queue */
+  if (true == SPI_isBusy(ch))
   {
-    return false;
+    if (h->q_n < SIZEOF(h->q))
+    {
+      h->q_dir[h->q_tail + h->q_n] = READ;
+      h->q[h->q_tail + h->q_n++] = info;
+      ret = true;
+    }
   }
-
-  if (info->cs_pin)
-  {
-    IO_clear(info->cs_pin);
-  }
-
-  handles[ch].xfer = info;
-  if (handles[ch].hw->dma_rx_stream)
-  {
-    ret = readDma(ch, info->rx_data, info->length);
-  }
+  /* otherwise send now */
   else
   {
-    ret = readIrq(ch, info->rx_data, info->length);
-  }
+    if (info->cs_pin)
+    {
+      IO_clear(info->cs_pin);
+    }
 
-  if (false == ret)
-  {
-    MUT_give(handles[ch].mutex)
+    h->xfer = info;
+    if (h->hw->dma_rx_stream)
+    {
+      ret = readDma(ch, info->rx_data, info->length);
+    }
+    else
+    {
+      ret = readIrq(ch, info->rx_data, info->length);
+    }
   }
 
   return ret;
@@ -245,32 +308,36 @@ bool SPI_read       (SPI_ch_e ch, SPI_xfer_info_t *info)
 
 bool SPI_writeRead  (SPI_ch_e ch, SPI_xfer_info_t *info)
 {
-  bool ret;
+  bool ret = false;
+  spi_handle_t *h = &handles[ch];
 
-  if ((true == SPI_isBusy(ch))
-  ||  (false == MUT_take(&handles[ch].mutex)))
+  /* if busy, add to queue */
+  if (true == SPI_isBusy(ch))
   {
-    return false;
+    if (h->q_n < SIZEOF(h->q))
+    {
+      h->q_dir[h->q_tail + h->q_n] = WRITE_READ;
+      h->q[h->q_tail + h->q_n++] = info;
+      ret = true;
+    }
   }
-
-  if (info->cs_pin)
-  {
-    IO_clear(info->cs_pin);
-  }
-
-  handles[ch].xfer = info;
-  if (handles[ch].hw->dma_tx_stream && handles[ch].hw->dma_rx_stream)
-  {
-    ret = writeReadDma(ch, info->tx_data, info->rx_data, info->length);
-  }
+  /* otherwise send now */
   else
   {
-    ret = writeReadIrq(ch, info->tx_data, info->rx_data, info->length);
-  }
+    if (info->cs_pin)
+    {
+      IO_clear(info->cs_pin);
+    }
 
-  if (false == ret)
-  {
-    MUT_give(handles[ch].mutex)
+    handles[ch].xfer = info;
+    if (handles[ch].hw->dma_tx_stream && handles[ch].hw->dma_rx_stream)
+    {
+      ret = writeReadDma(ch, info->tx_data, info->rx_data, info->length);
+    }
+    else
+    {
+      ret = writeReadIrq(ch, info->tx_data, info->rx_data, info->length);
+    }
   }
 
   return ret;
@@ -509,7 +576,6 @@ static void callXferCb(SPI_HandleTypeDef *hspi, bool error, bool done)
       {
         IO_set(handles[ch].xfer->cs_pin);
       }
-      MUT_give(handles[ch].mutex);
     }
   }
 }

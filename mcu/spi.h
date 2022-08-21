@@ -93,6 +93,7 @@ typedef struct
 extern bool SPI_init      (SPI_ch_e ch, SPI_cfg_t *cfg);
 extern bool SPI_deInit    (SPI_ch_e ch);
 extern bool SPI_isBusy    (SPI_ch_e ch);
+extern void SPI_task      (void);
 extern bool SPI_write     (SPI_ch_e ch, SPI_xfer_info_t *info);
 extern bool SPI_read      (SPI_ch_e ch, SPI_xfer_info_t *info);
 extern bool SPI_writeRead (SPI_ch_e ch, SPI_xfer_info_t *info);

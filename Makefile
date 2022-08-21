@@ -85,6 +85,7 @@ BIN_DIR   = bin/
 #############################################################
 
 MCU_INCLUDES = -I$(CURDIR)/mcu
+MCU_INCLUDES += -I$(CURDIR)/config
 export MCU_INCLUDES
 export config
 
