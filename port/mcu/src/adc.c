@@ -61,18 +61,20 @@ bool ADC_init   (void)
   ADC_ChannelConfTypeDef cfg;
   adc_handle_t *h = &handles[0];
 
-  h->hal.Init.ClockPrescaler         = ADC_CLOCK_SYNC_PCLK_DIV8;
-  h->hal.Init.ContinuousConvMode     = ENABLE;
-  h->hal.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
-  h->hal.Init.DiscontinuousConvMode  = DISABLE;
-  h->hal.Init.DMAContinuousRequests  = ENABLE;
-  h->hal.Init.EOCSelection           = ADC_EOC_SEQ_CONV;
-  h->hal.Init.ExternalTrigConv       = ADC_EXTERNALTRIGCONV_T1_CC1;
-  h->hal.Init.ExternalTrigConvEdge   = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  h->hal.Init.NbrOfConversion        = ADC_NUM_OF_CH;
-  h->hal.Init.NbrOfDiscConversion    = 1;
-  h->hal.Init.Resolution             = ADC_RESOLUTION_12B;
-  h->hal.Init.ScanConvMode           = ENABLE;
+  h->hw                               = &adc_hw_info[0];
+  h->hal.Instance                     = h->hw->inst;
+  h->hal.Init.ClockPrescaler          = ADC_CLOCK_SYNC_PCLK_DIV8;
+  h->hal.Init.ContinuousConvMode      = ENABLE;
+  h->hal.Init.DataAlign               = ADC_DATAALIGN_RIGHT;
+  h->hal.Init.DiscontinuousConvMode   = DISABLE;
+  h->hal.Init.DMAContinuousRequests   = ENABLE;
+  h->hal.Init.EOCSelection            = ADC_EOC_SEQ_CONV;
+  h->hal.Init.ExternalTrigConv        = ADC_EXTERNALTRIGCONV_T1_CC1;
+  h->hal.Init.ExternalTrigConvEdge    = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  h->hal.Init.NbrOfConversion         = ADC_NUM_OF_CH;
+  h->hal.Init.NbrOfDiscConversion     = 1;
+  h->hal.Init.Resolution              = ADC_RESOLUTION_12B;
+  h->hal.Init.ScanConvMode            = ENABLE;
 
   if(HAL_OK == HAL_ADC_Init(&h->hal))
   {
