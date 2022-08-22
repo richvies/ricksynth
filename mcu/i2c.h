@@ -85,6 +85,7 @@ typedef struct
 extern bool I2C_init    (I2C_ch_e ch, I2C_cfg_t *cfg);
 extern bool I2C_deInit  (I2C_ch_e ch);
 extern bool I2C_isBusy  (I2C_ch_e ch);
+extern void I2C_task    (void);
 extern bool I2C_write   (I2C_ch_e ch, I2C_xfer_info_t *info);
 extern bool I2C_read    (I2C_ch_e ch, I2C_xfer_info_t *info);
 

@@ -111,8 +111,8 @@ SOURCE_DIR = \
   backbone/peripheral \
   backbone/system \
   backbone/util \
-	chips/PCF8575 \
-	chips/TLC5928 \
+  chips/PCF8575 \
+  chips/TLC5928 \
   modifiers \
   ui \
   voices \

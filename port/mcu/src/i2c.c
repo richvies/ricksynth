@@ -29,23 +29,36 @@ SOFTWARE.
 
 #include "i2c.h"
 
+#include "common.h"
+
 #include "mcu_private.h"
 
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
 #include "irq.h"
-#include "mutex.h"
 #include "tim.h"
+
+
+typedef enum
+{
+  WRITE,
+  READ,
+} i2c_dir_e;
 
 
 typedef struct
 {
   bool init;
-  mutex_t mutex;
   I2C_xfer_info_t *xfer;
   I2C_HandleTypeDef hal;
   const i2c_hw_info_t *hw;
+
+  /* xfer queue */
+  I2C_xfer_info_t *q[3];
+  i2c_dir_e q_dir[3];
+  uint8_t q_n;
+  uint8_t q_tail;
 } i2c_handle_t;
 
 
@@ -63,13 +76,12 @@ static const uint32_t stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
 };
 
 
-static bool writeIrq   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
-static bool readIrq    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
-static bool writeDma   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
-static bool readDma    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l);
+static bool writeIrq   (i2c_handle_t *h, I2C_xfer_info_t *info);
+static bool readIrq    (i2c_handle_t *h, I2C_xfer_info_t *info);
+static bool writeDma   (i2c_handle_t *h, I2C_xfer_info_t *info);
+static bool readDma    (i2c_handle_t *h, I2C_xfer_info_t *info);
 
 static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch);
-static bool channelFromPeriph(periph_e periph, I2C_ch_e *ch);
 static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg);
 static bool initDma(i2c_handle_t *h);
 
@@ -142,6 +154,53 @@ bool I2C_deInit (I2C_ch_e ch)
   return ret;
 }
 
+void I2C_task   (void)
+{
+  I2C_ch_e ch;
+  i2c_handle_t *h;
+  bool ret;
+
+  /* check if xfer on queue for each channel */
+  for (ch = I2C_CH_FIRST; ch < I2C_NUM_OF_CH; ch++)
+  {
+    h = &handles[ch];
+
+    if ((h->q_n)
+    &&  (false == I2C_isBusy(ch)))
+    {
+      switch (h->q_dir[h->q_tail])
+      {
+      case WRITE:
+        ret = I2C_write(ch, h->q[h->q_tail]);
+        break;
+
+      case READ:
+        ret = I2C_read(ch, h->q[h->q_tail]);
+        break;
+
+      default:
+        ret = false;
+        break;
+      }
+
+      /* increment queue if xfer started */
+      if (true == ret)
+      {
+        --h->q_n;
+        ++h->q_tail;
+        if (h->q_tail >= SIZEOF(h->q))
+        {
+          h->q_tail = 0;
+        }
+      }
+      else
+      {
+        PRINTF_WARN("task start xfer");
+      }
+    }
+  }
+}
+
 bool I2C_isBusy (I2C_ch_e ch)
 {
   return (HAL_I2C_STATE_READY != HAL_I2C_GetState(&handles[ch].hal));
@@ -149,27 +208,36 @@ bool I2C_isBusy (I2C_ch_e ch)
 
 bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret;
+  bool ret = false;
+  i2c_handle_t *h = &handles[ch];
 
-  if ((true == I2C_isBusy(ch))
-  ||  (false == MUT_take(&handles[ch].mutex)))
+  /* if busy, add to queue */
+  if (true == I2C_isBusy(ch))
   {
-    return false;
+    if (h->q_n < SIZEOF(h->q))
+    {
+      h->q_dir[h->q_tail + h->q_n] = WRITE;
+      h->q[h->q_tail + h->q_n++] = info;
+      ret = true;
+    }
   }
-
-  handles[ch].xfer = info;
-  if (handles[ch].hw->dma_tx_stream)
-  {
-    ret = writeDma(ch, info->addr, info->data, info->length);
-  }
+  /* otherwise send now */
   else
   {
-    ret = writeIrq(ch, info->addr, info->data, info->length);
+    h->xfer = info;
+    if (h->hw->dma_tx_stream)
+    {
+      ret = writeDma(h, info);
+    }
+    else
+    {
+      ret = writeIrq(h, info);
+    }
   }
 
   if (false == ret)
   {
-    MUT_give(handles[ch].mutex)
+    PRINTF_WARN("write");
   }
 
   return ret;
@@ -177,51 +245,64 @@ bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
 
 bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
 {
-  bool ret;
+  bool ret = false;
+  i2c_handle_t *h = &handles[ch];
 
-  if ((true == I2C_isBusy(ch))
-  ||  (false == MUT_take(&handles[ch].mutex)))
+  /* if busy, add to queue */
+  if (true == I2C_isBusy(ch))
   {
-    return false;
+    if (h->q_n < SIZEOF(h->q))
+    {
+      h->q_dir[h->q_tail + h->q_n] = WRITE;
+      h->q[h->q_tail + h->q_n++] = info;
+      ret = true;
+    }
   }
-
-  handles[ch].xfer = info;
-  if (handles[ch].hw->dma_rx_stream)
-  {
-    ret = readDma(ch, info->addr, info->data, info->length);
-  }
+  /* otherwise send now */
   else
   {
-    ret = readIrq(ch, info->addr, info->data, info->length);
+    h->xfer = info;
+    if (h->hw->dma_rx_stream)
+    {
+      ret = readDma(h, info);
+    }
+    else
+    {
+      ret = readIrq(h, info);
+    }
   }
 
   if (false == ret)
   {
-    MUT_give(handles[ch].mutex)
+    PRINTF_WARN("read");
   }
 
   return ret;
 }
 
 
-static bool writeIrq   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool writeIrq   (i2c_handle_t *h, I2C_xfer_info_t *info)
 {
-  return (HAL_OK == HAL_I2C_Master_Transmit_IT(&handles[ch].hal, addr, d, l));
+  return (HAL_OK == HAL_I2C_Master_Transmit_IT(
+    &h->hal, info->addr, info->data, info->length));
 }
 
-static bool readIrq    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool readIrq    (i2c_handle_t *h, I2C_xfer_info_t *info)
 {
-  return (HAL_OK == HAL_I2C_Master_Receive_IT(&handles[ch].hal, addr, d, l));
+  return (HAL_OK == HAL_I2C_Master_Receive_IT(
+    &h->hal, info->addr, info->data, info->length));
 }
 
-static bool writeDma   (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool writeDma   (i2c_handle_t *h, I2C_xfer_info_t *info)
 {
-  return (HAL_OK == HAL_I2C_Master_Transmit_DMA(&handles[ch].hal, addr, d, l));
+  return (HAL_OK == HAL_I2C_Master_Transmit_DMA(
+    &h->hal, info->addr, info->data, info->length));
 }
 
-static bool readDma    (I2C_ch_e ch, uint16_t addr, uint8_t *d, uint16_t l)
+static bool readDma    (i2c_handle_t *h, I2C_xfer_info_t *info)
 {
-  return (HAL_OK == HAL_I2C_Master_Receive_DMA(&handles[ch].hal, addr, d, l));
+  return (HAL_OK == HAL_I2C_Master_Receive_DMA(
+    &h->hal, info->addr, info->data, info->length));
 }
 
 
@@ -243,27 +324,9 @@ static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
   return ret;
 }
 
-static bool channelFromPeriph(periph_e periph, I2C_ch_e *ch)
-{
-  bool ret = false;
-  I2C_ch_e i;
-
-  for (i = I2C_CH_FIRST; i < I2C_NUM_OF_CH; i++)
-  {
-    if (periph == handles[i].hw->periph)
-    {
-      *ch = i;
-      ret = true;
-      break;
-    }
-  }
-
-  return ret;
-}
-
 static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
 {
-  h->hal.Instance              = h->hw->inst;
+  h->hal.Instance             = h->hw->inst;
   h->hal.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   h->hal.Init.DutyCycle       = I2C_DUTYCYCLE_16_9;
   h->hal.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
@@ -305,7 +368,6 @@ static bool initDma(i2c_handle_t *h)
 
   return ret;
 }
-
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
@@ -361,86 +423,57 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 }
 
 
-static void irqHandler(periph_e periph, bool error)
+void i2c_event_irq_handler(void)
 {
-  I2C_ch_e ch;
+  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
 
-  if (true == channelFromPeriph(periph, &ch))
+  if (h)
   {
-    if (error)
-    {
-      HAL_I2C_ER_IRQHandler(&handles[ch].hal);
-    }
-    else
-    {
-      HAL_I2C_EV_IRQHandler(&handles[ch].hal);
-    }
+    HAL_I2C_EV_IRQHandler(&h->hal);
   }
 }
 
-void I2C1_EV_IRQHandler(void)
+void i2c_error_irq_handler(void)
 {
-  irqHandler(periph_I2C_1, false);
-}
+  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
 
-void I2C1_ER_IRQHandler(void)
-{
-  irqHandler(periph_I2C_1, true);
-}
-
-void I2C2_EV_IRQHandler(void)
-{
-  irqHandler(periph_I2C_2, false);
-}
-
-void I2C2_ER_IRQHandler(void)
-{
-  irqHandler(periph_I2C_2, true);
-}
-
-void I2C3_EV_IRQHandler(void)
-{
-  irqHandler(periph_I2C_3, false);
-}
-
-void I2C3_ER_IRQHandler(void)
-{
-  irqHandler(periph_I2C_3, true);
-}
-
-
-static void callXferCb(I2C_HandleTypeDef *hi2c, bool error)
-{
-  I2C_ch_e ch;
-
-  if (true == channelFromHal(hi2c, &ch))
+  if (h)
   {
-    if (handles[ch].xfer->cb)
+    HAL_I2C_ER_IRQHandler(&h->hal);
+  }
+}
+
+static void irq_end_call_callback(I2C_HandleTypeDef *hi2c, bool error)
+{
+  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
+
+  if (h)
+  {
+    if (h->xfer->cb)
     {
-      handles[ch].xfer->cb(error, handles[ch].xfer->ctx);
+      h->xfer->cb(error, h->xfer->ctx);
     }
-    MUT_give(handles[ch].mutex);
   }
 }
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  callXferCb(hi2c, false);
+  irq_end_call_callback(hi2c, false);
 }
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  callXferCb(hi2c, false);
+  irq_end_call_callback(hi2c, false);
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
-  callXferCb(hi2c, true);
+  irq_end_call_callback(hi2c, true);
 }
 
 void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  callXferCb(hi2c, true);
+  irq_end_call_callback(hi2c, true);
 }
 
 

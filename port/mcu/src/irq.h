@@ -39,5 +39,9 @@ extern void irq_enable(irq_num_e irq);
 extern void irq_disable(irq_num_e irq);
 extern void irq_disableAll(void);
 
+extern irq_num_e    irq_get_current(void);
+extern void         irq_set_context(irq_num_e irq, void *context);
+extern void*        irq_get_context(irq_num_e irq);
+
 
 #endif

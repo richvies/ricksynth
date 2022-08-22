@@ -65,9 +65,8 @@ SOFTWARE.
 #define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
 #define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
 #define IO_NULL_PIN                 (0)
-#define IRQ_NUM_OF                  (85)
 
-#define ADC_NUM_OF_PERIPH       (1)
+#define ADC_NUM_OF_PERIPH           (1)
 
 
 typedef IRQn_Type irq_num_e;

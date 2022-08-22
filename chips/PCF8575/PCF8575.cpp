@@ -67,51 +67,41 @@ bool PCF8575::init(void)
 
 bool PCF8575::read16(uint16_t *value, PCF8575_xfer_cb cb)
 {
-  bool ret = false;
-
-  if (false == _busy)
+  if (true == _busy)
   {
-    _busy = true;
-    _xferCb = cb;
-
-    _i2c_xfer_info.length = 2;
-    _i2c_xfer_info.data   = (uint8_t*)value;
-    _i2c_xfer_info.cb     = i2cReadCb;
-    _i2c_xfer_info.ctx    = this;
-
-    ret = I2C_read(_i2c_ch, &_i2c_xfer_info);
-    if (false == ret)
-    {
-      _busy = false;
-    }
+    return false;
   }
 
-  return ret;
+  _xferCb = cb;
+
+  _i2c_xfer_info.length = 2;
+  _i2c_xfer_info.data   = (uint8_t*)value;
+  _i2c_xfer_info.cb     = i2cReadCb;
+  _i2c_xfer_info.ctx    = this;
+
+  _busy = I2C_read(_i2c_ch, &_i2c_xfer_info);
+
+  return _busy;
 }
 
 bool PCF8575::write16(uint16_t value, PCF8575_xfer_cb cb)
 {
-  bool ret = false;
-
-  if (false == _busy)
+  if (true == _busy)
   {
-    _busy = true;
-    _write = value;
-    _xferCb = cb;
-
-    _i2c_xfer_info.length = 2;
-    _i2c_xfer_info.data   = (uint8_t*)&_write;
-    _i2c_xfer_info.cb     = i2cWriteCb;
-    _i2c_xfer_info.ctx    = this;
-
-    ret = I2C_write(_i2c_ch, &_i2c_xfer_info);
-    if (false == ret)
-    {
-      _busy = false;
-    }
+    return false;
   }
 
-  return ret;
+  _write = value;
+  _xferCb = cb;
+
+  _i2c_xfer_info.length = 2;
+  _i2c_xfer_info.data   = (uint8_t*)&_write;
+  _i2c_xfer_info.cb     = i2cWriteCb;
+  _i2c_xfer_info.ctx    = this;
+
+  _busy = I2C_write(_i2c_ch, &_i2c_xfer_info);
+
+  return _busy;
 }
 
 bool PCF8575::toggle16(uint16_t mask, PCF8575_xfer_cb cb)
@@ -189,13 +179,14 @@ void PCF8575::i2cWriteCb(bool error, void *ctx)
 void PCF8575::i2cReadCb(bool error, void *ctx)
 {
   PCF8575 *t = (PCF8575*)ctx;
-  uint16_t *val = (uint16_t*)t->_i2c_xfer_info.data;
+  uint16_t val;
 
   /* get value of specified pin from entire 16 bit read */
   if ((0xff != t->_pin)
   &&  (false == error))
   {
-    *val &= (1 << t->_pin);
+    val = (t->_i2c_xfer_info.data[0] << 8) | t->_i2c_xfer_info.data[1];
+    t->_i2c_xfer_info.data[0] = val & (1 << t->_pin);
     t->_pin = 0xff;
   }
 
