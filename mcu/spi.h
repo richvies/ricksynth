@@ -42,6 +42,7 @@ SOFTWARE.
 typedef enum
 {
   SPI_MASTER_MODE,
+  /// slave mode not implemented yet
   SPI_SLAVE_MODE,
   SPI_NUM_OF_MASTER_MODES,
 } SPI_master_mode_e;
@@ -81,21 +82,89 @@ typedef void (*SPI_xfer_cb)(bool error, bool done, void *ctx);
 
 typedef struct
 {
+  /// chip select pin for device on bus
   IO_num_e    cs_pin;
+  /// data buffer to write from
   uint8_t*    tx_data;
+  /// data buffer to read to
   uint8_t*    rx_data;
+  /// length in bytes for transaction
   uint16_t    length;
+  /// function to call when transaction half/ done. Set to NULL if not needed
   SPI_xfer_cb cb;
+  /// will be passed as argument to cb function
   void*       ctx;
 } SPI_xfer_info_t;
 
 
+/**
+ * @brief configures peripheral, clocks, io, enables interrups (& DMA if used)
+ *
+ * @param ch @ref SPI_ch_e
+ * @param cfg spi channel configuration @ref SPI_cfg_t
+ * @return true if channel is started or was previously started
+ * @return false if channel could not be started
+ */
 extern bool SPI_init      (SPI_ch_e ch, SPI_cfg_t *cfg);
+
+/**
+ * @brief stops peripheral, clocks, io, disables interrupts (& DMA if used)
+ *
+ * @param ch @ref SPI_ch_e
+ * @return true if channel stoped or previously stopped
+ * @return false if failed to stop channel
+ */
 extern bool SPI_deInit    (SPI_ch_e ch);
+
+/**
+ * @brief checks if peripheral is ready for a new transaction
+ *
+ * @param ch @ref SPI_ch_e
+ * @return true if transaction is ongoing
+ * @return false if channel is free for new transaction
+ */
 extern bool SPI_isBusy    (SPI_ch_e ch);
+
+/**
+ * @brief Call this function periodically if using spi bus.
+ * Checks queue for each channel and starts next tranaction
+ * if channel is not busy
+ * @attention Do NOT call from an interrupt
+ *
+ */
 extern void SPI_task      (void);
+
+/**
+ * @brief write data to a device on spi bus
+ * @attention Do NOT call from an interrupt
+ *
+ * @param ch channel to use @ref SPI_ch_e
+ * @param info transaction information @ref SPI_xfer_info_t
+ * @return true if write started or added to queue succesfully
+ * @return false if not able to start write or add to queue
+ */
 extern bool SPI_write     (SPI_ch_e ch, SPI_xfer_info_t *info);
+
+/**
+ * @brief read data from a device on spi bus
+ * @attention Do NOT call from an interrupt
+ *
+ * @param ch channel to use @ref SPI_ch_e
+ * @param info transaction information @ref SPI_xfer_info_t
+ * @return true if read started or added to queue succesfully
+ * @return false if not able to start read or add to queue
+ */
 extern bool SPI_read      (SPI_ch_e ch, SPI_xfer_info_t *info);
+
+/**
+ * @brief write & read data from a device on spi bus at same time
+ * @attention Do NOT call from an interrupt
+ *
+ * @param ch channel to use @ref SPI_ch_e
+ * @param info transaction information @ref SPI_xfer_info_t
+ * @return true if transaction started or added to queue succesfully
+ * @return false if not able to start transaction or add to queue
+ */
 extern bool SPI_writeRead (SPI_ch_e ch, SPI_xfer_info_t *info);
 
 

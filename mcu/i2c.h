@@ -94,9 +94,9 @@ typedef struct
   uint8_t*    data;
   /// length in bytes of transaction
   uint16_t    length;
-  /// callback to be called when transaction completed. Set to NULL if not needed
+  /// function to call when transaction done. Set to NULL if not needed
   I2C_xfer_cb cb;
-  /// will be passed as argument to callback function
+  /// will be passed as argument to cb function
   void*       ctx;
 } I2C_xfer_info_t;
 
@@ -130,7 +130,7 @@ extern bool I2C_deInit  (I2C_ch_e ch);
 extern bool I2C_isBusy  (I2C_ch_e ch);
 
 /**
- * @brief Call this function periodically if using i2c bus
+ * @brief Call this function periodically if using i2c bus.
  * Checks queue for each channel and starts next tranaction
  * if channel is not busy
  * @attention Do NOT call from an interrupt
