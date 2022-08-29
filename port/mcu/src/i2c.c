@@ -115,6 +115,10 @@ bool I2C_init   (I2C_ch_e ch, I2C_cfg_t *cfg)
 
   if(HAL_OK == HAL_I2C_Init(&h->hal))
   {
+    /* point irq to this handle (h) for use in interrupt handler */
+    irq_set_context(h->hw->event_irq_num, h);
+    irq_set_context(h->hw->error_irq_num, h);
+
     ret = true;
   }
 
@@ -134,6 +138,12 @@ bool I2C_deInit (I2C_ch_e ch)
   }
 
   h = &handles[ch];
+
+  if (false == h->init)
+  {
+    PRINTF_WARN("ch %u already stopped", ch);
+    return true;
+  }
 
   if (HAL_OK == HAL_I2C_DeInit(&h->hal))
   {

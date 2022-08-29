@@ -218,6 +218,9 @@ erase:
 	@echo Erasing device...
 	$(MCU_ERASE)
 
+doc: phony
+	doxygen docs/doxyfile
+
 #############################################################
 # File build recipes
 #############################################################

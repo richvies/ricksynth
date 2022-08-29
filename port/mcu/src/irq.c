@@ -32,6 +32,7 @@ SOFTWARE.
 #include "mcu_private.h"
 
 
+/** see @ref IRQn_Type */
 #define IRQ_NUM_OF                  (85)
 
 
@@ -44,7 +45,7 @@ static uint8_t const irq_to_nvic[priority_NUM_OF] =
   15,
 };
 
-static void* irq_contexts[IRQ_NUM_OF] = {0};
+static void* irq_contexts[IRQ_NUM_OF] = {NULL};
 
 void irq_config(irq_num_e irq, irq_priority_e priority)
 {
@@ -74,11 +75,11 @@ void irq_disableAll(void)
 
 irq_num_e irq_get_current(void)
 {
-  irq_num_e num =
+  irq_num_e irq =
     (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) >> SCB_ICSR_VECTACTIVE_Pos;
 
   /* takeaway cortex core irq */
-  return num - 16;
+  return (irq - 16);
 }
 
 void      irq_set_context(irq_num_e irq, void *context)
