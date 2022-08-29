@@ -253,7 +253,7 @@ bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
   {
     if (h->q_n < SIZEOF(h->q))
     {
-      h->q_dir[h->q_tail + h->q_n] = WRITE;
+      h->q_dir[h->q_tail + h->q_n] = READ;
       h->q[h->q_tail + h->q_n++] = info;
       ret = true;
     }
