@@ -82,8 +82,6 @@ void TIM1_CC_IRQHandler               (void) WEAK_REF_ATTRIBUTE;
 void TIM2_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void TIM3_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void TIM4_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
-void SPI1_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
-void SPI2_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void USART1_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
 void USART2_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
 void EXTI15_10_IRQHandler             (void) WEAK_REF_ATTRIBUTE;
@@ -92,7 +90,6 @@ void OTG_FS_WKUP_IRQHandler           (void) WEAK_REF_ATTRIBUTE;
 void DMA1_Stream7_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void SDIO_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void TIM5_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
-void SPI3_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void DMA2_Stream0_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void DMA2_Stream1_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void DMA2_Stream2_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
@@ -104,11 +101,11 @@ void DMA2_Stream6_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void DMA2_Stream7_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void USART6_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
 void FPU_IRQHandler                   (void) WEAK_REF_ATTRIBUTE;
-void SPI4_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 
 
 void i2c_event_irq_handler            (void) WEAK_REF_ATTRIBUTE;
 void i2c_error_irq_handler            (void) WEAK_REF_ATTRIBUTE;
+void spi_irq_handler                  (void) WEAK_REF_ATTRIBUTE;
 
 
 irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
@@ -164,8 +161,8 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   i2c_error_irq_handler,          /* I2C1 Error                   */
   i2c_event_irq_handler,          /* I2C2 Event                   */
   i2c_error_irq_handler,          /* I2C2 Error                   */
-  SPI1_IRQHandler,                /* SPI1                         */
-  SPI2_IRQHandler,                /* SPI2                         */
+  spi_irq_handler,                /* SPI1                         */
+  spi_irq_handler,                /* SPI2                         */
   USART1_IRQHandler,              /* USART1                       */
   USART2_IRQHandler,              /* USART2                       */
   0,                              /* Reserved                     */
@@ -180,7 +177,7 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   0,                              /* Reserved                     */
   SDIO_IRQHandler,                /* SDIO                         */
   TIM5_IRQHandler,                /* TIM5                         */
-  SPI3_IRQHandler,                /* SPI3                         */
+  spi_irq_handler,                /* SPI3                         */
   0,                              /* Reserved                     */
   0,                              /* Reserved                     */
   0,                              /* Reserved                     */
@@ -213,5 +210,5 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   FPU_IRQHandler,                 /* FPU                          */
   0,                              /* Reserved                     */
   0,                              /* Reserved                     */
-  SPI4_IRQHandler,                /* SPI4                         */
+  spi_irq_handler,                /* SPI4                         */
 };

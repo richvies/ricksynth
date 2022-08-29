@@ -109,7 +109,6 @@ static bool readDma       (SPI_ch_e ch, uint8_t *d, uint16_t l);
 static bool writeReadDma  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l);
 
 static bool channelFromHal(SPI_HandleTypeDef *hspi, SPI_ch_e *ch);
-static bool channelFromPeriph(periph_e periph, SPI_ch_e *ch);
 static void configureHal(spi_handle_t *h, SPI_cfg_t *cfg);
 static uint32_t hzToPrescaler(spi_handle_t *h, uint32_t hz);
 static bool initDma(spi_handle_t *h);
@@ -141,6 +140,9 @@ bool SPI_init       (SPI_ch_e ch, SPI_cfg_t *cfg)
 
   if(HAL_OK == HAL_SPI_Init(&h->hal))
   {
+    /* point irq to this handle (h) for use in interrupt handler */
+    irq_set_context(h->hw->irq_num, h);
+
     ret = true;
   }
 
@@ -393,24 +395,6 @@ static bool channelFromHal(SPI_HandleTypeDef *hspi, SPI_ch_e *ch)
   return ret;
 }
 
-static bool channelFromPeriph(periph_e periph, SPI_ch_e *ch)
-{
-  bool ret = false;
-  SPI_ch_e i;
-
-  for (i = SPI_CH_FIRST; i < SPI_NUM_OF_CH; i++)
-  {
-    if (periph == handles[i].hw->periph)
-    {
-      *ch = i;
-      ret = true;
-      break;
-    }
-  }
-
-  return ret;
-}
-
 static void configureHal(spi_handle_t *h, SPI_cfg_t *cfg)
 {
   h->hal.Instance               = h->hw->inst;
@@ -528,53 +512,32 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 }
 
 
-static void irqHandler(periph_e periph)
+void spi_irq_handler(void)
 {
-  SPI_ch_e ch;
+  spi_handle_t *h = (spi_handle_t*)irq_get_context(irq_get_current());
 
-  if (true == channelFromPeriph(periph, &ch))
+  if (h)
   {
-    HAL_SPI_IRQHandler(&handles[ch].hal);
+    HAL_SPI_IRQHandler(&h->hal);
   }
 }
 
-void SPI1_IRQHandler(void)
+static void irq_end_call_callback(bool error, bool done)
 {
-  irqHandler(periph_SPI_1);
-}
+  spi_handle_t *h = (spi_handle_t*)irq_get_context(irq_get_current());
 
-void SPI2_IRQHandler(void)
-{
-  irqHandler(periph_SPI_2);
-}
-
-void SPI3_IRQHandler(void)
-{
-  irqHandler(periph_SPI_3);
-}
-
-void SPI4_IRQHandler(void)
-{
-  irqHandler(periph_SPI_4);
-}
-
-
-static void callXferCb(SPI_HandleTypeDef *hspi, bool error, bool done)
-{
-  SPI_ch_e ch;
-
-  if (true == channelFromHal(hspi, &ch))
+  if (h)
   {
-    if (handles[ch].xfer->cb)
+    if (h->xfer->cb)
     {
-      handles[ch].xfer->cb(error, done, handles[ch].xfer->ctx);
+      h->xfer->cb(error, done, h->xfer->ctx);
     }
 
     if (done)
     {
-      if (handles[ch].xfer->cs_pin)
+      if (h->xfer->cs_pin)
       {
-        IO_set(handles[ch].xfer->cs_pin);
+        IO_set(h->xfer->cs_pin);
       }
     }
   }
@@ -582,40 +545,40 @@ static void callXferCb(SPI_HandleTypeDef *hspi, bool error, bool done)
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, true);
+  irq_end_call_callback(false, true);
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, true);
+  irq_end_call_callback(false, true);
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, true);
+  irq_end_call_callback(false, true);
 }
 
 void HAL_SPI_TxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, false);
+  irq_end_call_callback(false, false);
 }
 
 void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, false);
+  irq_end_call_callback(false, false);
 }
 
 void HAL_SPI_TxRxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, false, false);
+  irq_end_call_callback(false, false);
 }
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, true, true);
+  irq_end_call_callback(true, true);
 }
 
 void HAL_SPI_AbortCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  callXferCb(hspi, true, true);
+  irq_end_call_callback(true, true);
 }

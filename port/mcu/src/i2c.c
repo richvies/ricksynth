@@ -453,7 +453,7 @@ void i2c_error_irq_handler(void)
   }
 }
 
-static void irq_end_call_callback(I2C_HandleTypeDef *hi2c, bool error)
+static void irq_end_call_callback(bool error)
 {
   i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
 
@@ -468,22 +468,22 @@ static void irq_end_call_callback(I2C_HandleTypeDef *hi2c, bool error)
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  irq_end_call_callback(hi2c, false);
+  irq_end_call_callback(false);
 }
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  irq_end_call_callback(hi2c, false);
+  irq_end_call_callback(false);
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
-  irq_end_call_callback(hi2c, true);
+  irq_end_call_callback(true);
 }
 
 void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  irq_end_call_callback(hi2c, true);
+  irq_end_call_callback(true);
 }
 
 
