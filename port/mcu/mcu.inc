@@ -1,20 +1,32 @@
 # MCU Library
 
+# Common
+SHELL 	        := bash
+MKDIR           := mkdir
+RM 			        := rm -rf
+PYTHON	        := python3
+
+ifeq ("$(V)","1")
+  NO_ECHO       :=
+else
+  NO_ECHO       := @
+endif
+
+BUILD_DIR       := build/
+BIN_DIR         := bin/
+LIB_DIR         := lib/
+
 # File directories
 MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
-ifeq '$(config)' 'debug'
-  MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_debug.a
-else
-  MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_release.a
-endif
+MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_$(config).a
+MCU_MAKEFILE    := mcu.mk
 
 MAL_DIR         := $(MCU_MAKE_DIR)mal/
 MAL_MAKE_DIR    := $(MAL_DIR)
-ifeq '$(config)' 'debug'
-  MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal_debug.a
-else
-  MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal_release.a
-endif
+MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a
+MAL_MAKEFILE    := mal.mk
+
+MCU_LIBS        := $(MCU_LIB) $(MAL_LIB)
 
 LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
 
@@ -96,3 +108,16 @@ C_FLAGS = \
 CPP_FLAGS = \
   $(FLAGS) \
 	-std=c++11
+
+$(MCU_LIB): phony
+	@echo
+	@echo make mcu library $(config)
+	@make -C $(MCU_MAKE_DIR) -f $(MCU_MAKEFILE) all
+
+$(MAL_LIB): phony
+	@echo
+	@echo make mal library
+	@make -C $(MAL_MAKE_DIR) -f $(MAL_MAKEFILE) all config=release
+
+print-%:
+	@echo $* = $($*)

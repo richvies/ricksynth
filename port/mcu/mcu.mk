@@ -1,16 +1,4 @@
-include makefile.inc
-
-TARGET          := $(subst .a,,$(notdir $(MCU_LIB)))
-BUILD_DIR       := build/
-LIB_DIR         := lib/
-
-MKDIR           := mkdir
-RM 			        := rm -rf
-ifeq ("$(V)","1")
-  NO_ECHO :=
-else
-  NO_ECHO := @
-endif
+include mcu.inc
 
 #############################################################
 # sources + flags
@@ -23,7 +11,7 @@ C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
 C_OBJS := \
-  $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
+  $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 C_INCLUDES =  \
 $(MCU_INCLUDES) \
@@ -45,18 +33,18 @@ $(MCU_INCLUDES) \
 
 .PHONY: all clean
 
-all: $(LIB_DIR)$(TARGET).a
+all: $(C_OBJS)
+	@echo
+	@echo archiving mcu library
+	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
+	$(NO_ECHO)$(AR) rcs $(MCU_LIB) $(C_OBJS)
 
 clean:
+	@echo
+	@echo clean mcu library
 	$(RM) $(BUILD_DIR) $(LIB_DIR)
 
-$(LIB_DIR)$(TARGET).a: $(C_OBJS)
-	@echo
-	@echo archiving $(TARGET)
-	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
-	$(NO_ECHO)$(AR) rcs $(LIB_DIR)$(TARGET).a $(C_OBJS)
-
-$(BUILD_DIR)%.o: %.c
+$(BUILD_DIR)%_$(config).o: %.c
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<

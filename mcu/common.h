@@ -41,7 +41,6 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "config.h"
 
 
 #define SIZEOF(x) (sizeof(x)/sizeof(*x))

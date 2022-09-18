@@ -63,36 +63,15 @@ COMMIT_DEFS = \
 TARGET = $(project)_$(target)_$(config)_$(commit_id)
 
 #############################################################
-# Make tools
-#############################################################
-
-ifeq ("$(V)","1")
-  NO_ECHO :=
-else
-  NO_ECHO := @
-endif
-
-SHELL 	:= bash
-MKDIR 	:= mkdir
-RM 			:= rm -rf
-PYTHON	:= python3
-
-BUILD_DIR = build/
-BIN_DIR   = bin/
-
-#############################################################
 # Include mcu specific tools, files & definitions
 #############################################################
 
-MCU_INCLUDES = -I$(CURDIR)/mcu
-MCU_INCLUDES += -I$(CURDIR)/config
-export MCU_INCLUDES
-export config
+MCU_INCLUDES	= -I$(CURDIR)/mcu
+export MCU_INCLUDES config
 
-include port/mcu/makefile.inc
+include port/mcu/mcu.inc
 
-LOCAL_LIBS 					+= $(MCU_LIB) $(MAL_LIB)
-LOCAL_LIBS_MAKE_DIR += $(MCU_MAKE_DIR) $(MAL_MAKE_DIR)
+LOCAL_LIBS 		+= $(MCU_LIBS)
 
 #############################################################
 # libraries
@@ -145,6 +124,7 @@ CPP_SOURCES = \
 OBJS	= $(addprefix $(BUILD_DIR), $(ASM_SOURCES:.s=.o))
 OBJS += $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
 OBJS += $(addprefix $(BUILD_DIR), $(CPP_SOURCES:.cpp=.o))
+
 # So that make does not think they are intermediate files and delete them
 .SECONDARY: $(OBJS)
 
@@ -156,7 +136,7 @@ VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
 
 C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
 
-# defined in mcu makefile.inc, can add extra flags here if needs be
+# defined in mcu mcu.inc, can add extra flags here if needs be
 C_FLAGS +=
 
 LD_FLAGS = \
@@ -193,6 +173,8 @@ help:
 	@echo 'To build the main app for use in a released image:'
 	@echo '$$: make clean; make -j8'
 
+libs: $(LOCAL_LIBS)
+
 clean:
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
 
@@ -200,15 +182,12 @@ cleanall:
 	@echo
 	@echo clean main
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
+	@make -C $(MCU_MAKE_DIR) -f $(MCU_MAKEFILE) clean
 	@echo
-	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'clean $(folder)'; make clean -C $(folder) -j; echo;)
 
 version:
 	@echo id = $(commit_id)
 	@echo log = $(commit_log)
-
-print-%:
-	@echo $* = $($*)
 
 flash:
 	@echo Flashing: $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX)
@@ -225,11 +204,7 @@ doc: phony
 # File build recipes
 #############################################################
 
-build_libs: phony
-	@echo
-	@$(foreach folder, $(LOCAL_LIBS_MAKE_DIR), echo 'make lib $(folder)'; make -C $(folder) -j; echo;)
-
-$(BIN_DIR)$(TARGET).elf: build_libs $(OBJS) $(BUILD_DIR)link.arg
+$(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	@echo 'Make arguments:'
 	@echo ----------------
