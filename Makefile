@@ -217,7 +217,7 @@ $(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
-	$(NO_ECHO) cp $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/firmware.elf
+	$(NO_ECHO) cp $(BIN_DIR)$(TARGET).elf $(BIN_DIR)firmware.elf
 	@echo
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg

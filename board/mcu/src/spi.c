@@ -101,9 +101,12 @@ static const uint8_t  PrescTable[sizeof(prescaler_index_to_hal)] =
 {1, 2, 3, 4, 5, 6, 7, 8};
 
 
+static bool writeBlock    (spi_handle_t *h);
+static bool readBlock     (spi_handle_t *h);
+static bool writeReadBlock(spi_handle_t *h);
+
 static bool xfer          (spi_handle_t *h, SPI_xfer_info_t *info);
 static bool addXferToQ    (spi_handle_t *h, SPI_xfer_info_t *info);
-
 static bool write         (spi_handle_t *h);
 static bool read          (spi_handle_t *h);
 static bool writeRead     (spi_handle_t *h);
@@ -258,6 +261,82 @@ bool SPI_xfer       (SPI_ch_e ch, SPI_xfer_info_t *info)
   return ret;
 }
 
+bool SPI_xferBlock  (SPI_ch_e ch, SPI_xfer_info_t *info)
+{
+  bool ret = false;
+  spi_handle_t *h = &handles[ch];
+
+  while (h->busy || h->error)
+  {
+    SPI_task();
+  }
+
+  h->busy = true;
+
+  if (info->cs_pin)
+  {
+    IO_clear(info->cs_pin);
+  }
+
+  h->xfer = info;
+
+  switch (info->dir)
+  {
+  case SPI_WRITE:
+    ret = writeBlock(h);
+    break;
+
+  case SPI_READ:
+    ret = readBlock(h);
+    break;
+
+  case SPI_WRITE_READ:
+    ret = writeReadBlock(h);
+    break;
+
+  default:
+    break;
+  }
+
+  if (false == ret)
+  {
+    MERR_error(MERROR_SPI_XFER, h->hw->periph);
+    h->busy = false;
+  }
+
+  return ret;
+}
+
+
+/* Blocking tranfer functions */
+
+static bool writeBlock    (spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_Transmit(&h->hal,
+                                       h->xfer->tx_data,
+                                       h->xfer->length,
+                                       100));
+}
+
+static bool readBlock     (spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_Receive(&h->hal,
+                                     h->xfer->rx_data,
+                                     h->xfer->length,
+                                     100));
+}
+
+static bool writeReadBlock(spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_TransmitReceive(&h->hal,
+                                             h->xfer->tx_data,
+                                             h->xfer->rx_data,
+                                             h->xfer->length,
+                                             100));
+}
+
+
+/* Non-Blocking tranfer and queue functions */
 
 static bool xfer        (spi_handle_t *h, SPI_xfer_info_t *info)
 {
@@ -324,7 +403,6 @@ static bool addXferToQ  (spi_handle_t *h, SPI_xfer_info_t *info)
   return ret;
 }
 
-
 static bool write       (spi_handle_t *h)
 {
   bool ret;
@@ -373,30 +451,28 @@ static bool writeRead   (spi_handle_t *h)
   return ret;
 }
 
+/* Non-Blocking low level functions */
 
 static bool writeIrq      (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Transmit(&h->hal,
-                                      h->xfer->tx_data,
-                                      h->xfer->length,
-                                      1000));
+  return (HAL_OK == HAL_SPI_Transmit_IT(&h->hal,
+                                         h->xfer->tx_data,
+                                         h->xfer->length));
 }
 
 static bool readIrq       (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Receive(&h->hal,
-                                     h->xfer->rx_data,
-                                     h->xfer->length,
-                                     1000));
+  return (HAL_OK == HAL_SPI_Receive_IT(&h->hal,
+                                        h->xfer->rx_data,
+                                        h->xfer->length));
 }
 
 static bool writeReadIrq  (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_TransmitReceive(&h->hal,
-                                             h->xfer->tx_data,
-                                             h->xfer->rx_data,
-                                             h->xfer->length,
-                                             1000));
+  return (HAL_OK == HAL_SPI_TransmitReceive_IT(&h->hal,
+                                                h->xfer->tx_data,
+                                                h->xfer->rx_data,
+                                                h->xfer->length));
 }
 
 static bool writeDma      (spi_handle_t *h)
@@ -421,6 +497,8 @@ static bool writeReadDma  (spi_handle_t *h)
                                                  h->xfer->length));
 }
 
+
+/* Util functions */
 
 static bool channelFromHal(SPI_HandleTypeDef *hspi, SPI_ch_e *ch)
 {
@@ -503,6 +581,8 @@ static bool initDma(spi_handle_t *h)
 }
 
 
+/* STM32 Library functions */
+
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 {
   SPI_ch_e ch;
@@ -557,6 +637,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 }
 
 
+/* Interrupt handling */
+
 void spi_irq_handler(void)
 {
   spi_handle_t *h = (spi_handle_t*)irq_get_context(irq_get_current());
@@ -592,6 +674,7 @@ static void irq_end_call_callback(bool error, bool done)
     h->busy = (!done | error);
   }
 }
+
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {

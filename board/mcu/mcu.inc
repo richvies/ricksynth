@@ -32,11 +32,12 @@ LINKER_SCRIPTS  := $(MAL_MAKE_DIR)link.ld
 
 # Toolchain commands
 TOOLCHAIN_BIN_PATH  := /Users/admin/Desktop/projects/gcc-arm-none-eabi-10.3-2021.10/bin/
+LTO_PLUGIN          := /Users/admin/Desktop/projects/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/liblto_plugin.0.so
 TOOLCHAIN_PREFIX    := arm-none-eabi
 CPP                 := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-g++'
 CC                  := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-gcc'
 AS 							    := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-gcc'
-AR 							    := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-ar'
+AR 							    := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-ar' --plugin $(LTO_PLUGIN)
 OBJDUMP             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objdump'
 OBJCOPY             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE                := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-size'
@@ -74,6 +75,7 @@ MCU_LD_FLAGS += \
   -mthumb \
   -mfpu=fpv4-sp-d16 \
   -mfloat-abi=hard \
+  -flto \
   -T$(LINKER_SCRIPTS) \
   --specs=nano.specs \
   --specs=nosys.specs
@@ -87,6 +89,7 @@ FLAGS = \
   -ffreestanding \
   -fno-builtin \
   -fno-move-loop-invariants \
+  -flto \
   -Wall \
   -Wextra \
   $(MCU_DEFS)
