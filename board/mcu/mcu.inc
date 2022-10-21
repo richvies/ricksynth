@@ -12,18 +12,18 @@ else
   NO_ECHO       := @
 endif
 
-BUILD_DIR       := build/
-BIN_DIR         := bin/
-LIB_DIR         := lib/
+BUILD_DIR       := _build/
+BIN_DIR         := _bin/
+LIB_DIR         := _lib/
 
 # File directories
 MCU_MAKE_DIR    := $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_LIB         := $(MCU_MAKE_DIR)lib/libmcu_$(config).a
+MCU_LIB         := $(MCU_MAKE_DIR)$(LIB_DIR)libmcu_$(config).a
 MCU_MAKEFILE    := mcu.mk
 
 MAL_DIR         := $(MCU_MAKE_DIR)mal/
 MAL_MAKE_DIR    := $(MAL_DIR)
-MAL_LIB         := $(MAL_MAKE_DIR)lib/libmal.a
+MAL_LIB         := $(MAL_MAKE_DIR)$(LIB_DIR)libmal_$(config).a
 MAL_MAKEFILE    := mal.mk
 
 MCU_LIBS        := $(MCU_LIB) $(MAL_LIB)
@@ -111,13 +111,23 @@ CPP_FLAGS = \
 
 $(MCU_LIB): phony
 	@echo
-	@echo make mcu library $(config)
+	@echo make mcu $(config) library
+	@echo
 	@make -C $(MCU_MAKE_DIR) -f $(MCU_MAKEFILE) all
 
 $(MAL_LIB): phony
 	@echo
-	@echo make mal library
+	@echo make mal debug library
+	@echo
+	@make -C $(MAL_MAKE_DIR) -f $(MAL_MAKEFILE) all config=debug
+	@echo
+	@echo make mal release library
+	@echo
 	@make -C $(MAL_MAKE_DIR) -f $(MAL_MAKEFILE) all config=release
+
+cleanmal:
+	@make -C $(MAL_MAKE_DIR) -f $(MAL_MAKEFILE) clean
+	@echo
 
 print-%:
 	@echo $* = $($*)

@@ -1,6 +1,6 @@
-**/build/
-**/bin/
-**/lib/
+**/_build/
+**/_bin/
+**/_lib/
 **/docs/doxygen/
 .DS_Store
 **/.bash_history

@@ -34,7 +34,7 @@ C_INCLUDES =  \
 
 all: $(C_OBJS)
 	@echo
-	@echo archiving mcu library
+	@echo archiving mcu $(config) library
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
 	$(NO_ECHO)$(AR) rcs $(MCU_LIB) $(C_OBJS)
 

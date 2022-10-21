@@ -25,7 +25,7 @@ C_INCLUDES =  \
 
 all: $(C_OBJS)
 	@echo
-	@echo archiving brd library
+	@echo archiving brd $(config) library
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
 	$(NO_ECHO)$(AR) rcs $(BRD_LIB) $(C_OBJS)
 

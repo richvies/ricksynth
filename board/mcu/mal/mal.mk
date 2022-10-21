@@ -16,7 +16,7 @@ C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
 C_OBJS := \
-  $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
+  $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 C_INCLUDES =  \
 -I./ \
@@ -37,7 +37,7 @@ C_INCLUDES =  \
 
 all: $(C_OBJS)
 	@echo
-	@echo archiving mal library
+	@echo archiving mal $(config) library
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
 	$(NO_ECHO)$(AR) rcs $(MAL_LIB) $(C_OBJS)
 
@@ -46,7 +46,7 @@ clean:
 	@echo clean mal library
 	$(RM) $(BUILD_DIR) $(LIB_DIR)
 
-$(BUILD_DIR)%.o: %.c
+$(BUILD_DIR)%_$(config).o: %.c
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
 	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<

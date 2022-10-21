@@ -6,19 +6,19 @@
       "name": "Cortex Debug",
       "cwd": "${workspaceRoot}",
       "device": "STM32F401CC",
-      "executable": "${workspaceRoot}/bin/firmware.elf",
+      "executable": "${workspaceRoot}/_bin/firmware.elf",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "jlink",
       "runToEntryPoint": "Reset_Handler",
       "showDevDebugOutput": "both",
-      "svdFile": "${workspaceRoot}/port/mcu/mal/CMSIS/STM32F40x.svd",
+      "svdFile": "${workspaceRoot}/board/mcu/mal/CMSIS/STM32F40x.svd",
       "serverArgs": [
         "-select","USB",
         "-endian","little",
         "-speed","500",
         "-noir",
-        "-settingsfile","${workspaceRoot}/jlink/debug.jlink"
+        "-settingsfile","${workspaceRoot}/board/mcu/jlink/debug.jlink"
 ],
     }
   ]
