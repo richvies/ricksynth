@@ -144,7 +144,7 @@ extern bool SPI_isBusy    (SPI_ch_e ch);
 extern void SPI_task      (void);
 
 /**
- * @brief transfer data to/ from a device on spi bus
+ * @brief transfer data to/ from a device on spi bus using interrupts or dma
  * @attention Do NOT call from an interrupt
  *
  * @param ch channel to use @ref SPI_ch_e
@@ -153,6 +153,17 @@ extern void SPI_task      (void);
  * @return false if not able to start xfer or add to queue
  */
 extern bool SPI_xfer      (SPI_ch_e ch, SPI_xfer_info_t *info);
+
+/**
+ * @brief transfer data to/ from a device on spi bus and wait to complete
+ * @attention Do NOT call from an interrupt
+ *
+ * @param ch channel to use @ref SPI_ch_e
+ * @param info transaction information @ref SPI_xfer_info_t
+ * @return true if xfer started or added to queue succesfully
+ * @return false if not able to start xfer or add to queue
+ */
+extern bool SPI_xferBlocking  (SPI_ch_e ch, SPI_xfer_info_t *info);
 
 
 #ifdef __cplusplus

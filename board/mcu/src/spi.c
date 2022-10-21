@@ -261,7 +261,7 @@ bool SPI_xfer       (SPI_ch_e ch, SPI_xfer_info_t *info)
   return ret;
 }
 
-bool SPI_xferBlock  (SPI_ch_e ch, SPI_xfer_info_t *info)
+bool SPI_xferBlocking  (SPI_ch_e ch, SPI_xfer_info_t *info)
 {
   bool ret = false;
   spi_handle_t *h = &handles[ch];
