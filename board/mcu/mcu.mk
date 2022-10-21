@@ -14,7 +14,6 @@ C_OBJS := \
   $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 C_INCLUDES =  \
-$(MCU_INCLUDES) \
 -Iinclude \
 -Isrc \
 -I$(MAL_DIR) \

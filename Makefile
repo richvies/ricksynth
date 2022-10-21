@@ -66,12 +66,11 @@ TARGET = $(project)_$(target)_$(config)_$(commit_id)
 # Include mcu specific tools, files & definitions
 #############################################################
 
-MCU_INCLUDES	= -I$(CURDIR)/mcu
-export MCU_INCLUDES config
+export config
 
-include port/mcu/mcu.inc
+include board/board.inc
 
-LOCAL_LIBS 		+= $(MCU_LIBS)
+LOCAL_LIBS 		+= $(BRD_LIBS)
 
 #############################################################
 # libraries
@@ -108,12 +107,10 @@ C_INCLUDES = \
   -I./backbone/math \
   -I./backbone/system \
   -I./backbone/util \
+  -I./board \
+  -I./board/mcu/include \
   -I./config \
-  -I./chips/PCF8575 \
-  -I./chips/TLC5928 \
-  -I./mcu \
   -I./modifiers \
-  -I./port/mcu/include \
   -I./ui \
   -I./voices \
   -I./voices/generators
@@ -134,9 +131,10 @@ VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
 # flags & definitions
 #############################################################
 
+# defined in mcu mcu.inc, can add extra here if needs be
+
 C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
 
-# defined in mcu mcu.inc, can add extra flags here if needs be
 C_FLAGS +=
 
 LD_FLAGS = \
@@ -182,7 +180,7 @@ cleanall:
 	@echo
 	@echo clean main
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
-	@make -C $(MCU_MAKE_DIR) -f $(MCU_MAKEFILE) clean
+	@make -C $(BRD_MAKE_DIR) -f $(BRD_MAKEFILE) clean
 	@echo
 
 version:

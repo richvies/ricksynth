@@ -40,12 +40,7 @@ SOFTWARE.
 #include "tim.h"
 
 
-typedef enum
-{
-  WRITE,
-  READ,
-  WRITE_READ,
-} spi_dir_e;
+#define INC_Q_TAIL(h) {++h->q_tail;if(h->q_tail>=SIZEOF(h->q)){h->q_tail=0;}}
 
 
 typedef struct
@@ -53,13 +48,18 @@ typedef struct
   bool init;
   SPI_HandleTypeDef hal;
   const spi_hw_info_t *hw;
+
+  /* current xfer */
   SPI_xfer_info_t *xfer;
 
   /* xfer queue */
-  SPI_xfer_info_t *q[3];
-  spi_dir_e q_dir[3];
-  uint8_t q_n;
+  SPI_xfer_info_t *q[5];
+  uint8_t q_head;
   uint8_t q_tail;
+  bool busy;
+  bool pending;
+  bool error;
+  uint8_t retry;
 } spi_handle_t;
 
 
@@ -101,12 +101,19 @@ static const uint8_t  PrescTable[sizeof(prescaler_index_to_hal)] =
 {1, 2, 3, 4, 5, 6, 7, 8};
 
 
-static bool writeIrq      (SPI_ch_e ch, uint8_t *d, uint16_t l);
-static bool readIrq       (SPI_ch_e ch, uint8_t *d, uint16_t l);
-static bool writeReadIrq  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l);
-static bool writeDma      (SPI_ch_e ch, uint8_t *d, uint16_t l);
-static bool readDma       (SPI_ch_e ch, uint8_t *d, uint16_t l);
-static bool writeReadDma  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l);
+static bool xfer          (spi_handle_t *h, SPI_xfer_info_t *info);
+static bool addXferToQ    (spi_handle_t *h, SPI_xfer_info_t *info);
+
+static bool write         (spi_handle_t *h);
+static bool read          (spi_handle_t *h);
+static bool writeRead     (spi_handle_t *h);
+
+static bool writeIrq      (spi_handle_t *h);
+static bool readIrq       (spi_handle_t *h);
+static bool writeReadIrq  (spi_handle_t *h);
+static bool writeDma      (spi_handle_t *h);
+static bool readDma       (spi_handle_t *h);
+static bool writeReadDma  (spi_handle_t *h);
 
 static bool channelFromHal(SPI_HandleTypeDef *hspi, SPI_ch_e *ch);
 static void configureHal(spi_handle_t *h, SPI_cfg_t *cfg);
@@ -182,198 +189,236 @@ bool SPI_deInit     (SPI_ch_e ch)
   return ret;
 }
 
-bool SPI_isBusy     (SPI_ch_e ch)
-{
-  return (HAL_SPI_STATE_READY != HAL_SPI_GetState(&handles[ch].hal));
-}
-
 void SPI_task       (void)
 {
   SPI_ch_e ch;
   spi_handle_t *h;
-  bool ret;
 
-  /* check if xfer on queue for each channel */
+  /* check if any xfer in queue for each channel */
   for (ch = SPI_CH_FIRST; ch < SPI_NUM_OF_CH; ch++)
   {
     h = &handles[ch];
 
-    if ((h->q_n)
-    &&  (false == SPI_isBusy(ch)))
+    /* try again if there was an error */
+    if (h->error)
     {
-      switch (h->q_dir[h->q_tail])
+      h->error = false;
+      MERR_error(MERROR_SPI_ERROR, h->hw->periph);
+
+      /* give up if retried or xfer fails */
+      if ((h->retry++ > 2)
+      ||  (false == xfer(h, h->xfer)))
       {
-      case WRITE:
-        ret = SPI_write(ch, h->q[h->q_tail]);
-        break;
-
-      case READ:
-        ret = SPI_read(ch, h->q[h->q_tail]);
-        break;
-
-      case WRITE_READ:
-        ret = SPI_writeRead(ch, h->q[h->q_tail]);
-        break;
-
-      default:
-        ret = false;
-        break;
-      }
-
-      /* increment queue if xfer started */
-      if (true == ret)
-      {
-        --h->q_n;
-        ++h->q_tail;
-        if (h->q_tail >= SIZEOF(h->q))
+        if (h->xfer->cb)
         {
-          h->q_tail = 0;
+          h->xfer->cb(true, h->xfer->ctx);
         }
       }
     }
+
+    /* skip if not pending or is busy */
+    if ((false == h->pending)
+    ||  (true == h->busy))
+    {
+      continue;
+    }
+
+    /* start next xfer */
+    if (true == xfer(h, h->q[h->q_tail]))
+    {
+      INC_Q_TAIL(h);
+      h->retry = 0;
+    }
+
+    /* any more waiting? */
+    h->pending = (h->q_tail != h->q_head);
   }
 }
 
-bool SPI_write      (SPI_ch_e ch, SPI_xfer_info_t *info)
+bool SPI_xfer       (SPI_ch_e ch, SPI_xfer_info_t *info)
 {
   bool ret = false;
   spi_handle_t *h = &handles[ch];
 
   /* if busy, add to queue */
-  if (true == SPI_isBusy(ch))
+  if (true == h->busy)
   {
-    if (h->q_n < SIZEOF(h->q))
+    if (true == addXferToQ(h, info))
     {
-      h->q_dir[h->q_tail + h->q_n] = WRITE;
-      h->q[h->q_tail + h->q_n++] = info;
       ret = true;
     }
   }
   /* otherwise send now */
   else
   {
-    if (info->cs_pin)
-    {
-      IO_clear(info->cs_pin);
-    }
-
-    h->xfer = info;
-    if (h->hw->dma_tx_stream)
-    {
-      ret = writeDma(ch, info->tx_data, info->length);
-    }
-    else
-    {
-      ret = writeIrq(ch, info->tx_data, info->length);
-    }
+    h->retry = 0;
+    ret = xfer(h, info);
   }
 
   return ret;
 }
 
-bool SPI_read       (SPI_ch_e ch, SPI_xfer_info_t *info)
+
+static bool xfer        (spi_handle_t *h, SPI_xfer_info_t *info)
 {
   bool ret = false;
-  spi_handle_t *h = &handles[ch];
 
-  /* if busy, add to queue */
-  if (true == SPI_isBusy(ch))
+  h->busy = true;
+
+  if (info->cs_pin)
   {
-    if (h->q_n < SIZEOF(h->q))
-    {
-      h->q_dir[h->q_tail + h->q_n] = READ;
-      h->q[h->q_tail + h->q_n++] = info;
-      ret = true;
-    }
+    IO_clear(info->cs_pin);
   }
-  /* otherwise send now */
-  else
-  {
-    if (info->cs_pin)
-    {
-      IO_clear(info->cs_pin);
-    }
 
-    h->xfer = info;
-    if (h->hw->dma_rx_stream)
-    {
-      ret = readDma(ch, info->rx_data, info->length);
-    }
-    else
-    {
-      ret = readIrq(ch, info->rx_data, info->length);
-    }
+  h->xfer = info;
+
+  switch (info->dir)
+  {
+  case SPI_WRITE:
+    ret = write(h);
+    break;
+
+  case SPI_READ:
+    ret = read(h);
+    break;
+
+  case SPI_WRITE_READ:
+    ret = writeRead(h);
+    break;
+
+  default:
+    break;
+  }
+
+  if (false == ret)
+  {
+    MERR_error(MERROR_SPI_XFER, h->hw->periph);
+    h->busy = false;
   }
 
   return ret;
 }
 
-bool SPI_writeRead  (SPI_ch_e ch, SPI_xfer_info_t *info)
+static bool addXferToQ  (spi_handle_t *h, SPI_xfer_info_t *info)
 {
   bool ret = false;
-  spi_handle_t *h = &handles[ch];
+  uint8_t next = h->q_head + 1;
 
-  /* if busy, add to queue */
-  if (true == SPI_isBusy(ch))
+  if (next >= SIZEOF(h->q))
   {
-    if (h->q_n < SIZEOF(h->q))
-    {
-      h->q_dir[h->q_tail + h->q_n] = WRITE_READ;
-      h->q[h->q_tail + h->q_n++] = info;
-      ret = true;
-    }
+    next = 0;
   }
-  /* otherwise send now */
+
+  if (next != h->q_tail)
+  {
+    h->q[h->q_head] = info;
+    h->q_head = next;
+    h->pending = true;
+    ret = true;
+  }
   else
   {
-    if (info->cs_pin)
-    {
-      IO_clear(info->cs_pin);
-    }
-
-    handles[ch].xfer = info;
-    if (handles[ch].hw->dma_tx_stream && handles[ch].hw->dma_rx_stream)
-    {
-      ret = writeReadDma(ch, info->tx_data, info->rx_data, info->length);
-    }
-    else
-    {
-      ret = writeReadIrq(ch, info->tx_data, info->rx_data, info->length);
-    }
+    MERR_error(MERROR_SPI_OVERFLOW, h->hw->periph);
   }
 
   return ret;
 }
 
 
-static bool writeIrq      (SPI_ch_e ch, uint8_t *d, uint16_t l)
+static bool write       (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Transmit(&handles[ch].hal, d, l, 1000));
+  bool ret;
+
+  if (h->hw->dma_tx_stream)
+  {
+    ret = writeDma(h);
+  }
+  else
+  {
+    ret = writeIrq(h);
+  }
+
+  return ret;
 }
 
-static bool readIrq       (SPI_ch_e ch, uint8_t *d, uint16_t l)
+static bool read        (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Receive(&handles[ch].hal, d, l, 1000));
+  bool ret = false;
+
+  if (h->hw->dma_rx_stream)
+  {
+    ret = readDma(h);
+  }
+  else
+  {
+    ret = readIrq(h);
+  }
+
+  return ret;
 }
 
-static bool writeReadIrq  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l)
+static bool writeRead   (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_TransmitReceive(&handles[ch].hal, t, r, l, 1000));
+  bool ret = false;
+
+  if (h->hw->dma_tx_stream && h->hw->dma_rx_stream)
+  {
+    ret = writeReadDma(h);
+  }
+  else
+  {
+    ret = writeReadIrq(h);
+  }
+
+  return ret;
 }
 
-static bool writeDma      (SPI_ch_e ch, uint8_t *d, uint16_t l)
+
+static bool writeIrq      (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Transmit_DMA(&handles[ch].hal, d, l));
+  return (HAL_OK == HAL_SPI_Transmit(&h->hal,
+                                      h->xfer->tx_data,
+                                      h->xfer->length,
+                                      1000));
 }
 
-static bool readDma       (SPI_ch_e ch, uint8_t *d, uint16_t l)
+static bool readIrq       (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_Receive_DMA(&handles[ch].hal, d, l));
+  return (HAL_OK == HAL_SPI_Receive(&h->hal,
+                                     h->xfer->rx_data,
+                                     h->xfer->length,
+                                     1000));
 }
 
-static bool writeReadDma  (SPI_ch_e ch, uint8_t *t, uint8_t *r, uint16_t l)
+static bool writeReadIrq  (spi_handle_t *h)
 {
-  return (HAL_OK == HAL_SPI_TransmitReceive_DMA(&handles[ch].hal, t, r, l));
+  return (HAL_OK == HAL_SPI_TransmitReceive(&h->hal,
+                                             h->xfer->tx_data,
+                                             h->xfer->rx_data,
+                                             h->xfer->length,
+                                             1000));
+}
+
+static bool writeDma      (spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_Transmit_DMA(&h->hal,
+                                          h->xfer->tx_data,
+                                          h->xfer->length));
+}
+
+static bool readDma       (spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_Receive_DMA(&h->hal,
+                                        h->xfer->rx_data,
+                                        h->xfer->length));
+}
+
+static bool writeReadDma  (spi_handle_t *h)
+{
+  return (HAL_OK == HAL_SPI_TransmitReceive_DMA(&h->hal,
+                                                 h->xfer->tx_data,
+                                                 h->xfer->rx_data,
+                                                 h->xfer->length));
 }
 
 
@@ -528,18 +573,23 @@ static void irq_end_call_callback(bool error, bool done)
 
   if (h)
   {
+    if (error)
+    {
+      h->error = true;
+    }
+    else
     if (h->xfer->cb)
     {
-      h->xfer->cb(error, done, h->xfer->ctx);
+      h->xfer->cb(done, h->xfer->ctx);
     }
 
-    if (done)
+    if ((done)
+    &&  (h->xfer->cs_pin))
     {
-      if (h->xfer->cs_pin)
-      {
-        IO_set(h->xfer->cs_pin);
-      }
+      IO_set(h->xfer->cs_pin);
     }
+
+    h->busy = (!done | error);
   }
 }
 

@@ -29,7 +29,6 @@ SOFTWARE.
 
 #include "board_test.h"
 
-#include "mcu_private.h"
 
 
 void BOARD_test(void)

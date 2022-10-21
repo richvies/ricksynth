@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __IO_H
-#define __IO_H
+#ifndef __MERR_H
+#define __MERR_H
 
 
 #ifdef __cplusplus
@@ -41,71 +41,14 @@ SOFTWARE.
 
 typedef enum
 {
-  IO_DIR_IN,
-  IO_DIR_OUT_PP,
-  IO_DIR_OUT_OD,
-  IO_NUM_OF_DIRECTIONS,
-} IO_direction_e;
-
-typedef enum
-{
-  IO_MODE_GPIO,
-  IO_MODE_ANALOG,
-  IO_MODE_PERIPH,
-  IO_MODE_IRQ_POS,
-  IO_MODE_IRQ_NEG,
-  IO_MODE_IRQ_BOTH,
-  IO_NUM_OF_MODES,
-} IO_mode_e;
-
-typedef enum
-{
-  IO_SPEED_SLOW,
-  IO_SPEED_MID,
-  IO_SPEED_FAST,
-  IO_NUM_OF_SPEEDS,
-} IO_speed_e;
-
-typedef enum
-{
-  IO_PULL_NONE,
-  IO_PULL_DOWN,
-  IO_PULL_UP,
-  IO_PULL_BOTH,
-  IO_NUM_OF_PULL_MODES,
-} IO_pull_res_e;
-
-typedef enum
-{
-  IO_IRQ_EDGE_POS,
-  IO_IRQ_EDGE_NEG,
-} IO_irq_edge_e;
+  MERROR_SPI_INIT,
+  MERROR_SPI_XFER,
+  MERROR_SPI_ERROR,
+  MERROR_SPI_OVERFLOW,
+} merror_e;
 
 
-typedef struct
-{
-  IO_direction_e  dir;
-  IO_mode_e       mode;
-  IO_speed_e      speed;
-  IO_pull_res_e   pullup;
-  void const *    extend;
-} IO_cfg_t;
-
-
-typedef void (*IO_ext_irq_cb)(IO_irq_edge_e edge);
-
-
-extern void IO_init(void);
-extern void IO_configure(IO_num_e num, IO_cfg_t *cfg);
-extern void IO_deinit(IO_num_e num);
-
-extern void IO_set(IO_num_e num);
-extern void IO_clear(IO_num_e num);
-extern void IO_toggle(IO_num_e num);
-extern bool IO_isHigh(IO_num_e num);
-
-extern bool IO_enableExtIrq(IO_num_e num);
-extern bool IO_setExtIrqCallback(IO_num_e num, IO_ext_irq_cb fn);
+extern bool  MERR_error  (merror_e err, uint32_t arg);
 
 
 #ifdef __cplusplus

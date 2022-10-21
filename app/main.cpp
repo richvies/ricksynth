@@ -27,38 +27,36 @@ SOFTWARE.
 ****************************************************************************/
 
 
+
 #include "board_test.h"
-#include "common.h"
 #include "io.h"
 #include "tim.h"
-#include "PCF8575.hpp"
-#include "TLC5928.hpp"
 
 
 int main()
 {
-  IO_cfg_t cfg;
-  PCF8575 io_exp(I2C_CH_1, 0x40);
-  TLC5928 leds(SPI_CH_1, TLC5928_SPI_NSS_PIN);
+  // IO_cfg_t cfg;
+  // PCF8575 io_exp(I2C_CH_1, 0x40);
+  // TLC5928 leds(SPI_CH_1, TLC5928_SPI_NSS_PIN);
 
-  IO_init();
+  // IO_init();
 
-  io_exp.init();
-  leds.init();
+  // io_exp.init();
+  // leds.init();
 
-  cfg.dir = IO_DIR_OUT_PP;
-  cfg.mode = IO_MODE_GPIO;
-  cfg.pullup = IO_PULL_NONE;
-  cfg.speed = IO_SPEED_FAST;
-  IO_configure(BUILTIN_LED_PIN, &cfg);
+  // cfg.dir = IO_DIR_OUT_PP;
+  // cfg.mode = IO_MODE_GPIO;
+  // cfg.pullup = IO_PULL_NONE;
+  // cfg.speed = IO_SPEED_FAST;
+  // IO_configure(BUILTIN_LED_PIN, &cfg);
 
-  while(1)
-  {
-    IO_toggle(BUILTIN_LED_PIN);
-    io_exp.rotateRight(1, NULL);
-    leds.rotateRight(1, NULL);
-    TIM_delayMs(100);
-  }
+  // while(1)
+  // {
+  //   IO_toggle(BUILTIN_LED_PIN);
+  //   io_exp.rotateRight(1, NULL);
+  //   leds.rotateRight(1, NULL);
+  //   TIM_delayMs(100);
+  // }
 
   return 0;
 }

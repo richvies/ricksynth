@@ -9,12 +9,12 @@
             "includePath": [
                 "${workspaceFolder}/app/**",
                 "${workspaceFolder}/backbone/**",
-                "${workspaceFolder}/chips/**",
-                "${workspaceFolder}/chips/PCF8575",
+                "${workspaceFolder}/board/**",
+                "${workspaceFolder}/board/mcu/**",
+                "${workspaceFolder}/board/chips/**",
+                "${workspaceFolder}/board/chips/PCF8575",
                 "${workspaceFolder}/config/**",
-                "${workspaceFolder}/mcu/**",
                 "${workspaceFolder}/modifiers/**",
-                "${workspaceFolder}/port/**",
                 "${workspaceFolder}/ui/**",
                 "${workspaceFolder}/voices/**"
             ],
@@ -22,11 +22,11 @@
                 "path": [
                     "${workspaceFolder}/app",
                     "${workspaceFolder}/backbone",
+                    "${workspaceFolder}/board",
                     "${workspaceFolder}/config",
-                    "${workspaceFolder}/chips",
-                    "${workspaceFolder}/mcu",
+                    "${workspaceFolder}/board/chips",
+                    "${workspaceFolder}/board/mcu",
                     "${workspaceFolder}/modifiers",
-                    "${workspaceFolder}/port",
                     "${workspaceFolder}/ui",
                     "${workspaceFolder}/voices"
                 ],

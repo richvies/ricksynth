@@ -68,6 +68,13 @@ typedef enum
   SPI_NUM_OF_BIT_ORDER,
 } SPI_bit_order_e;
 
+typedef enum
+{
+  SPI_WRITE,
+  SPI_READ,
+  SPI_WRITE_READ,
+} SPI_dir_e;
+
 
 typedef struct
 {
@@ -78,10 +85,12 @@ typedef struct
   uint32_t            clk_speed_hz;
 } SPI_cfg_t;
 
-typedef void (*SPI_xfer_cb)(bool error, bool done, void *ctx);
+typedef void (*SPI_xfer_cb)(bool done, void *ctx);
 
 typedef struct
 {
+  /// direction of transfer
+  SPI_dir_e   dir;
   /// chip select pin for device on bus
   IO_num_e    cs_pin;
   /// data buffer to write from
@@ -90,7 +99,7 @@ typedef struct
   uint8_t*    rx_data;
   /// length in bytes for transaction
   uint16_t    length;
-  /// function to call when transaction half/ done. Set to NULL if not needed
+  /// function to call when transaction half or done. Set to NULL if not needed
   SPI_xfer_cb cb;
   /// will be passed as argument to cb function
   void*       ctx;
@@ -135,37 +144,15 @@ extern bool SPI_isBusy    (SPI_ch_e ch);
 extern void SPI_task      (void);
 
 /**
- * @brief write data to a device on spi bus
+ * @brief transfer data to/ from a device on spi bus
  * @attention Do NOT call from an interrupt
  *
  * @param ch channel to use @ref SPI_ch_e
  * @param info transaction information @ref SPI_xfer_info_t
- * @return true if write started or added to queue succesfully
- * @return false if not able to start write or add to queue
+ * @return true if xfer started or added to queue succesfully
+ * @return false if not able to start xfer or add to queue
  */
-extern bool SPI_write     (SPI_ch_e ch, SPI_xfer_info_t *info);
-
-/**
- * @brief read data from a device on spi bus
- * @attention Do NOT call from an interrupt
- *
- * @param ch channel to use @ref SPI_ch_e
- * @param info transaction information @ref SPI_xfer_info_t
- * @return true if read started or added to queue succesfully
- * @return false if not able to start read or add to queue
- */
-extern bool SPI_read      (SPI_ch_e ch, SPI_xfer_info_t *info);
-
-/**
- * @brief write & read data from a device on spi bus at same time
- * @attention Do NOT call from an interrupt
- *
- * @param ch channel to use @ref SPI_ch_e
- * @param info transaction information @ref SPI_xfer_info_t
- * @return true if transaction started or added to queue succesfully
- * @return false if not able to start transaction or add to queue
- */
-extern bool SPI_writeRead (SPI_ch_e ch, SPI_xfer_info_t *info);
+extern bool SPI_xfer      (SPI_ch_e ch, SPI_xfer_info_t *info);
 
 
 #ifdef __cplusplus

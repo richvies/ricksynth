@@ -27,40 +27,20 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#include "board.h"
+
+// #include "mcu_private.h"
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+// /* Board layout configuration */
+// #define CHIP_TLC5928_CS_PIN   PORT_PIN_TO_IO(io_port_A, 12)
+// #define CHIP_IRQ_IO           PORT_PIN_TO_IO(io_port_A, 14)
+
+// #define BUILTIN_LED           PORT_PIN_TO_IO(io_port_C, 13)
+
+// #define IO_EXT_1_PIN          CHIP_IRQ_IO
 
 
-/**
- * @file board.h
- * @author Rick Davies (richvies@gmail.com)
- * @brief
- * Links chips with io & peripherals e.g. CHIP_I2C_CH = I2C_CH_2
- * @version 0.1
- * @date 2022-08-19
- *
- * @copyright Copyright (c) 2022
- *
- */
-
-
-#include "mcu.h"
-
-
-extern I2C_ch_e const chip_i2c_ch;
-
-extern IO_num_e const TLC5928_SPI_NSS_PIN;
-extern IO_num_e const BUILTIN_LED_PIN;
-
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif
+// /* Link pins to devices */
+// IO_num_e const TLC5928_SPI_NSS_PIN = CHIP_TLC5928_CS_PIN;
+// IO_num_e const BUILTIN_LED_PIN = BUILTIN_LED;
