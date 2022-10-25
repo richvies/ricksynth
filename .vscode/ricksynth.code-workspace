@@ -41,12 +41,12 @@
 		"C_Cpp.loggingLevel": "Debug",
 		"asm-code-lens.excludeFiles": "**/*.inc",
 		"files.associations": {
+			"*.inc": "makefile",
 			"*.include": "makefile",
 			"Doxyfile": "makefile",
 			"*.h": "c",
 			"*.lss": "asm-collection",
 			"Makefile2": "makefile",
-			"*.inc": "makefile",
 			"*.gld": "linkerscript",
 			"__bit_reference": "c",
 			"__functional_base": "c",
@@ -69,7 +69,8 @@
 			"type_traits": "c",
 			"vector": "c",
 			"cstdlib": "cpp",
-			"cmath": "cpp"
+			"cmath": "cpp",
+			"random": "c"
 		},
 		"cortex-debug.variableUseNaturalFormat": false
 	}

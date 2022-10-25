@@ -14,7 +14,7 @@
                 "${workspaceFolder}/board/chips/**",
                 "${workspaceFolder}/board/chips/pcf8575/**",
                 "${workspaceFolder}/board/chips/tlc5928/**",
-                "${workspaceFolder}/board/chips/w25qxx/**",
+                "${workspaceFolder}/board/chips/w25q/**",
                 "${workspaceFolder}/config/**",
                 "${workspaceFolder}/modifiers/**",
                 "${workspaceFolder}/ui/**",

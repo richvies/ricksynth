@@ -55,31 +55,11 @@ typedef struct
 extern W25Q_t w25q;
 
 
-bool W25Q_init(SPI_ch_e ch);
+bool W25Q_init(SPI_ch_e ch, IO_num_e cs_pin);
 
-void W25Q_eraseChip(void);
-void W25Q_eraseSector(uint32_t addr);
-void W25Q_eraseBlock(uint32_t addr);
-
-bool W25Q_isEmptyPage(uint32_t addr, uint32_t offset, uint32_t len);
-bool W25Q_isEmptySector(uint32_t addr, uint32_t offset, uint32_t len);
-bool W25Q_isEmptyBlock(uint32_t addr, uint32_t offset, uint32_t len);
-
-void W25Q_writeByte(uint8_t data, uint32_t addr);
-void W25Q_writePage(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-void W25Q_writeSector(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-void W25Q_writeBlock(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-
-void W25Q_readBytes(uint8_t *data, uint32_t addr, uint32_t len);
-void W25Q_readPage(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-void W25Q_readSector(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-void W25Q_readBlock(uint8_t *data, uint32_t addr, uint32_t offset, uint32_t len);
-
-uint32_t W25Q_pageToSector(uint32_t addr);
-uint32_t W25Q_pageToBlock(uint32_t addr);
-uint32_t W25Q_sectorToBlock(uint32_t addr);
-uint32_t W25Q_sectorToPage(uint32_t addr);
-uint32_t W25Q_blockToPage(uint32_t addr);
+bool W25Q_eraseBlock(uint32_t block);
+bool W25Q_program(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len);
+bool W25Q_read(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len);
 
 
 #ifdef __cplusplus

@@ -85,25 +85,7 @@ typedef struct
   uint32_t            clk_speed_hz;
 } SPI_cfg_t;
 
-typedef void (*SPI_xfer_cb)(bool done, void *ctx);
-
-typedef struct
-{
-  /// direction of transfer
-  SPI_dir_e   dir;
-  /// chip select pin for device on bus
-  IO_num_e    cs_pin;
-  /// data buffer to write from
-  uint8_t*    tx_data;
-  /// data buffer to read to
-  uint8_t*    rx_data;
-  /// length in bytes for transaction
-  uint16_t    length;
-  /// function to call when transaction half or done. Set to NULL if not needed
-  SPI_xfer_cb cb;
-  /// will be passed as argument to cb function
-  void*       ctx;
-} SPI_xfer_info_t;
+typedef void (*SPI_xfer_cb)(bool done, bool error, void *ctx);
 
 
 /**
@@ -152,7 +134,27 @@ extern void SPI_task      (void);
  * @return true if xfer started or added to queue succesfully
  * @return false if not able to start xfer or add to queue
  */
-extern bool SPI_xfer      (SPI_ch_e ch, SPI_xfer_info_t *info);
+extern bool SPI_write       (SPI_ch_e    ch,
+                             IO_num_e    cs_pin,
+                             uint8_t*    tx_data,
+                             uint16_t    length,
+                             SPI_xfer_cb cb,
+                             void*       ctx);
+
+extern bool SPI_read        (SPI_ch_e    ch,
+                             IO_num_e    cs_pin,
+                             uint8_t*    rx_data,
+                             uint16_t    length,
+                             SPI_xfer_cb cb,
+                             void*       ctx);
+
+extern bool SPI_writeRead   (SPI_ch_e    ch,
+                             IO_num_e    cs_pin,
+                             uint8_t*    tx_data,
+                             uint8_t*    rx_data,
+                             uint16_t    length,
+                             SPI_xfer_cb cb,
+                             void*       ctx);
 
 /**
  * @brief transfer data to/ from a device on spi bus and wait to complete
@@ -163,7 +165,21 @@ extern bool SPI_xfer      (SPI_ch_e ch, SPI_xfer_info_t *info);
  * @return true if xfer started or added to queue succesfully
  * @return false if not able to start xfer or add to queue
  */
-extern bool SPI_xferBlocking  (SPI_ch_e ch, SPI_xfer_info_t *info);
+extern bool SPI_writeBlocking (SPI_ch_e    ch,
+                               IO_num_e    cs_pin,
+                               uint8_t*    tx_data,
+                               uint16_t    length);
+
+extern bool SPI_readBlocking  (SPI_ch_e    ch,
+                               IO_num_e    cs_pin,
+                               uint8_t*    rx_data,
+                               uint16_t    length);
+
+extern bool SPI_writeReadBlocking (SPI_ch_e    ch,
+                                   IO_num_e    cs_pin,
+                                   uint8_t*    tx_data,
+                                   uint8_t*    rx_data,
+                                   uint16_t    length);
 
 
 #ifdef __cplusplus
