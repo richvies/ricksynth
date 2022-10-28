@@ -53,8 +53,56 @@ SOFTWARE.
 
 #include "common.h"
 
-#include "io.h"
 #include "merror.h"
+
+
+#define EMPTY
+#define TIMEOUT(cond, ms, task, pass, fail)   \
+{                                             \
+  if (cond)                                   \
+  {                                           \
+    bool p = true;                            \
+    uint32_t tim = TIM_millis();              \
+    while(cond)                               \
+    {                                         \
+      task;                                   \
+      if ((TIM_millis() - tim) > ms)          \
+      {                                       \
+        p = false;                            \
+        break;                                \
+      }                                       \
+    }                                         \
+    if (p) {                                  \
+      pass; }                                 \
+    else {                                    \
+      fail; }                                 \
+  }                                           \
+}
+
+#define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
+#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
+#define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
+#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
+#define IO_NULL_PIN                 (0)
+
+
+/* IO */
+typedef enum
+{
+  IO_port_NULL,
+  IO_port_A,
+  IO_port_B,
+  IO_port_C,
+  IO_NUM_OF_PORT,
+} IO_port_e;
+
+/* IO External interrupt */
+typedef enum
+{
+  IO_EXT_IRQ_FIRST = 0,
+  IO_EXT_IRQ_1 = IO_EXT_IRQ_FIRST,
+  IO_NUM_OF_EXT_IRQ,
+} IO_ext_irq_e;
 
 
 /* I2C */
@@ -64,15 +112,6 @@ typedef enum
   I2C_CH_1 = I2C_CH_FIRST,
   I2C_NUM_OF_CH,
 } I2C_ch_e;
-
-
-/* IO External interrupt */
-typedef enum
-{
-  IO_EXT_IRQ_FIRST = 0,
-  IO_EXT_IRQ_1 = IO_EXT_IRQ_FIRST,
-  IO_NUM_OF_EXT_IRQ,
-} IO_ext_irq_e;
 
 
 /* DMA */
@@ -141,6 +180,10 @@ typedef enum
   ADC_1_CH_1 = ADC_CH_FIRST,
   ADC_NUM_OF_CH,
 } ADC_ch_e;
+
+
+#include "io.h"
+#include "tim.h"
 
 
 #ifdef __cplusplus

@@ -33,7 +33,6 @@
 		},
 		"C_Cpp.intelliSenseEngine": "Default",
 		"editor.rulers": [80],
-		"python.pythonPath": "/usr/local/anaconda3/bin/python",
 		"gitlens.codeLens.enabled": false,
 		"C_Cpp.exclusionPolicy": "checkFilesAndFolders",
 		"files.trimTrailingWhitespace": true,

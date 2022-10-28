@@ -29,9 +29,45 @@ SOFTWARE.
 
 #include "board_test.h"
 
+#include "chips.h"
 
 
-void BOARD_test(void)
+void BRD_TST_W25Q(void)
 {
+  char *data = "hello there how are you?";
+  char read[64];
 
+  if (W25Q_init())
+    if (W25Q_eraseSector(0))
+      if (W25Q_programSector(0, 0, (uint8_t*)data, strlen(data) + 1))
+        if (W25Q_readSector(0, 0, (uint8_t*)read, sizeof(read)))
+          if (strncmp(data, read, strlen(data)))
+          {
+          }
+}
+
+void BRD_TST_test_lights(void)
+{
+  // IO_cfg_t cfg;
+  // PCF8575 io_exp(I2C_CH_1, 0x40);
+  // TLC5928 leds(SPI_CH_1, TLC5928_SPI_NSS_PIN);
+
+  // IO_init();
+
+  // io_exp.init();
+  // leds.init();
+
+  // cfg.dir = IO_DIR_OUT_PP;
+  // cfg.mode = IO_MODE_GPIO;
+  // cfg.pullup = IO_PULL_NONE;
+  // cfg.speed = IO_SPEED_FAST;
+  // IO_configure(BUILTIN_LED_PIN, &cfg);
+
+  // while(1)
+  // {
+  //   IO_toggle(BUILTIN_LED_PIN);
+  //   io_exp.rotateRight(1, NULL);
+  //   leds.rotateRight(1, NULL);
+  //   TIM_delayMs(100);
+  // }
 }

@@ -29,37 +29,21 @@ typedef enum
 	W25Q32,
 	W25Q64,
 	W25Q128,
-	W25Q256,
-	W25Q512,
 	NUM_OF_W25Q,
 } W25Q_id_e;
 
 
-typedef struct
-{
-	W25Q_id_e id;
-	uint8_t 	uniqe_id[8];
-	uint16_t 	page_size;
-	uint32_t 	page_count;
-	uint32_t 	sector_size;
-	uint32_t 	sector_count;
-	uint32_t 	block_size;
-	uint32_t 	block_count;
-	uint32_t 	size_in_kbytes;
-	uint8_t 	status_reg_1;
-	uint8_t 	status_reg_2;
-	uint8_t 	status_reg_3;
-} W25Q_t;
+extern bool W25Q_init(void);
 
-
-extern W25Q_t w25q;
-
-
-bool W25Q_init(SPI_ch_e ch, IO_num_e cs_pin);
-
-bool W25Q_eraseBlock(uint32_t block);
-bool W25Q_program(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len);
-bool W25Q_read(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len);
+extern bool W25Q_eraseSector(uint32_t sector);
+extern bool W25Q_programSector(uint32_t sector,
+															 uint32_t offset,
+															 uint8_t *data,
+															 uint32_t len);
+extern bool W25Q_readSector(uint32_t sector,
+														uint32_t offset,
+														uint8_t *data,
+														uint32_t len);
 
 
 #ifdef __cplusplus

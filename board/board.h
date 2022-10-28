@@ -49,13 +49,7 @@ SOFTWARE.
  */
 
 
-#include "mcu.h"
-
-
-extern I2C_ch_e const chip_i2c_ch;
-
-extern IO_num_e const TLC5928_SPI_NSS_PIN;
-extern IO_num_e const BUILTIN_LED_PIN;
+#include "board_test.h"
 
 
 #ifdef __cplusplus

@@ -36,10 +36,8 @@ SOFTWARE.
 #endif
 
 
-#include "board.h"
-
-
-extern void BOARD_test(void);
+extern void BRD_TST_W25Q(void);
+extern void BRD_TST_test_lights(void);
 
 
 #ifdef __cplusplus

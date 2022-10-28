@@ -25,9 +25,9 @@
                     "${workspaceFolder}/app",
                     "${workspaceFolder}/backbone",
                     "${workspaceFolder}/board",
-                    "${workspaceFolder}/config",
                     "${workspaceFolder}/board/chips",
                     "${workspaceFolder}/board/mcu",
+                    "${workspaceFolder}/config",
                     "${workspaceFolder}/modifiers",
                     "${workspaceFolder}/ui",
                     "${workspaceFolder}/voices"

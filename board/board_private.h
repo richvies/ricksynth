@@ -27,5 +27,26 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "board.h"
-#include "board_private.h"
+#ifndef __BOARD_PRIVATE_H
+#define __BOARD_PRIVATE_H
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
+#include "mcu.h"
+
+
+#define W25_NUM_OF      1
+#define W25_SPI_CH      SPI_CH_1
+#define W25_CS_PIN      PORT_PIN_TO_IO(IO_port_A, 1)
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif

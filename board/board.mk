@@ -1,11 +1,13 @@
 include board.inc
+include chips/chips.inc
 
 #############################################################
 # sources + flags
 #############################################################
 
 SOURCE_DIR = \
-  .
+  . \
+	chips
 
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
@@ -15,7 +17,9 @@ C_OBJS := \
 
 C_INCLUDES =  \
 -I./ \
--I./mcu/include
+-I./mcu/include \
+-I./mcu/include \
+-I./chips
 
 #############################################################
 # File build recipes

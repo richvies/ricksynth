@@ -40,21 +40,22 @@ SOFTWARE.
  */
 
 
+#include "mcu.h"
 #include "mcu_private.h"
 
 
 /* Board layout configuration */
-#define I2C_1_SCL             PORT_PIN_TO_IO(io_port_B, 6)
-#define I2C_1_SDA             PORT_PIN_TO_IO(io_port_B, 7)
+#define I2C_1_SCL             PORT_PIN_TO_IO(IO_port_B, 6)
+#define I2C_1_SDA             PORT_PIN_TO_IO(IO_port_B, 7)
 #define I2C_1_PRIORITY        priority_MEDIUM
 #define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
 #define I2C_1_RX_DMA_CH       DMA_CH_1
 #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
 #define I2C_1_TX_DMA_CH       DMA_CH_1
 
-#define SPI_1_MOSI            PORT_PIN_TO_IO(io_port_A, 7)
-#define SPI_1_MISO            PORT_PIN_TO_IO(io_port_A, 6)
-#define SPI_1_CLK             PORT_PIN_TO_IO(io_port_A, 5)
+#define SPI_1_MOSI            PORT_PIN_TO_IO(IO_port_A, 7)
+#define SPI_1_MISO            PORT_PIN_TO_IO(IO_port_A, 6)
+#define SPI_1_CLK             PORT_PIN_TO_IO(IO_port_A, 5)
 #define SPI_1_PRIORITY        priority_MEDIUM
 #define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
 #define SPI_1_RX_DMA_CH       DMA_CH_3
@@ -67,7 +68,7 @@ SOFTWARE.
 
 
 /* IO Ports */
-io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
+IO_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
 {
   /* NULL port for NULL pins */
   {0, NULL},

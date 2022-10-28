@@ -49,7 +49,7 @@ typedef enum
 } merror_e;
 
 
-extern bool  MERR_error  (merror_e err, uint32_t arg);
+extern void  MERR_error  (merror_e err, uint32_t arg);
 
 
 #ifdef __cplusplus

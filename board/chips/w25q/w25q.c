@@ -1,39 +1,52 @@
 #include "w25q.h"
 
-
-#define W25Q_DUMMY_BYTE 0xA5
-
-
-#define  (d, l) 				({ bool r; xfer.dir = SPI_WRITE; xfer.tx_data = d; xfer.length = l; r = SPI_xferBlocking(spi_ch, &xfer); r; })
-#define RX(d, l) 				({ bool r; xfer.dir = SPI_READ; xfer.rx_data = d; xfer.length = l; r = SPI_xferBlocking(spi_ch, &xfer); r; })
-#define TXRX(td, rd, l) ({ bool r; xfer.dir = SPI_WRITE_READ; xfer.tx_data = td; xfer.rx_data = rd; xfer.length = l; r = SPI_xferBlocking(spi_ch, &xfer); r; })
+#include "board_private.h"
 
 
-extern W25Q_t w25q;
+#define PAGE_SIZE							(256)
+#define SECTOR_SIZE						(4096)
 
-static SPI_ch_e spi_ch;
-static SPI_xfer_info_t xfer;
+typedef struct
+{
+	W25Q_id_e id;
+	uint32_t 	sector_count;
+} W25Q_t;
 
-static uint8_t buf[16];
+
+#define CMD_WRITE_ENABLE			(0x06)
+#define CMD_WRITE_DISABLE			(0x04)
+#define CMD_ERASE_SECTOR			(0x20)
+#define CMD_PAGE_PROGRAM			(0x02)
+#define CMD_READ							(0x03)
+
+#define DUMMY_BYTE 0xA5
+
+#define STATUS_REG_1_BUSY_FLAG	(1 << 0)
 
 
-static bool 		readId(void);
-static bool 		readUniqueId(void);
+#define TX(d, l) 				({ SPI_writeBlocking(W25_SPI_CH, W25_CS_PIN, d, l); })
+#define RX(d, l) 				({ SPI_readBlocking(W25_SPI_CH, W25_CS_PIN, d, l); })
+#define TXRX(td, rd, l) ({ SPI_writeReadBlocking(W25_SPI_CH, W25_CS_PIN, td, rd, l); })
+
+
+static W25Q_t w25q;
+static uint8_t spi_tx_buf[16];
+static uint8_t spi_rx_buf[16];
+
+
 static bool 		writeEnable(void);
 static bool 		writeDisable(void);
-static uint8_t 	readStatusRegister(uint8_t num);
+static uint8_t  readCapacity(void);
+static bool 		readUniqueId(void);
+static uint8_t 	readStatusReg(uint8_t num);
 static bool 		writeStatusRegister(uint8_t num, uint8_t data);
 static bool 		waitForWriteEnd(void);
 
 
-bool W25Q_init(SPI_ch_e ch, IO_num_e cs_pin)
+bool W25Q_init(void)
 {
-	uint16_t id;
 	SPI_cfg_t cfg;
-	bool ret = false;
-
-	spi_ch = ch;
-	xfer.cs_pin = cs_pin;
+	uint32_t block_count;
 
 	/* try to start spi peripheral */
 	cfg.master_mode = SPI_MASTER_MODE;
@@ -41,223 +54,250 @@ bool W25Q_init(SPI_ch_e ch, IO_num_e cs_pin)
 	cfg.bit_order = SPI_BIT_ORDER_MSB_FIRST;
 	cfg.clk_phase = SPI_CLK_PHASE_SAMPLE_FIRST_EDGE;
 	cfg.clk_polarity = SPI_CLK_POLARITY_IDLE_LOW;
-	if (false == SPI_init(spi_ch, &cfg))
-		return false;
+	if (false == SPI_init(W25_SPI_CH, &cfg)) {
+		return false; }
 
-	readId();
-
-	switch (id & 0x000000FF)
+	switch (readCapacity())
 	{
-	case 0x20:
-		w25q.id = W25Q512;
-		w25q.block_count = 1024;
-		break;
-	case 0x19:
-		w25q.id = W25Q256;
-		w25q.block_count = 512;
-		break;
 	case 0x18:
 		w25q.id = W25Q128;
-		w25q.block_count = 256;
+		block_count = 256;
 		break;
 	case 0x17:
 		w25q.id = W25Q64;
-		w25q.block_count = 128;
+		block_count = 128;
 		break;
 	case 0x16:
 		w25q.id = W25Q32;
-		w25q.block_count = 64;
+		block_count = 64;
 		break;
 	case 0x15:
 		w25q.id = W25Q16;
-		w25q.block_count = 32;
+		block_count = 32;
 		break;
 	case 0x14:
 		w25q.id = W25Q80;
-		w25q.block_count = 16;
+		block_count = 16;
 		break;
 	case 0x13:
 		w25q.id = W25Q40;
-		w25q.block_count = 8;
+		block_count = 8;
 		break;
 	case 0x12:
 		w25q.id = W25Q20;
-		w25q.block_count = 4;
+		block_count = 4;
 		break;
 	case 0x11:
 		w25q.id = W25Q10;
-		w25q.block_count = 2;
+		block_count = 2;
 		break;
 	default:
 		return false;
 		break;
 	}
 
-	w25q.page_size = 256;
-	w25q.sector_size = 0x1000;
-	w25q.sector_count = w25q.block_count * 16;
-	w25q.page_count = (w25q.sector_count * w25q.sector_size) / w25q.page_size;
-	w25q.block_size = w25q.sector_size * 16;
-	w25q.size_in_kbytes = (w25q.sector_count * w25q.sector_size) / 1024;
-
-	readUniqueId();
-	readStatusRegister(1);
-	readStatusRegister(2);
-	readStatusRegister(3);
+	w25q.sector_count = block_count * 16;
 
 	return true;
 }
 
 
-bool W25Q_eraseBlock(uint32_t block)
+bool W25Q_eraseSector(uint32_t sector)
+{
+	bool ret = false;
+	uint8_t i = 0;
+	uint32_t addr;
+
+	if (false == writeEnable()) {
+		return false; }
+
+	addr = sector * SECTOR_SIZE;
+
+	spi_tx_buf[i++] = CMD_ERASE_SECTOR;
+	spi_tx_buf[i++] = (addr & 0xFF0000) >> 16;
+	spi_tx_buf[i++] = (addr & 0xFF00) >> 8;
+	spi_tx_buf[i++] = addr & 0xFF;
+
+	if ((true == TX(spi_tx_buf, i))
+	&&  (true == waitForWriteEnd()))
+	{
+		ret = true;
+	}
+
+	return ret;
+}
+
+bool W25Q_programSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_t len)
+{
+	uint8_t i = 0;
+	uint32_t addr = 0;
+	uint32_t prog_size = PAGE_SIZE - offset;
+	bool ret = true;
+
+	if (false == writeEnable()) {
+		return false; }
+
+	addr = (sector * SECTOR_SIZE) + offset;
+
+	spi_tx_buf[0] = CMD_PAGE_PROGRAM;
+
+	while (len)
+	{
+		spi_tx_buf[1] = (addr & 0xFF0000) >> 16;
+		spi_tx_buf[2] = (addr & 0xFF00) >> 8;
+		spi_tx_buf[3]  = addr & 0xFF;
+
+		if (prog_size > len) {
+			prog_size = len; }
+
+		IO_clear(W25_CS_PIN);
+		if ((false == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, 4))
+		||  (false == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, data, prog_size))
+		||  (false == waitForWriteEnd()))
+		{
+			ret = false;
+			break;
+		}
+		IO_set(W25_CS_PIN);
+
+		data += prog_size;
+		len  -= prog_size;
+		addr += prog_size;
+		prog_size = PAGE_SIZE;
+	}
+
+	return ret;
+}
+
+bool W25Q_readSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_t len)
+{
+	uint8_t i = 0;
+	uint32_t addr;
+	bool ret = false;
+
+	if (false == writeEnable()) {
+		return false; }
+
+	addr = (sector * SECTOR_SIZE) + offset;
+
+	spi_tx_buf[i++] = CMD_READ;
+	spi_tx_buf[i++] = (addr & 0xFF0000) >> 16;
+	spi_tx_buf[i++] = (addr & 0xFF00) >> 8;
+	spi_tx_buf[i++] = addr & 0xFF;
+
+	if ((true == TXRX(spi_tx_buf, data, i + len))
+	&&  (true == waitForWriteEnd()))
+	{
+		ret = true;
+	}
+
+	return ret;
+}
+
+
+static bool	writeEnable(void)
 {
 	bool ret = false;
 	uint8_t i = 0;
 
-	addr *= w25q.sector_size;
-	waitForWriteEnd();
+	spi_tx_buf[i++] = CMD_WRITE_ENABLE;
 
-	writeEnable();
-
-	if (w25q.id >= W25Q256)
-	{
-		buf[i++] = 0x21;
-		buf[i++] = (addr & 0xFF000000) >> 24;
-	}
-	else
-	{
-		buf[i++] = 0x20;
-	}
-	buf[i++] = (addr & 0xFF0000) >> 16;
-	buf[i++] = (addr & 0xFF00) >> 8;
-	buf[i++] = addr & 0xFF;
-
-	ret = TX(buf, i);
-
-	waitForWriteEnd();
+	ret = TX(spi_tx_buf, i);
 
 	return ret;
 }
 
-bool W25Q_program(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len)
+static bool	writeDisable(void)
 {
+	bool ret = false;
 	uint8_t i = 0;
 
-	waitForWriteEnd();
-	writeEnable();
+	spi_tx_buf[i++] = CMD_WRITE_DISABLE;
 
-	buf[0] = 0x06;
-	ret = TX(buf, 1);
-
-	if (w25q.id >= W25Q256)
-	{
-		buf[i++] = 0x12;
-		buf[i++] = 0x12;
-		buf[i++] = (addr & 0xFF000000) >> 24;
-	}
-	else
-	{
-		buf[i++] = 0x02;
-	}
-	buf[i++] = (addr & 0xFF0000) >> 16;
-	buf[i++] = (addr & 0xFF00) >> 8;
-	buf[i++] = addr & 0xFF;
-	buf[i++] = data;
-	waitForWriteEnd();
-}
-
-bool W25Q_read(uint32_t block, uint32_t offset, uint8_t *data, uint32_t len)
-{
-
-	if (w25q.id >= W25Q256)
-	{
-		buf[i++] = 0x0C;
-		buf[i++] = (addr & 0xFF000000) >> 24;
-	}
-	else
-	{
-		buf[i++] = 0x0B;
-	}
-	buf[i++] = (addr & 0xFF0000) >> 16;
-	buf[i++] = (addr & 0xFF00) >> 8;
-	buf[i++] = addr & 0xFF;
-	buf[i++] = 0;
-	HAL_SPI_Receive(&_W25Q_SPI, data, len, 2000);
-}
-
-
-static bool readId(void)
-{
-	bool ret;
-
-	buf[0] = 0x9F;
-	ret = TXRX(buf, buf + 1, 4);
-	w25q.id = buf[3];
+	ret = TX(spi_tx_buf, i);
 
 	return ret;
 }
 
-static bool readUniqueId(void)
+static uint8_t readCapacity(void)
 {
-	bool ret;
+	uint8_t i = 0;
+	uint8_t len = 4;
+	uint8_t capacity = 0;
 
-	buf[0] = 0x4B;
-	ret = TXRX(buf, buf + 1, 13);
+	spi_tx_buf[i++] = 0x9F;
+	memset(spi_tx_buf + i, DUMMY_BYTE, len - i);
 
-	memcpy(&w25q.uniqe_id[0], &buf[5], 8);
+	if (true == TXRX(spi_tx_buf, spi_rx_buf, len))
+	{
+		capacity = spi_rx_buf[3];
+	}
 
-	return ret;
+	return capacity;
 }
 
-static uint8_t readStatusRegister(uint8_t num)
+static uint8_t readStatusReg(uint8_t num)
 {
-	uint8_t status = 0;
+	uint8_t i = 0;
+	bool ret = false;
+	uint8_t reg = 0;
+
 	if (num == 1)
 	{
-		buf[i++] = 0x05;
-		status = buf[i++] = W25Q_DUMMY_BYTE;
-		w25q.status_reg_1 = status;
+		spi_tx_buf[i++] = 0x05;
 	}
 	else if (num == 2)
 	{
-		buf[i++] = 0x35;
-		status = buf[i++] = W25Q_DUMMY_BYTE;
-		w25q.status_reg_2 = status;
+		spi_tx_buf[i++] = 0x35;
 	}
 	else
 	{
-		buf[i++] = 0x15;
-		status = buf[i++] = W25Q_DUMMY_BYTE;
-		w25q.status_reg_3 = status;
+		spi_tx_buf[i++] = 0x15;
 	}
-	return status;
+
+	spi_tx_buf[i++] = DUMMY_BYTE;
+
+	if (true == TXRX(spi_tx_buf, spi_rx_buf, 2))
+	{
+		reg = spi_rx_buf[1];
+	}
+
+	return reg;
 }
 
 static bool writeStatusRegister(uint8_t num, uint8_t data)
 {
+	bool ret;
+	uint8_t i = 0;
+
 	if (num == 1)
 	{
-		buf[i++] = 0x01;
-		w25q.status_reg_1 = data;
+		spi_tx_buf[i++] = 0x01;
 	}
 	else if (num == 2)
 	{
-		buf[i++] = 0x31;
-		w25q.status_reg_2 = data;
+		spi_tx_buf[i++] = 0x31;
 	}
 	else
 	{
-		buf[i++] = 0x11;
-		w25q.status_reg_3 = data;
+		spi_tx_buf[i++] = 0x11;
 	}
-	buf[i++] = data;
+	spi_tx_buf[i++] = data;
+
+	ret = TX(spi_tx_buf, 2);
+
+	return ret;
 }
 
 static bool waitForWriteEnd(void)
 {
-	buf[i++] = 0x05;
-	do
-	{
-		w25q.status_reg_1 = buf[i++] = W25Q_DUMMY_BYTE;
-	} while ((w25q.status_reg_1 & 0x01) == 0x01);
+	bool ret;
+
+	TIMEOUT(readStatusReg(1) & STATUS_REG_1_BUSY_FLAG,
+					100,
+					EMPTY,
+					ret = true,
+					ret = false);
+
+	return ret;
 }

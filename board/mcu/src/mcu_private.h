@@ -57,12 +57,6 @@ SOFTWARE.
 #define PRINTF_WARN(x, ...)
 #define PRINTF_ERRO(x, ...)
 
-#define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
-#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
-#define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
-#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
-#define IO_NULL_PIN                 (0)
-
 #define ADC_NUM_OF_PERIPH           (1)
 
 /* Generic data queue handling macros, can use as FIFO or LIFO
@@ -123,29 +117,6 @@ SOFTWARE.
 /* for LIFO use */
 #define Q_decHead(q)        { --q.count; }
 
-#define EMPTY
-#define TIMEOUT(cond, ms, task, pass, fail)   \
-{                                             \
-  if (cond)                                   \
-  {                                           \
-    bool p = true;                            \
-    uint32_t tim = TIM_millis();              \
-    while(cond)                               \
-    {                                         \
-      task;                                   \
-      if ((TIM_millis() - tim) > ms)          \
-      {                                       \
-        p = false;                            \
-        break;                                \
-      }                                       \
-    }                                         \
-    if (p) {                                  \
-      pass; }                                 \
-    else {                                    \
-      fail; }                                 \
-  }                                           \
-}
-
 
 typedef IRQn_Type irq_num_e;
 
@@ -179,16 +150,6 @@ typedef enum
 } periph_e;
 
 
-/* IO */
-typedef enum
-{
-  io_port_NULL,
-  io_port_A,
-  io_port_B,
-  io_port_C,
-  IO_NUM_OF_PORT,
-} io_port_e;
-
 typedef struct
 {
   uint8_t const af_value;
@@ -198,9 +159,9 @@ typedef struct
 {
   periph_e       const periph;
   GPIO_TypeDef * const inst;
-} io_port_hw_info_t;
+} IO_port_hw_info_t;
 
-extern io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT];
+extern IO_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT];
 
 /* IO external interrupt */
 typedef struct

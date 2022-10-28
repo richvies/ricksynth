@@ -39,6 +39,9 @@ SOFTWARE.
 #include "mcu.h"
 
 
+#define IO_NULL_PIN       (0)
+
+
 typedef enum
 {
   IO_DIR_IN,

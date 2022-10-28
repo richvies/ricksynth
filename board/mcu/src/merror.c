@@ -27,5 +27,10 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "board.h"
-#include "board_private.h"
+#include "merror.h"
+
+
+void  MERR_error  (merror_e err, uint32_t arg)
+{
+  return;
+}

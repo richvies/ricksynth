@@ -39,6 +39,9 @@ SOFTWARE.
 #include "mcu.h"
 
 
+#define SPI_NO_CS_PIN   IO_NULL_PIN
+
+
 typedef enum
 {
   SPI_MASTER_MODE,
