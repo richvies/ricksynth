@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "clk.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
 
 #include "tim.h"
 

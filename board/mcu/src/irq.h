@@ -31,7 +31,21 @@ SOFTWARE.
 #define __IRQ_H
 
 
-#include "mcu_private.h"
+#include "mcu.h"
+
+
+typedef int16_t irq_num_e;
+
+
+typedef enum
+{
+  priority_VERY_HIGH,
+  priority_HIGH,
+  priority_MEDIUM,
+  priority_LOW,
+  priority_VERY_LOW,
+  priority_NUM_OF,
+} irq_priority_e;
 
 
 extern void irq_config(irq_num_e irq, irq_priority_e priority);

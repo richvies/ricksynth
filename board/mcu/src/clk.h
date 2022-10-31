@@ -31,7 +31,7 @@ SOFTWARE.
 #define __CLK_H
 
 
-#include "mcu_private.h"
+#include "mcu.h"
 
 
 extern void clk_init(void);

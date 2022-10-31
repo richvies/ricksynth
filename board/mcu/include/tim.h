@@ -39,6 +39,30 @@ SOFTWARE.
 #include "mcu.h"
 
 
+#define EMPTY
+#define TIMEOUT(cond, ms, task, pass, fail)   \
+{                                             \
+  if (cond)                                   \
+  {                                           \
+    bool p = true;                            \
+    uint32_t tim = TIM_millis();              \
+    while(cond)                               \
+    {                                         \
+      task;                                   \
+      if ((TIM_millis() - tim) > ms)          \
+      {                                       \
+        p = false;                            \
+        break;                                \
+      }                                       \
+    }                                         \
+    if (p) {                                  \
+      pass; }                                 \
+    else {                                    \
+      fail; }                                 \
+  }                                           \
+}
+
+
 typedef enum
 {
   TIM_MODE_TIMER,

@@ -29,9 +29,9 @@ SOFTWARE.
 
 #include "i2c.h"
 
-#include "common.h"
+#include "_hw_info.h"
 
-#include "mcu_private.h"
+#include "common.h"
 
 #include "clk.h"
 #include "dma.h"
@@ -52,7 +52,7 @@ typedef struct
   bool init;
   I2C_xfer_info_t *xfer;
   I2C_HandleTypeDef hal;
-  const i2c_hw_info_t *hw;
+  i2c_hw_info_t const *hw;
 
   /* xfer queue */
   I2C_xfer_info_t *q[3];

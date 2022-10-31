@@ -29,14 +29,15 @@ SOFTWARE.
 
 #include "spi.h"
 
-#include "common.h"
+#include "_hw_info.h"
 
-#include "mcu_private.h"
+#include "common.h"
 
 #include "clk.h"
 #include "dma.h"
 #include "io.h"
 #include "irq.h"
+#include "merror.h"
 #include "tim.h"
 
 

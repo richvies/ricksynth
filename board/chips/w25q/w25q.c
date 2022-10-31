@@ -1,6 +1,8 @@
 #include "w25q.h"
 
-#include "board_private.h"
+#include "config_board.h"
+
+#include "io.h"
 
 
 #define PAGE_SIZE							(256)
@@ -35,11 +37,8 @@ static uint8_t spi_rx_buf[16];
 
 
 static bool 		writeEnable(void);
-static bool 		writeDisable(void);
 static uint8_t  readCapacity(void);
-static bool 		readUniqueId(void);
 static uint8_t 	readStatusReg(uint8_t num);
-static bool 		writeStatusRegister(uint8_t num, uint8_t data);
 static bool 		waitForWriteEnd(void);
 
 
@@ -129,7 +128,6 @@ bool W25Q_eraseSector(uint32_t sector)
 
 bool W25Q_programSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_t len)
 {
-	uint8_t i = 0;
 	uint32_t addr = 0;
 	uint32_t prog_size = PAGE_SIZE - offset;
 	bool ret = true;
@@ -207,18 +205,6 @@ static bool	writeEnable(void)
 	return ret;
 }
 
-static bool	writeDisable(void)
-{
-	bool ret = false;
-	uint8_t i = 0;
-
-	spi_tx_buf[i++] = CMD_WRITE_DISABLE;
-
-	ret = TX(spi_tx_buf, i);
-
-	return ret;
-}
-
 static uint8_t readCapacity(void)
 {
 	uint8_t i = 0;
@@ -239,7 +225,6 @@ static uint8_t readCapacity(void)
 static uint8_t readStatusReg(uint8_t num)
 {
 	uint8_t i = 0;
-	bool ret = false;
 	uint8_t reg = 0;
 
 	if (num == 1)
@@ -263,30 +248,6 @@ static uint8_t readStatusReg(uint8_t num)
 	}
 
 	return reg;
-}
-
-static bool writeStatusRegister(uint8_t num, uint8_t data)
-{
-	bool ret;
-	uint8_t i = 0;
-
-	if (num == 1)
-	{
-		spi_tx_buf[i++] = 0x01;
-	}
-	else if (num == 2)
-	{
-		spi_tx_buf[i++] = 0x31;
-	}
-	else
-	{
-		spi_tx_buf[i++] = 0x11;
-	}
-	spi_tx_buf[i++] = data;
-
-	ret = TX(spi_tx_buf, 2);
-
-	return ret;
 }
 
 static bool waitForWriteEnd(void)

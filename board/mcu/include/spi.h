@@ -38,6 +38,8 @@ SOFTWARE.
 
 #include "mcu.h"
 
+#include "io.h"
+
 
 #define SPI_NO_CS_PIN   IO_NULL_PIN
 

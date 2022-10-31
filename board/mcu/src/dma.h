@@ -31,7 +31,9 @@ SOFTWARE.
 #define __DMA_H
 
 
-#include "mcu_private.h"
+#include "mcu.h"
+
+#include "irq.h"
 
 
 typedef enum
@@ -56,7 +58,7 @@ typedef struct
   void *parent_handle;
   irq_priority_e priority;
 
-  dma_ch_e        channel;
+  DMA_ch_e        channel;
   dma_dir_e       dir;
   bool            inc_periph_addr;
   bool            inc_mem_addr;
@@ -66,9 +68,9 @@ typedef struct
 } dma_cfg_t;
 
 
-bool    dma_init(dma_stream_e stream, dma_cfg_t *cfg);
-void*   dma_getHandle(dma_stream_e stream);
-bool    dma_deinit(dma_stream_e stream);
+bool    dma_init(DMA_stream_e stream, dma_cfg_t *cfg);
+void*   dma_getHandle(DMA_stream_e stream);
+bool    dma_deinit(DMA_stream_e stream);
 
 
 #endif

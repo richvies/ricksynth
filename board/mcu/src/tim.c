@@ -29,9 +29,9 @@ SOFTWARE.
 
 #include "tim.h"
 
-#include "string.h"
+#include "_hw_info.h"
 
-#include "mcu_private.h"
+#include "common.h"
 
 #include "clk.h"
 #include "irq.h"

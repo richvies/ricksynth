@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __MCU_PRIVATE_H
-#define __MCU_PRIVATE_H
+#ifndef __HW_INFO_H
+#define __HW_INFO_H
 
 
 /**
@@ -50,104 +50,13 @@ SOFTWARE.
 
 #include "stm32f4xx_hal.h"
 
-
-// DBG_Printf(INFO_LVL, RAD_ID, x, ##__VA_ARGS__)
-#define PRINTF_VERB(x, ...)
-#define PRINTF_INFO(x, ...)
-#define PRINTF_WARN(x, ...)
-#define PRINTF_ERRO(x, ...)
-
-#define ADC_NUM_OF_PERIPH           (1)
-
-/* Generic data queue handling macros, can use as FIFO or LIFO
- *
- * ATTN: must follow this naming convention
- *
- * buf    - the queue
- * tail   - tail index
- * count  - current count
- *
- *
- * e.g. structure
- * typedef struct
- * {
- *  uint32_t  buf[10];
- *  uint8_t   tail = 0;
- *  uint8_t   count = 0;
- * } some_queue_t;
- *
- *
- * e.g. usage
- *
- * some_queue_t my_q;
- *
- * Q_clear(my_q);
- *
- * // adding items
- * if (false == Q_isFull(my_q))
- * {
- *    Q_getHead(my_q) = 666;
- *    Q_incHead(my_q);
- * }
- *
- * // removing FIFO
- * if (true == Q_pending(my_q))
- * {
- *  uin32_t tmp = Q_getTail(my_q);
- *  Q_incTail(my_q)
- * }
- *
- * // removing LIFO
- * if (true == Q_pending(my_q))
- * {
- *  uin32_t tmp = Q_getHead(my_q);
- *  Q_decHead(my_q)
- * }
- */
-
-#define Q_clear(q)          ( q.tail = 0; q.count = 0; )
-#define Q_pending(q)        ({ q.count > 0; })
-#define Q_isFull(q)         ({ q.count >= SIZEOF(q.buf); })
-
-#define Q_getHead(q)        ( q.buf[q.tail + q.count] )
-#define Q_incHead(q)        { ++q.count; }
-#define Q_getTail(q)        ( q.buf[q.tail] )
-#define Q_incTail(q)        { --q.count; ++q.tail; if (q.tail >= SIZEOF(q.buf)) {q.tail = 0;} }
-
-/* for LIFO use */
-#define Q_decHead(q)        { --q.count; }
+#include "io.h"
+#include "irq.h"
 
 
-typedef IRQn_Type irq_num_e;
-
-typedef enum
-{
-  priority_VERY_HIGH,
-  priority_HIGH,
-  priority_MEDIUM,
-  priority_LOW,
-  priority_VERY_LOW,
-  priority_NUM_OF,
-} irq_priority_e;
-
-
-/* for use with clk module */
-typedef enum
-{
-  periph_GPIO_A,
-  periph_GPIO_B,
-  periph_GPIO_C,
-  periph_I2C_1,
-  periph_I2C_2,
-  periph_I2C_3,
-  periph_SPI_1,
-  periph_SPI_2,
-  periph_SPI_3,
-  periph_SPI_4,
-  periph_DMA_1,
-  periph_DMA_2,
-  periph_ADC_1,
-} periph_e;
+#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
+#define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
+#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
 
 
 typedef struct
@@ -159,9 +68,8 @@ typedef struct
 {
   periph_e       const periph;
   GPIO_TypeDef * const inst;
-} IO_port_hw_info_t;
+} io_port_hw_info_t;
 
-extern IO_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT];
 
 /* IO external interrupt */
 typedef struct
@@ -171,8 +79,6 @@ typedef struct
   irq_priority_e const priority;
 } io_ext_irq_hw_info_t;
 
-extern io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ];
-
 
 /* DMA */
 typedef struct
@@ -181,8 +87,6 @@ typedef struct
   DMA_Stream_TypeDef* const inst;
   irq_num_e           const irq_num;
 } dma_hw_info_t;
-
-extern dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM];
 
 
 /* I2C */
@@ -196,13 +100,11 @@ typedef struct
   irq_num_e             const event_irq_num;
   irq_num_e             const error_irq_num;
   irq_priority_e        const irq_priority;
-  dma_stream_e          const dma_tx_stream;
-  dma_ch_e              const dma_tx_ch;
-  dma_stream_e          const dma_rx_stream;
-  dma_ch_e              const dma_rx_ch;
+  DMA_stream_e          const dma_tx_stream;
+  DMA_ch_e              const dma_tx_ch;
+  DMA_stream_e          const dma_rx_stream;
+  DMA_ch_e              const dma_rx_ch;
 } i2c_hw_info_t;
-
-extern i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH];
 
 
 /* SPI */
@@ -216,13 +118,11 @@ typedef struct
   io_cfg_extend_t       const io_cfg_ext;
   irq_num_e             const irq_num;
   irq_priority_e        const irq_priority;
-  dma_stream_e          const dma_tx_stream;
-  dma_ch_e              const dma_tx_ch;
-  dma_stream_e          const dma_rx_stream;
-  dma_ch_e              const dma_rx_ch;
+  DMA_stream_e          const dma_tx_stream;
+  DMA_ch_e              const dma_tx_ch;
+  DMA_stream_e          const dma_rx_stream;
+  DMA_ch_e              const dma_rx_ch;
 } spi_hw_info_t;
-
-extern spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH];
 
 
 /* Timer */
@@ -231,8 +131,6 @@ typedef struct
   periph_e        const periph;
   TIM_TypeDef *   const inst;
 } tim_hw_info_t;
-
-extern tim_hw_info_t const tim_hw_info[TIM_NUM_OF_CH];
 
 
 /* ADC */
@@ -248,13 +146,19 @@ typedef struct
   ADC_TypeDef *   const inst;
   irq_num_e       const irq_num;
   irq_priority_e  const irq_priority;
-  dma_stream_e    const dma_stream;
-  dma_ch_e        const dma_ch;
-  adc_ch_info_t   const ch_info[ADC_NUM_OF_CH];
+  DMA_stream_e    const dma_stream;
+  DMA_ch_e        const dma_ch;
 } adc_hw_info_t;
 
 
-extern adc_hw_info_t const adc_hw_info[ADC_NUM_OF_PERIPH];
+extern io_port_hw_info_t    const io_ports_hw_info[IO_NUM_OF_PORT];
+extern io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ];
+extern dma_hw_info_t        const dma_hw_info[DMA_NUM_OF_STREAM];
+extern i2c_hw_info_t        const i2c_hw_info[I2C_NUM_OF_CH];
+extern spi_hw_info_t        const spi_hw_info[SPI_NUM_OF_CH];
+extern tim_hw_info_t        const tim_hw_info[TIM_NUM_OF_CH];
+extern adc_hw_info_t        const adc_hw_info[ADC_NUM_OF_PERIPH];
+extern adc_ch_info_t        const adc_ch_info[ADC_NUM_OF_CH];
 
 
 #endif

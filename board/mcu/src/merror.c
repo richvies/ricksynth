@@ -29,6 +29,8 @@ SOFTWARE.
 
 #include "merror.h"
 
+#include "_hw_info.h"
+
 
 void  MERR_error  (merror_e err, uint32_t arg)
 {

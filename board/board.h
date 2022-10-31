@@ -36,21 +36,6 @@ SOFTWARE.
 #endif
 
 
-/**
- * @file board.h
- * @author Rick Davies (richvies@gmail.com)
- * @brief
- * Declares what is required from mcu / circuit board
- * @version 0.1
- * @date 2022-08-19
- *
- * @copyright Copyright (c) 2022
- *
- */
-
-
-#include "board_test.h"
-
 
 #ifdef __cplusplus
 }

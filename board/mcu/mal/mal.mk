@@ -1,16 +1,16 @@
-include ../mcu.inc
+include mal.inc
 
 #############################################################
 # sources + flags
 #############################################################
 
 SOURCE_DIR = \
-USB_DEVICE/App/ \
-USB_DEVICE/Target/ \
-STM32F4xx_HAL_Driver/Src/ \
-Middlewares/ST/STM32_USB_Device_Library/Core/Src/ \
-Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/ \
-STM32F4xx_HAL_Driver/Src/
+  $(MAL_MAKE_DIR)USB_DEVICE/App/ \
+  $(MAL_MAKE_DIR)USB_DEVICE/Tardget/ \
+  $(MAL_MAKE_DIR)STM32F4xx_HAL_Driver/Src/ \
+  $(MAL_MAKE_DIR)Middlewares/ST/STM32_USB_Device_Library/Core/Src/ \
+  $(MAL_MAKE_DIR)Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/ \
+  $(MAL_MAKE_DIR)STM32F4xx_HAL_Driver/Src/
 
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
@@ -19,21 +19,15 @@ C_OBJS := \
   $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 C_INCLUDES =  \
--I./ \
--ICMSIS \
--ICMSIS/Include \
--IUSB_DEVICE/App \
--IUSB_DEVICE/Target \
--ISTM32F4xx_HAL_Driver/Inc \
--ISTM32F4xx_HAL_Driver/Inc/Legacy \
--IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc \
--IMiddlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc
+  $(MAL_INCLUDES)
+
+C_FLAGS = \
+  $(MAL_C_FLAGS)
+
 
 #############################################################
 # File build recipes
 #############################################################
-
-.PHONY: all clean
 
 all: $(C_OBJS)
 	@echo
@@ -41,7 +35,7 @@ all: $(C_OBJS)
 	$(NO_ECHO)$(MKDIR) -p $(LIB_DIR)
 	$(NO_ECHO)$(AR) rcs $(MAL_LIB) $(C_OBJS)
 
-clean:
+clean: phony
 	@echo
 	@echo clean mal library
 	$(RM) $(BUILD_DIR) $(LIB_DIR)

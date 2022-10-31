@@ -27,44 +27,33 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef _PCF_8575_H
-#define _PCF_8575_H
+#ifndef __CONFIG_BOARD_H
+#define __CONFIG_BOARD_H
 
 
-#include "i2c.h"
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
-using PCF8575_xfer_cb = void(*)(bool error);
 
-class PCF8575
-{
-  public:
-    PCF8575(I2C_ch_e ch, uint8_t addr);
+#include "mcu.h"
 
-    bool init(void);
+#include "io.h"
+#include "tim.h"
 
-    bool read16(uint16_t *value, PCF8575_xfer_cb cb);
-    bool write16(uint16_t value, PCF8575_xfer_cb cb);
-    bool toggle16(uint16_t mask, PCF8575_xfer_cb cb);
 
-    bool read(uint8_t pin, uint16_t *value, PCF8575_xfer_cb cb);
-    bool write(uint8_t pin, bool high, PCF8575_xfer_cb cb);
-    bool toggle(uint8_t pin, PCF8575_xfer_cb cb);
+#define W25_NUM_OF        1
+#define W25_SPI_CH        SPI_CH_1
+#define W25_CS_PIN        PORT_PIN_TO_IO(IO_port_A, 1)
 
-    bool shiftRight(uint8_t n, PCF8575_xfer_cb cb);
-    bool shiftLeft(uint8_t n, PCF8575_xfer_cb cb);
-    bool rotateRight(uint8_t n, PCF8575_xfer_cb cb);
-    bool rotateLeft(uint8_t n, PCF8575_xfer_cb cb);
+#define PCF8575_NUM_OF    1
+#define PCF8575_0_CH      I2C_CH_1
+#define PCF8575_0_ADDR    0
 
-  private:
-    I2C_ch_e        _i2c_ch;
-    I2C_xfer_info_t _i2c_xfer_info;
-    static void i2cReadCb(bool error, void *ctx);
-    static void i2cWriteCb(bool error, void *ctx);
 
-    bool _busy;
-    uint8_t _pin;
-    uint16_t _write;
-    PCF8575_xfer_cb _xferCb;
-};
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

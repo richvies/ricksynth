@@ -16,16 +16,18 @@ C_OBJS := \
   $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 C_INCLUDES =  \
--I./ \
--I./mcu/include \
--I./mcu/include \
--I./chips
+  $(BRD_INCLUDES) \
+  $(MCU_INCLUDES) \
+  -Iconfig \
+  -Ichips
+
+C_FLAGS = \
+  $(MCU_C_FLAGS)
+
 
 #############################################################
 # File build recipes
 #############################################################
-
-.PHONY: all clean
 
 all: $(C_OBJS)
 	@echo
@@ -37,13 +39,12 @@ clean:
 	@echo
 	@echo clean brd library
 	$(RM) $(BUILD_DIR) $(LIB_DIR)
-	@make -C $(MCU_MAKE_DIR) -f $(MCU_MAKEFILE) clean
 
 $(BUILD_DIR)%_$(config).o: %.c
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -Wno-unused -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 # include header dependencies
 -include $(C_OBJS:.o=.d)

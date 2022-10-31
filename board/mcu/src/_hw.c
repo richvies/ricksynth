@@ -29,7 +29,8 @@ SOFTWARE.
 
 #include "_hw.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
+
 #include "_vectors.h"
 #include "clk.h"
 #include "tim.h"

@@ -27,21 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-/**
- * @file mcu.c
- * @author Rick Davies (richvies@gmail.com)
- * @brief
- * Defines io & peripheral info from mcu.h and mcu_private.h
- * @version 0.1
- * @date 2022-08-19
- *
- * @copyright Copyright (c) 2022
- *
- */
-
-
-#include "mcu.h"
-#include "mcu_private.h"
+#include "config_mcu.h"
+#include "_hw_info.h"
 
 
 /* Board layout configuration */
@@ -68,7 +55,7 @@ SOFTWARE.
 
 
 /* IO Ports */
-IO_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
+io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
 {
   /* NULL port for NULL pins */
   {0, NULL},

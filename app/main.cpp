@@ -29,6 +29,7 @@ SOFTWARE.
 
 
 #include "board.h"
+#include "board_test.h"
 
 
 int main()

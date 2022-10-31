@@ -67,16 +67,8 @@ TARGET = $(project)_$(target)_$(config)_$(commit_id)
 #############################################################
 
 export config
-
 include board/board.inc
-
-LOCAL_LIBS 		+= $(BRD_LIBS)
-
-#############################################################
-# libraries
-#############################################################
-
-LIBS_INCLUDE 			+= -lc -lm -lnosys
+LOCAL_LIBS += $(BRD_LIBS)
 
 #############################################################
 # top level source files & includes
@@ -100,57 +92,50 @@ SOURCE_DIR = \
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
+CPP_SOURCES = \
+  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.cpp)))
+
+OBJS += $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
+OBJS += $(addprefix $(BUILD_DIR), $(CPP_SOURCES:.cpp=.o))
+
 C_INCLUDES = \
+  $(BRD_INCLUDES) \
   -I./ \
   -I./app \
   -I./backbone \
   -I./backbone/math \
   -I./backbone/system \
   -I./backbone/util \
-  -I./board \
-  -I./board/mcu/include \
   -I./config \
   -I./modifiers \
   -I./ui \
   -I./voices \
   -I./voices/generators
 
-CPP_SOURCES = \
-  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.cpp)))
-
-OBJS	= $(addprefix $(BUILD_DIR), $(ASM_SOURCES:.s=.o))
-OBJS += $(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))
-OBJS += $(addprefix $(BUILD_DIR), $(CPP_SOURCES:.cpp=.o))
-
-# So that make does not think they are intermediate files and delete them
-.SECONDARY: $(OBJS)
-
-VPATH = $(SOURCE_DIR) $(BUILD_DIR) $(BIN_DIR)
-
 #############################################################
 # flags & definitions
 #############################################################
 
-# defined in mcu mcu.inc, can add extra here if needs be
+C_DEFS = $(COMMIT_DEFS)
 
-C_DEFS = $(MCU_DEFS) $(COMMIT_DEFS)
+C_FLAGS = \
+  $(BRD_C_FLAGS) \
+	$(C_DEFS)
 
-C_FLAGS +=
+CPP_FLAGS = \
+  $(BRD_CPP_FLAGS) \
+	$(C_DEFS)
 
 LD_FLAGS = \
-  $(MCU_LD_FLAGS) \
-  -Wl,--start-group $(LIBS_INCLUDE) -Wl,--end-group\
-  -Wl,-Map=$(BIN_DIR)$(TARGET).map,--cref \
-  -Wl,--gc-sections \
-  -Wl,--print-memory-usage
+  $(BRD_LD_FLAGS)
 
 #############################################################
 # Top builds recipes
 #############################################################
 
-.PHONY: phony check all help clean cleanall version flash erase print-
+.PHONY: phony
 
-check:
+check: phony
 ifndef TOOLCHAIN_BIN_PATH
 	$(error TOOLCHAIN_BIN_PATH is undefined)
 endif
@@ -167,36 +152,38 @@ all:  check \
 	$(PYTHON) finalize.py $(BIN_DIR)$(TARGET).bin
 	@echo
 
-help:
+help: phony
 	@echo 'To build the main app for use in a released image:'
 	@echo '$$: make clean; make -j8'
 
-libs: $(LOCAL_LIBS)
-
-clean:
+clean: phony
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
 
-cleanall:
+cleanall: phony
 	@echo
 	@echo clean main
 	$(RM) $(BUILD_DIR) $(BIN_DIR)
-	@make -C $(BRD_MAKE_DIR) -f $(BRD_MAKEFILE) clean
+	@echo
+	@make cleanboard
 	@echo
 
-version:
+version: phony
 	@echo id = $(commit_id)
 	@echo log = $(commit_log)
 
-flash:
+flash: phony
 	@echo Flashing: $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX)
 	$(MCU_WRITE) $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX) $(MCU_VERIFY)
 
-erase:
+erase: phony
 	@echo Erasing device...
 	$(MCU_ERASE)
 
 doc: phony
 	doxygen docs/doxyfile
+
+print-%: phony
+	@echo $* = $($*)
 
 #############################################################
 # File build recipes
@@ -216,21 +203,21 @@ $(BIN_DIR)$(TARGET).elf: $(LOCAL_LIBS) $(OBJS) $(BUILD_DIR)link.arg
 	@echo Linking target: $(TARGET).elf
 	@echo
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) $(LOCAL_LIBS) -o $(BIN_DIR)$(TARGET).elf
+	$(NO_ECHO)$(CPP) $(LD_FLAGS) $(OBJS) -Wl,--start-group $(LOCAL_LIBS) -Wl,--end-group -o $(BIN_DIR)$(TARGET).elf
 	$(NO_ECHO) cp $(BIN_DIR)$(TARGET).elf $(BIN_DIR)firmware.elf
 	@echo
 
 $(BUILD_DIR)%.o: %.c $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CC) $(C_DEFS) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 $(BUILD_DIR)%.o: %.cpp $(BUILD_DIR)compile.arg
 	@echo Compiling file: $(notdir $<)
 	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CPP) -E $(C_DEFS) $(CPP_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CPP) $(C_DEFS) $(CPP_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
+	$(NO_ECHO)$(CPP) -E $(CPP_FLAGS) $(C_INCLUDES) -c -o $(@:%.o=%.i) $<
+	$(NO_ECHO)$(CPP) $(CPP_FLAGS) $(C_INCLUDES) 	-MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
 # include header dependencies
 -include $(OBJS:.o=.d)

@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "irq.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
 
 
 /** see @ref IRQn_Type */

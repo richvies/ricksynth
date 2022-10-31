@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "dma.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
 
 #include "clk.h"
 #include "irq.h"
@@ -71,19 +71,19 @@ static const uint32_t ch_to_dma_ch[DMA_NUM_OF_CH] =
 };
 static const uint32_t priority_to_dma_priority[priority_NUM_OF] =
 {
-  priority_VERY_HIGH,
-  priority_HIGH,
-  priority_MEDIUM,
-  priority_LOW,
-  priority_VERY_LOW,
+  DMA_PRIORITY_VERY_HIGH,
+  DMA_PRIORITY_HIGH,
+  DMA_PRIORITY_MEDIUM,
+  DMA_PRIORITY_LOW,
+  DMA_PRIORITY_LOW,
 };
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, dma_stream_e *ch);
+static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch);
 static void configureHal(dma_handle_t *h, dma_cfg_t *cfg);
 
 
-bool dma_init(dma_stream_e stream, dma_cfg_t *cfg)
+bool dma_init(DMA_stream_e stream, dma_cfg_t *cfg)
 {
   bool ret = false;
   dma_handle_t *h;
@@ -122,7 +122,7 @@ bool dma_init(dma_stream_e stream, dma_cfg_t *cfg)
   return ret;
 }
 
-void* dma_getHandle(dma_stream_e stream)
+void* dma_getHandle(DMA_stream_e stream)
 {
   if (stream >= DMA_NUM_OF_STREAM)
   {
@@ -132,7 +132,7 @@ void* dma_getHandle(dma_stream_e stream)
   return &(handles[stream].hal);
 }
 
-bool dma_deinit(dma_stream_e stream)
+bool dma_deinit(DMA_stream_e stream)
 {
   bool ret = false;
   dma_handle_t *h;
@@ -157,10 +157,10 @@ bool dma_deinit(dma_stream_e stream)
 }
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, dma_stream_e *ch)
+static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch)
 {
   bool ret = false;
-  dma_stream_e i;
+  DMA_stream_e i;
 
   for (i = DMA_STREAM_FIRST; i < DMA_NUM_OF_STREAM; i++)
   {

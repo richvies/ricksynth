@@ -27,26 +27,30 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_PRIVATE_H
-#define __BOARD_PRIVATE_H
+#ifndef _PCF_8575_H
+#define _PCF_8575_H
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+#include "i2c.h"
 
 
-#include "mcu.h"
+typedef void (*PCF8575_cb_t)(bool error);
 
 
-#define W25_NUM_OF      1
-#define W25_SPI_CH      SPI_CH_1
-#define W25_CS_PIN      PORT_PIN_TO_IO(IO_port_A, 1)
+extern bool PCF8575_init(uint8_t num, I2C_ch_e ch, uint8_t addr);
 
+extern bool PCF8575_read16(uint16_t *value, PCF8575_cb_t cb);
+extern bool PCF8575_write16(uint16_t value, PCF8575_cb_t cb);
+extern bool PCF8575_toggle16(uint16_t mask, PCF8575_cb_t cb);
 
-#ifdef __cplusplus
-}
-#endif
+extern bool PCF8575_read(uint8_t pin, uint16_t *value, PCF8575_cb_t cb);
+extern bool PCF8575_write(uint8_t pin, bool high, PCF8575_cb_t cb);
+extern bool PCF8575_toggle(uint8_t pin, PCF8575_cb_t cb);
+
+extern bool PCF8575_shiftRight(uint8_t n, PCF8575_cb_t cb);
+extern bool PCF8575_shiftLeft(uint8_t n, PCF8575_cb_t cb);
+extern bool PCF8575_rotateRight(uint8_t n, PCF8575_cb_t cb);
+extern bool PCF8575_rotateLeft(uint8_t n, PCF8575_cb_t cb);
 
 
 #endif

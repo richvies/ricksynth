@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "adc.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
 
 #include "clk.h"
 #include "dma.h"
@@ -80,7 +80,7 @@ bool ADC_init   (void)
   {
     for (ch = ADC_CH_FIRST; ch < ADC_NUM_OF_CH; ch++)
     {
-      cfg.Channel       = h->hw->ch_info[ch].channel;
+      cfg.Channel       = adc_ch_info[ch].channel;
       cfg.Offset        = 0;
       cfg.Rank          = rank++;
       cfg.SamplingTime  = ADC_SAMPLETIME_480CYCLES;
@@ -187,7 +187,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
     io_cfg.pullup  = IO_PULL_NONE;
     io_cfg.speed   = IO_SPEED_FAST;
     io_cfg.extend  = NULL;
-    IO_configure(h->hw->ch_info[ch].io_pin, &io_cfg);
+    IO_configure(adc_ch_info[ch].io_pin, &io_cfg);
   }
 
   clk_periphEnable(h->hw->periph);
@@ -207,7 +207,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
 
   for (ch = ADC_CH_FIRST; ch < ADC_NUM_OF_CH; ch++)
   {
-    IO_deinit(h->hw->ch_info[ch].io_pin);
+    IO_deinit(adc_ch_info[ch].io_pin);
   }
 
   clk_periphReset(h->hw->periph);

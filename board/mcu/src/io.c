@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include "io.h"
 
-#include "mcu_private.h"
+#include "_hw_info.h"
 
 #include "clk.h"
 #include "irq.h"

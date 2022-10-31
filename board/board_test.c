@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include "board_test.h"
 
+#include "board.h"
 #include "chips.h"
 
 

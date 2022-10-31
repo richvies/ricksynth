@@ -28,4 +28,7 @@ SOFTWARE.
 
 
 #include "board.h"
-#include "board_private.h"
+
+#include "board_test.h"
+#include "config_board.h"
+#include "chips.h"

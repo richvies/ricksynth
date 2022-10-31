@@ -53,137 +53,26 @@ SOFTWARE.
 
 #include "common.h"
 
-#include "merror.h"
+#include "config_mcu.h"
 
 
-#define EMPTY
-#define TIMEOUT(cond, ms, task, pass, fail)   \
-{                                             \
-  if (cond)                                   \
-  {                                           \
-    bool p = true;                            \
-    uint32_t tim = TIM_millis();              \
-    while(cond)                               \
-    {                                         \
-      task;                                   \
-      if ((TIM_millis() - tim) > ms)          \
-      {                                       \
-        p = false;                            \
-        break;                                \
-      }                                       \
-    }                                         \
-    if (p) {                                  \
-      pass; }                                 \
-    else {                                    \
-      fail; }                                 \
-  }                                           \
-}
-
-#define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
-#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
-#define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
-#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
-#define IO_NULL_PIN                 (0)
-
-
-/* IO */
+/* for use with clk module */
 typedef enum
 {
-  IO_port_NULL,
-  IO_port_A,
-  IO_port_B,
-  IO_port_C,
-  IO_NUM_OF_PORT,
-} IO_port_e;
-
-/* IO External interrupt */
-typedef enum
-{
-  IO_EXT_IRQ_FIRST = 0,
-  IO_EXT_IRQ_1 = IO_EXT_IRQ_FIRST,
-  IO_NUM_OF_EXT_IRQ,
-} IO_ext_irq_e;
-
-
-/* I2C */
-typedef enum
-{
-  I2C_CH_FIRST = 0,
-  I2C_CH_1 = I2C_CH_FIRST,
-  I2C_NUM_OF_CH,
-} I2C_ch_e;
-
-
-/* DMA */
-typedef enum
-{
-  DMA_STREAM_NONE  = 0,
-  DMA_STREAM_FIRST = 1,
-  DMA_1_STREAM_0 = DMA_STREAM_FIRST,
-  DMA_1_STREAM_6,
-  DMA_2_STREAM_0,
-  DMA_2_STREAM_3,
-  DMA_NUM_OF_STREAM,
-} dma_stream_e;
-
-typedef enum
-{
-  DMA_CH_FIRST = 0,
-  DMA_CH_0 = DMA_CH_FIRST,
-  DMA_CH_1,
-  DMA_CH_2,
-  DMA_CH_3,
-  DMA_CH_4,
-  DMA_CH_5,
-  DMA_CH_6,
-  DMA_CH_7,
-  DMA_NUM_OF_CH,
-} dma_ch_e;
-
-
-/* SPI */
-typedef enum
-{
-  SPI_CH_FIRST = 0,
-  SPI_CH_1 = SPI_CH_FIRST,
-  SPI_NUM_OF_CH,
-} SPI_ch_e;
-
-
-/* Timers */
-typedef enum
-{
-  TIM_CH_FIRST,
-  TIM_CH_1 = TIM_CH_FIRST,
-  TIM_NUM_OF_CH,
-} TIM_ch_e;
-
-typedef enum
-{
-  TIM_SUB_CH_FIRST,
-  TIM_SUB_CH_1 = TIM_SUB_CH_FIRST,
-  TIM_NUM_OF_SUB_CH,
-} TIM_sub_ch_e;
-
-typedef enum
-{
-  ALARM_CH_FIRST,
-  ALARM_CH_1 = ALARM_CH_FIRST,
-  ALARM_NUM_OF_CH,
-} ALARM_ch_e;
-
-
-/* ADC */
-typedef enum
-{
-  ADC_CH_FIRST,
-  ADC_1_CH_1 = ADC_CH_FIRST,
-  ADC_NUM_OF_CH,
-} ADC_ch_e;
-
-
-#include "io.h"
-#include "tim.h"
+  periph_GPIO_A,
+  periph_GPIO_B,
+  periph_GPIO_C,
+  periph_I2C_1,
+  periph_I2C_2,
+  periph_I2C_3,
+  periph_SPI_1,
+  periph_SPI_2,
+  periph_SPI_3,
+  periph_SPI_4,
+  periph_DMA_1,
+  periph_DMA_2,
+  periph_ADC_1,
+} periph_e;
 
 
 #ifdef __cplusplus

@@ -10,14 +10,6 @@ extern "C"
 
 #include "spi.h"
 
-	// printf("w25q Page Size: %d Bytes\r\n", w25q.page_size);
-	// printf("w25q Page Count: %d\r\n", w25q.page_count);
-	// printf("w25q Sector Size: %d Bytes\r\n", w25q.sector_size);
-	// printf("w25q Sector Count: %d\r\n", w25q.sector_count);
-	// printf("w25q Block Size: %d Bytes\r\n", w25q.block_size);
-	// printf("w25q Block Count: %d\r\n", w25q.block_count);
-	// printf("w25q Capacity: %d KiloBytes\r\n", w25q.size_in_kbytes);
-	// printf("w25q Init Done\r\n");
 
 typedef enum
 {
