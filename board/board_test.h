@@ -36,8 +36,11 @@ SOFTWARE.
 #endif
 
 
-extern void BRD_TST_W25Q(void);
-extern void BRD_TST_test_lights(void);
+#include <stdbool.h>
+
+
+extern bool BRD_TST_W25Q(void);
+extern bool BRD_TST_test_lights(void);
 
 
 #ifdef __cplusplus

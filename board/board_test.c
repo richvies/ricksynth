@@ -33,8 +33,9 @@ SOFTWARE.
 #include "chips.h"
 
 
-void BRD_TST_W25Q(void)
+bool BRD_TST_W25Q(void)
 {
+  bool ret = false;
   char *data = "hello there how are you?";
   char read[64];
 
@@ -44,10 +45,13 @@ void BRD_TST_W25Q(void)
         if (W25Q_readSector(0, 0, (uint8_t*)read, sizeof(read)))
           if (strncmp(data, read, strlen(data)))
           {
+            ret = true;
           }
+
+  return ret;
 }
 
-void BRD_TST_test_lights(void)
+bool BRD_TST_test_lights(void)
 {
   // IO_cfg_t cfg;
   // PCF8575 io_exp(I2C_CH_1, 0x40);
@@ -71,4 +75,6 @@ void BRD_TST_test_lights(void)
   //   leds.rotateRight(1, NULL);
   //   TIM_delayMs(100);
   // }
+
+  return true;
 }

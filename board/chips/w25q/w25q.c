@@ -126,7 +126,7 @@ bool W25Q_eraseSector(uint32_t sector)
 	return ret;
 }
 
-bool W25Q_programSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_t len)
+bool W25Q_programSector(uint32_t sector, uint32_t offset, void *data, uint32_t len)
 {
 	uint32_t addr = 0;
 	uint32_t prog_size = PAGE_SIZE - offset;
@@ -167,7 +167,7 @@ bool W25Q_programSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_
 	return ret;
 }
 
-bool W25Q_readSector(uint32_t sector, uint32_t offset, uint8_t *data, uint32_t len)
+bool W25Q_readSector(uint32_t sector, uint32_t offset, void *data, uint32_t len)
 {
 	uint8_t i = 0;
 	uint32_t addr;

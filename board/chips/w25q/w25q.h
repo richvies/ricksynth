@@ -30,11 +30,11 @@ extern bool W25Q_init(void);
 extern bool W25Q_eraseSector(uint32_t sector);
 extern bool W25Q_programSector(uint32_t sector,
 															 uint32_t offset,
-															 uint8_t *data,
+															 void *data,
 															 uint32_t len);
 extern bool W25Q_readSector(uint32_t sector,
 														uint32_t offset,
-														uint8_t *data,
+														void *data,
 														uint32_t len);
 
 
