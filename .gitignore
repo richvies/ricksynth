@@ -4,3 +4,4 @@
 **/docs/doxygen/
 .DS_Store
 **/.bash_history
+**/.cortex-debug*

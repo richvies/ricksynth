@@ -3,7 +3,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Cortex Debug",
+      "name": "STLink",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceRoot}/_bin/firmware.elf",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "stutil",
+      "runToEntryPoint": "Reset_Handler",
+      "showDevDebugOutput": "both",
+      "svdFile": "${workspaceRoot}/board/mcu/mal/CMSIS/STM32F40x.svd"
+    },
+    {
+      "name": "JLink",
       "cwd": "${workspaceRoot}",
       "device": "STM32F401CC",
       "executable": "${workspaceRoot}/_bin/firmware.elf",
