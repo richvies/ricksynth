@@ -41,6 +41,7 @@ SOFTWARE.
 
 extern bool BRD_TST_W25Q(void);
 extern bool BRD_TST_test_lights(void);
+extern bool BRD_TST_test_onboard_led(void);
 
 
 #ifdef __cplusplus

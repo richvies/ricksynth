@@ -30,8 +30,29 @@ SOFTWARE.
 #include "board_test.h"
 
 #include "board.h"
+#include "config_board.h"
 #include "chips.h"
 
+
+bool BRD_TST_test_onboard_led(void)
+{
+  IO_cfg_t cfg =
+  {
+    .dir = IO_DIR_OUT_PP,
+    .mode = IO_MODE_GPIO,
+    .speed = IO_SPEED_SLOW,
+    .pullup = IO_PULL_NONE,
+    .extend = NULL,
+  };
+
+  IO_configure(BUILTIN_LED_PIN, &cfg);
+
+  while (1)
+  {
+    IO_toggle(BUILTIN_LED_PIN);
+    TIM_delayMs(500);
+  }
+}
 
 bool BRD_TST_W25Q(void)
 {

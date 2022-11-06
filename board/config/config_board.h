@@ -50,6 +50,8 @@ SOFTWARE.
 #define PCF8575_0_CH      I2C_CH_1
 #define PCF8575_0_ADDR    0
 
+#define BUILTIN_LED_PIN   PORT_PIN_TO_IO(IO_port_C, 13)
+
 
 #ifdef __cplusplus
 }
