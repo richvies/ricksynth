@@ -1,0 +1,2 @@
+- STM32 USB DFU bootloader uses internal osc to calculate HSE frequency.
+  i.e. if temperature changes then frequ will be wrong and USB will fail.
