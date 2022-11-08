@@ -58,6 +58,14 @@ typedef enum
 } IO_ext_irq_e;
 
 
+/* USART */
+typedef enum
+{
+  USART_CH_FIRST = 0,
+  USART_CH_2 = USART_CH_FIRST,
+  USART_NUM_OF_CH,
+} USART_ch_e;
+
 /* I2C */
 typedef enum
 {

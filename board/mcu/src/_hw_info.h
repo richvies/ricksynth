@@ -89,6 +89,25 @@ typedef struct
 } dma_hw_info_t;
 
 
+/* USART */
+typedef struct
+{
+  periph_e              const periph;
+  USART_TypeDef *       const inst;
+  IO_num_e              const tx_pin;
+  IO_num_e              const rx_pin;
+  IO_num_e              const rts_pin;
+  IO_num_e              const cts_pin;
+  io_cfg_extend_t       const io_cfg_ext;
+  irq_num_e             const irq_num;
+  irq_priority_e        const irq_priority;
+  DMA_stream_e          const dma_tx_stream;
+  DMA_ch_e              const dma_tx_ch;
+  DMA_stream_e          const dma_rx_stream;
+  DMA_ch_e              const dma_rx_ch;
+} usart_hw_info_t;
+
+
 /* I2C */
 typedef struct
 {

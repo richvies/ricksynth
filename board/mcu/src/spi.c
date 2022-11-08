@@ -41,10 +41,18 @@ SOFTWARE.
 #include "tim.h"
 
 
+typedef enum
+{
+  DIR_WRITE,
+  DIR_READ,
+  DIR_WRITE_READ,
+} dir_e;
+
+
 typedef struct
 {
   /// direction of transfer
-  SPI_dir_e   dir;
+  dir_e       dir;
   /// chip select pin for device on bus
   IO_num_e    cs_pin;
   /// data buffer to write from
@@ -65,73 +73,75 @@ typedef struct
   xfer_info_t buf[5];
   uint8_t count;
   uint8_t tail;
-
 } xfer_queue_t;
 
 typedef struct
 {
   bool init;
   SPI_HandleTypeDef hal;
-  const spi_hw_info_t *hw;
+  spi_hw_info_t const *hw;
 
   /* current xfer */
   xfer_info_t *xfer;
-  bool busy;
-  bool done;
-  bool error;
+  bool volatile busy;
+  bool volatile done;
+  bool volatile error;
 
   /* xfer queue*/
   xfer_queue_t queue;
-
 } handle_t;
+
+typedef struct
+{
+  uint16_t div;
+  uint32_t hal;
+} prescaler_t;
+
 
 
 static handle_t handles[SPI_NUM_OF_CH] = {0};
 
-static const uint32_t master_mode_to_hal[SPI_NUM_OF_MASTER_MODES] =
+static uint32_t const master_mode_to_hal[SPI_NUM_OF_MASTER_MODES] =
 {
   SPI_MODE_MASTER,
   SPI_MODE_SLAVE,
 };
-static const uint32_t clk_polarity_to_hal[SPI_NUM_OF_CLK_POLARITY] =
+static uint32_t const clk_polarity_to_hal[SPI_NUM_OF_CLK_POLARITY] =
 {
   SPI_POLARITY_LOW,
   SPI_POLARITY_HIGH,
 };
-static const uint32_t clk_phase_to_hal[SPI_NUM_OF_CLK_PHASES] =
+static uint32_t const clk_phase_to_hal[SPI_NUM_OF_CLK_PHASES] =
 {
   SPI_PHASE_1EDGE,
   SPI_PHASE_2EDGE,
 };
-static const uint32_t bit_order_to_hal[SPI_NUM_OF_BIT_ORDER] =
+static uint32_t const   bit_order_to_hal[SPI_NUM_OF_BIT_ORDER] =
 {
   SPI_FIRSTBIT_MSB,
   SPI_FIRSTBIT_LSB,
 };
-static const uint32_t prescaler_index_to_hal[8] =
+static prescaler_t const prescaler[8] =
 {
-  SPI_BAUDRATEPRESCALER_2,
-  SPI_BAUDRATEPRESCALER_4,
-  SPI_BAUDRATEPRESCALER_8,
-  SPI_BAUDRATEPRESCALER_16,
-  SPI_BAUDRATEPRESCALER_32,
-  SPI_BAUDRATEPRESCALER_64,
-  SPI_BAUDRATEPRESCALER_128,
-  SPI_BAUDRATEPRESCALER_256,
+  {2,   SPI_BAUDRATEPRESCALER_2},
+  {4,   SPI_BAUDRATEPRESCALER_4},
+  {8,   SPI_BAUDRATEPRESCALER_8},
+  {16,  SPI_BAUDRATEPRESCALER_16},
+  {32,  SPI_BAUDRATEPRESCALER_32},
+  {64,  SPI_BAUDRATEPRESCALER_64},
+  {128, SPI_BAUDRATEPRESCALER_128},
+  {256, SPI_BAUDRATEPRESCALER_256},
 };
 
-static const uint8_t  PrescTable[sizeof(prescaler_index_to_hal)] =
-{1, 2, 3, 4, 5, 6, 7, 8};
 
-
-static bool xferBlocking      (SPI_dir_e dir,
+static bool xferBlocking      (dir_e dir,
                                SPI_ch_e ch,
                                IO_num_e cs_pin,
                                uint8_t *tx_data,
                                uint8_t *rx_data,
                                uint16_t len);
 
-static bool xferNonblocking   (SPI_dir_e dir,
+static bool xferNonblocking   (dir_e dir,
                                SPI_ch_e ch,
                                IO_num_e cs_pin,
                                uint8_t *tx_data,
@@ -140,7 +150,7 @@ static bool xferNonblocking   (SPI_dir_e dir,
                                SPI_xfer_cb cb,
                                void *ctx);
 static void xferHandleQ       (handle_t *h);
-static bool xferStartTail     (handle_t *h);
+static bool xferStartNext     (handle_t *h);
 
 static bool writeBlocking     (handle_t *h, uint8_t *data, uint16_t len);
 static bool readBlocking      (handle_t *h, uint8_t *data, uint16_t len);
@@ -164,16 +174,13 @@ bool SPI_init       (SPI_ch_e ch, SPI_cfg_t *cfg)
   bool ret = false;
   handle_t *h;
 
-  if (ch >= SPI_NUM_OF_CH)
-    return false;
+  if (ch >= SPI_NUM_OF_CH) {
+    return false; }
 
   h = &handles[ch];
 
-  if (true == h->init)
-  {
-    PRINTF_WARN("ch %u already init", ch);
-    return true;
-  }
+  if (h->init) {
+    return true; }
 
   /* link to hw information */
   h->hw = &spi_hw_info[ch];
@@ -188,6 +195,10 @@ bool SPI_init       (SPI_ch_e ch, SPI_cfg_t *cfg)
 
     ret = true;
   }
+  else
+  {
+    MERR_error(MERROR_SPI_INIT, h->hw->periph);
+  }
 
   h->init = ret;
 
@@ -199,8 +210,8 @@ bool SPI_deInit     (SPI_ch_e ch)
   bool ret = false;
   handle_t *h;
 
-  if (ch >= SPI_NUM_OF_CH)
-    return false;
+  if (ch >= SPI_NUM_OF_CH) {
+    return false; }
 
   h = &handles[ch];
 
@@ -209,11 +220,11 @@ bool SPI_deInit     (SPI_ch_e ch)
     h->init = false;
     ret = true;
 
-    if (h->hw->dma_rx_stream)
-      dma_deinit(h->hw->dma_rx_stream);
+    if (h->hw->dma_rx_stream) {
+      dma_deinit(h->hw->dma_rx_stream); }
 
-    if (h->hw->dma_tx_stream)
-      dma_deinit(h->hw->dma_tx_stream);
+    if (h->hw->dma_tx_stream) {
+      dma_deinit(h->hw->dma_tx_stream); }
   }
 
   return ret;
@@ -223,32 +234,14 @@ void SPI_task       (void)
 {
   SPI_ch_e ch;
   handle_t *h;
-  xfer_info_t *info;
 
-  /* check each channel */
+  /* handle xfer queue of each channel */
   for (ch = SPI_CH_FIRST; ch < SPI_NUM_OF_CH; ch++)
   {
     h = &handles[ch];
 
-    /* skip if nothing pending */
-    if (false == Q_pending(h->queue)) {
-      continue; }
-
-    /* if xfer finished */
-    if (true == h->done)
-    {
-      h->busy = false;
-      h->done = false;
-
-      if (h->error)
-      {
-        h->error = false;
-        MERR_error(MERROR_SPI_XFER_ERROR, h->hw->periph);
-      }
-
-      Q_incTail(h->queue);
-      xferHandleQ(h);
-    }
+    if (h->done) {
+      xferHandleQ(h); }
   }
 }
 
@@ -259,7 +252,7 @@ bool SPI_write      (SPI_ch_e    ch,
                      SPI_xfer_cb cb,
                      void*       ctx)
 {
-  return xferNonblocking(SPI_WRITE, ch, cs_pin, tx_data, NULL, length, cb, ctx);
+  return xferNonblocking(DIR_WRITE, ch, cs_pin, tx_data, NULL, length, cb, ctx);
 }
 
 bool SPI_read       (SPI_ch_e    ch,
@@ -269,7 +262,7 @@ bool SPI_read       (SPI_ch_e    ch,
                      SPI_xfer_cb cb,
                      void*       ctx)
 {
-  return xferNonblocking(SPI_READ, ch, cs_pin, NULL, rx_data, length, cb, ctx);
+  return xferNonblocking(DIR_READ, ch, cs_pin, NULL, rx_data, length, cb, ctx);
 }
 
 bool SPI_writeRead  (SPI_ch_e    ch,
@@ -280,7 +273,7 @@ bool SPI_writeRead  (SPI_ch_e    ch,
                      SPI_xfer_cb cb,
                      void*       ctx)
 {
-  return xferNonblocking(SPI_WRITE_READ, ch, cs_pin, tx_data, rx_data, length, cb, ctx);
+  return xferNonblocking(DIR_WRITE_READ, ch, cs_pin, tx_data, rx_data, length, cb, ctx);
 }
 
 bool SPI_writeBlocking (SPI_ch_e    ch,
@@ -288,7 +281,7 @@ bool SPI_writeBlocking (SPI_ch_e    ch,
                         uint8_t*    tx_data,
                         uint16_t    length)
 {
-  return xferBlocking(SPI_WRITE, ch, cs_pin, tx_data, NULL, length);
+  return xferBlocking(DIR_WRITE, ch, cs_pin, tx_data, NULL, length);
 }
 
 bool SPI_readBlocking (SPI_ch_e    ch,
@@ -296,7 +289,7 @@ bool SPI_readBlocking (SPI_ch_e    ch,
                        uint8_t*    rx_data,
                        uint16_t    length)
 {
-  return xferBlocking(SPI_READ, ch, cs_pin, NULL, rx_data, length);
+  return xferBlocking(DIR_READ, ch, cs_pin, NULL, rx_data, length);
 }
 
 bool SPI_writeReadBlocking  (SPI_ch_e    ch,
@@ -305,13 +298,13 @@ bool SPI_writeReadBlocking  (SPI_ch_e    ch,
                              uint8_t*    rx_data,
                              uint16_t    length)
 {
-  return xferBlocking(SPI_WRITE_READ, ch, cs_pin, tx_data, rx_data, length);
+  return xferBlocking(DIR_WRITE_READ, ch, cs_pin, tx_data, rx_data, length);
 }
 
 
 /* Transfer functions */
 
-static bool xferBlocking  (SPI_dir_e dir,
+static bool xferBlocking  (dir_e dir,
                            SPI_ch_e ch,
                            IO_num_e cs_pin,
                            uint8_t *tx_data,
@@ -321,27 +314,32 @@ static bool xferBlocking  (SPI_dir_e dir,
   bool ret = false;
   handle_t *h = &handles[ch];
 
-  /* wait until not busy then do blocking transfer */
-
-  TIMEOUT(h->busy && !h->done,
-          100,
-          SPI_task();,
-          EMPTY,
-          MERR_error(MERROR_SPI_WAIT_BUSY, h->hw->periph); return false;)
+  /* if busy - wait until current xfer done */
+  if (h->busy)
+  {
+    TIMEOUT(false == h->done,
+            100,
+            EMPTY,
+            EMPTY,
+            {
+              MERR_error(MERROR_SPI_BUSY_TIMEOUT, h->hw->periph);
+              return false;
+            });
+  }
 
   if (cs_pin) {
     IO_clear(cs_pin); }
 
   switch (dir)
   {
-  case SPI_WRITE:
+  case DIR_WRITE:
       ret = writeBlocking(h, tx_data, len);
     break;
-  case SPI_READ:
+  case DIR_READ:
       ret = readBlocking(h, rx_data, len);
     break;
 
-  case SPI_WRITE_READ:
+  case DIR_WRITE_READ:
       ret = writeReadBlocking(h, tx_data, rx_data, len);
     break;
 
@@ -353,12 +351,12 @@ static bool xferBlocking  (SPI_dir_e dir,
     IO_set(cs_pin); }
 
   if (false == ret) {
-    MERR_error(MERROR_SPI_XFER_FAIL, h->hw->periph); }
+    MERR_error(MERROR_SPI_XFER_START, h->hw->periph); }
 
   return ret;
 }
 
-static bool xferNonblocking (SPI_dir_e dir,
+static bool xferNonblocking (dir_e dir,
                              SPI_ch_e ch,
                              IO_num_e cs_pin,
                              uint8_t *tx_data,
@@ -374,7 +372,7 @@ static bool xferNonblocking (SPI_dir_e dir,
   /* add to q and try start next xfer */
 
   if (Q_isFull(h->queue)) {
-    MERR_error(MERROR_SPI_OVERFLOW, h->hw->periph); }
+    MERR_error(MERROR_SPI_XFER_Q_OVERFLOW, h->hw->periph); }
   else
   {
     ret = true;
@@ -391,18 +389,7 @@ static bool xferNonblocking (SPI_dir_e dir,
 
     Q_incHead(h->queue);
 
-    /* start next xfer if not busy or if current xfer is done */
-    if (false == h->busy)
-    {
-      xferHandleQ(h);
-    }
-    else
-    if (true == h->done)
-    {
-      h->busy = false;
-      h->done = false;
-      xferHandleQ(h);
-    }
+    xferHandleQ(h);
   }
 
   return ret;
@@ -410,21 +397,36 @@ static bool xferNonblocking (SPI_dir_e dir,
 
 static void xferHandleQ   (handle_t *h)
 {
-  /* start next xfer, if fails try next etc. */
-  while ((true == Q_pending(h->queue)) && (false == xferStartTail(h)))
+  /* if current xfer done -
+  * record error, update queue, reset for next xfer */
+  if (h->done)
   {
-    if (h->xfer->cb) {
-      h->xfer->cb(true, true, h->xfer->ctx); }
+    if (h->error) {
+      MERR_error(MERROR_SPI_XFER_ERROR, h->hw->periph); }
 
     Q_incTail(h->queue);
+
+    h->busy = false;
+    h->done = false;
+    h->error = false;
+  }
+
+  /* try start next xfer, if fails - callback with error and try next... */
+  if (false == h->busy)
+  {
+    while ((true == Q_pending(h->queue)) && (false == xferStartNext(h)))
+    {
+      if (h->xfer->cb) {
+        h->xfer->cb(true, true, h->xfer->ctx); }
+
+      Q_incTail(h->queue);
+    }
   }
 }
 
-static bool xferStartTail  (handle_t *h)
+static bool xferStartNext   (handle_t *h)
 {
   bool ret = false;
-
-  h->busy = true;
 
   h->xfer = &Q_getTail(h->queue);
 
@@ -433,21 +435,21 @@ static bool xferStartTail  (handle_t *h)
 
   switch (h->xfer->dir)
   {
-  case SPI_WRITE:
+  case DIR_WRITE:
     if (h->hw->dma_tx_stream) {
       ret = writeDma(h); }
     else {
       ret = writeIrq(h); }
     break;
 
-  case SPI_READ:
+  case DIR_READ:
     if (h->hw->dma_rx_stream) {
       ret = readDma(h); }
     else {
       ret = readIrq(h); }
     break;
 
-  case SPI_WRITE_READ:
+  case DIR_WRITE_READ:
     if (h->hw->dma_tx_stream && h->hw->dma_rx_stream) {
       ret = writeReadDma(h); }
     else {
@@ -458,14 +460,15 @@ static bool xferStartTail  (handle_t *h)
     break;
   }
 
+  /* busy if xfer started successfully */
+  h->busy = ret;
+
   if (false == ret)
   {
-    h->busy = false;
-
     if (h->xfer->cs_pin) {
       IO_set(h->xfer->cs_pin); }
 
-    MERR_error(MERROR_SPI_XFER_FAIL, h->hw->periph);
+    MERR_error(MERROR_SPI_XFER_START, h->hw->periph);
   }
 
   return ret;
@@ -587,13 +590,18 @@ static uint32_t hzToPrescaler(handle_t *h, uint32_t hz)
   uint8_t i = 0;
   uint32_t clk_hz = clk_getPeriphBaseClkHz(h->hw->periph);
 
-  while ((clk_hz >> PrescTable[i] > hz)
-  &&     (i < sizeof(PrescTable)))
+  /* search for clock speed, equal to or lower than requested speed */
+  while (i < SIZEOF(prescaler))
   {
+    if ((clk_hz / prescaler[i].div) <= hz)
+    {
+      break;
+    }
+
     ++i;
   }
 
-  return prescaler_index_to_hal[i];
+  return prescaler[i].hal;
 }
 
 static bool initDma(handle_t *h)
@@ -637,8 +645,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
   handle_t *h;
   IO_cfg_t io_cfg;
 
-  if (false == channelFromHal(hspi, &ch))
-    return;
+  if (false == channelFromHal(hspi, &ch)) {
+    return; }
 
   h  = &handles[ch];
 
@@ -687,8 +695,8 @@ void spi_irq_handler(void)
 {
   handle_t *h = (handle_t*)irq_get_context(irq_get_current());
 
-  if (h)
-    HAL_SPI_IRQHandler(&h->hal);
+  if (h) {
+    HAL_SPI_IRQHandler(&h->hal); }
 }
 
 static void irq_end_callback(bool error, bool done)

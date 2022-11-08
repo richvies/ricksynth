@@ -73,13 +73,6 @@ typedef enum
   SPI_NUM_OF_BIT_ORDER,
 } SPI_bit_order_e;
 
-typedef enum
-{
-  SPI_WRITE,
-  SPI_READ,
-  SPI_WRITE_READ,
-} SPI_dir_e;
-
 
 typedef struct
 {
@@ -96,37 +89,25 @@ typedef void (*SPI_xfer_cb)(bool done, bool error, void *ctx);
 /**
  * @brief configures peripheral, clocks, io, enables interrups (& DMA if used)
  *
- * @param ch @ref SPI_ch_e
- * @param cfg spi channel configuration @ref SPI_cfg_t
  * @return true if channel is started or was previously started
- * @return false if channel could not be started
  */
 extern bool SPI_init      (SPI_ch_e ch, SPI_cfg_t *cfg);
 
 /**
  * @brief stops peripheral, clocks, io, disables interrupts (& DMA if used)
  *
- * @param ch @ref SPI_ch_e
  * @return true if channel stoped or previously stopped
- * @return false if failed to stop channel
  */
 extern bool SPI_deInit    (SPI_ch_e ch);
 
 /**
  * @brief checks if peripheral is ready for a new transaction
- *
- * @param ch @ref SPI_ch_e
- * @return true if transaction is ongoing
- * @return false if channel is free for new transaction
  */
 extern bool SPI_isBusy    (SPI_ch_e ch);
 
 /**
- * @brief Call this function periodically if using spi bus.
- * Checks queue for each channel and starts next tranaction
- * if channel is not busy
+ * @brief Call this function periodically if using spi bus
  * @attention Do NOT call from an interrupt
- *
  */
 extern void SPI_task      (void);
 
@@ -134,10 +115,7 @@ extern void SPI_task      (void);
  * @brief transfer data to/ from a device on spi bus using interrupts or dma
  * @attention Do NOT call from an interrupt
  *
- * @param ch channel to use @ref SPI_ch_e
- * @param info transaction information @ref SPI_xfer_info_t
- * @return true if xfer started or added to queue succesfully
- * @return false if not able to start xfer or add to queue
+ * @return true if added to queue succesfully
  */
 extern bool SPI_write       (SPI_ch_e    ch,
                              IO_num_e    cs_pin,
@@ -165,10 +143,7 @@ extern bool SPI_writeRead   (SPI_ch_e    ch,
  * @brief transfer data to/ from a device on spi bus and wait to complete
  * @attention Do NOT call from an interrupt
  *
- * @param ch channel to use @ref SPI_ch_e
- * @param info transaction information @ref SPI_xfer_info_t
- * @return true if xfer started or added to queue succesfully
- * @return false if not able to start xfer or add to queue
+ * @return true if completed succesfully
  */
 extern bool SPI_writeBlocking (SPI_ch_e    ch,
                                IO_num_e    cs_pin,

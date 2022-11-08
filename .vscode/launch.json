@@ -29,7 +29,7 @@
         "-endian","little",
         "-speed","500",
         "-noir",
-        "-settingsfile","${workspaceRoot}/board/mcu/jlink/debug.jlink"
+        "-settingsfile","${workspaceRoot}/board/mcu/mal/jlink/debug.jlink"
 ],
     }
   ]

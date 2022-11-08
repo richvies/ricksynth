@@ -32,6 +32,14 @@ SOFTWARE.
 
 
 /* Board layout configuration */
+#define USART_2_TX            PORT_PIN_TO_IO(IO_port_A, 2)
+#define USART_2_RX            PORT_PIN_TO_IO(IO_port_A, 3)
+#define USART_2_PRIORITY      priority_MEDIUM
+#define USART_2_RX_DMA_STREAM DMA_STREAM_NONE
+#define USART_2_RX_DMA_CH     0
+#define USART_2_TX_DMA_STREAM DMA_STREAM_NONE
+#define USART_2_TX_DMA_CH     0
+
 #define I2C_1_SCL             PORT_PIN_TO_IO(IO_port_B, 6)
 #define I2C_1_SDA             PORT_PIN_TO_IO(IO_port_B, 7)
 #define I2C_1_PRIORITY        priority_MEDIUM
@@ -85,6 +93,27 @@ dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 };
 
 
+/* USART */
+usart_hw_info_t const usart_hw_info[USART_NUM_OF_CH] =
+{
+  {
+    periph_USART_2,
+    USART2,
+    USART_2_TX,
+    USART_2_RX,
+    IO_NULL_PIN,
+    IO_NULL_PIN,
+    {GPIO_AF7_USART2},
+    USART2_IRQn,
+    USART_2_PRIORITY,
+    USART_2_TX_DMA_STREAM,
+    USART_2_TX_DMA_CH,
+    USART_2_RX_DMA_STREAM,
+    USART_2_RX_DMA_CH,
+  },
+};
+
+
 /* I2C */
 i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
 {
@@ -100,7 +129,7 @@ i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
     I2C_1_TX_DMA_STREAM,
     I2C_1_TX_DMA_CH,
     I2C_1_RX_DMA_STREAM,
-    I2C_1_RX_DMA_CH
+    I2C_1_RX_DMA_CH,
   },
 };
 
@@ -120,6 +149,6 @@ spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH] =
     SPI_1_TX_DMA_STREAM,
     SPI_1_TX_DMA_CH,
     SPI_1_RX_DMA_STREAM,
-    SPI_1_RX_DMA_CH
+    SPI_1_RX_DMA_CH,
   },
 };

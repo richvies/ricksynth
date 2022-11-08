@@ -1,3 +1,12 @@
+#ifndef __CHIPS_H
+#define __CHIPS_H
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include "config_board.h"
 
 #ifdef PCF8575_NUM_OF
@@ -6,4 +15,12 @@
 
 #ifdef W25_NUM_OF
   #include "w25q/w25q.h"
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif

@@ -86,79 +86,88 @@ typedef struct
 
 typedef void (*I2C_xfer_cb)(bool error, void *ctx);
 
-typedef struct
-{
-  /// address of device on bus
-  uint16_t    addr;
-  /// data buffer to write from or read to
-  uint8_t*    data;
-  /// length in bytes of transaction
-  uint16_t    length;
-  /// function to call when transaction done. Set to NULL if not needed
-  I2C_xfer_cb cb;
-  /// will be passed as argument to cb function
-  void*       ctx;
-} I2C_xfer_info_t;
-
 
 /**
  * @brief configures peripheral, clocks, io, enables interrups (& DMA if used)
  *
- * @param ch @ref I2C_ch_e
- * @param cfg i2c channel configuration @ref I2C_cfg_t
  * @return true if channel is started or was previously started
- * @return false if channel could not be started
  */
 extern bool I2C_init    (I2C_ch_e ch, I2C_cfg_t *cfg);
 
 /**
  * @brief stops peripheral, clocks, io, disables interrupts (& DMA if used)
  *
- * @param ch @ref I2C_ch_e
  * @return true if channel stoped or previously stopped
- * @return false if failed to stop channel
  */
 extern bool I2C_deInit  (I2C_ch_e ch);
 
 /**
- * @brief checks if peripheral is ready for a new transaction
- *
- * @param ch @ref I2C_ch_e
- * @return true if transaction is ongoing
- * @return false if channel is free for new transaction
+ * @brief checks if ready for a new transaction
  */
 extern bool I2C_isBusy  (I2C_ch_e ch);
 
+
 /**
- * @brief Call this function periodically if using i2c bus.
+ * @brief Call this function periodically if using i2c peripheral
  * Checks queue for each channel and starts next tranaction
- * if channel is not busy
  * @attention Do NOT call from an interrupt
- *
  */
 extern void I2C_task    (void);
 
-/**
- * @brief write data to a device on i2c bus
- * @attention Do NOT call from an interrupt
- *
- * @param ch channel to use @ref I2C_ch_e
- * @param info transaction information @ref I2C_xfer_info_t
- * @return true if write started or added to queue succesfully
- * @return false if not able to start write or add to queue
- */
-extern bool I2C_write   (I2C_ch_e ch, I2C_xfer_info_t *info);
+
 
 /**
- * @brief read data from a device on i2c bus
+ * @brief transfer data to/ from a device on i2c bus using interrupts or dma
  * @attention Do NOT call from an interrupt
  *
- * @param ch channel to use @ref I2C_ch_e
- * @param info transaction information @ref I2C_xfer_info_t
- * @return true if read started or added to queue succesfully
- * @return false if not able to start read or add to queue
+ * @return true if added to queue succesfully
  */
-extern bool I2C_read    (I2C_ch_e ch, I2C_xfer_info_t *info);
+extern bool I2C_write (I2C_ch_e   ch,
+                       uint16_t    addr,
+                       uint8_t*    tx_data,
+                       uint16_t    length,
+                       I2C_xfer_cb cb,
+                       void*       ctx);
+
+extern bool I2C_read  (I2C_ch_e    ch,
+                       uint16_t    addr,
+                       uint8_t*    rx_data,
+                       uint16_t    length,
+                       I2C_xfer_cb cb,
+                       void*       ctx);
+
+bool I2C_readMem      (I2C_ch_e     ch,
+                       uint16_t     addr,
+                       uint16_t     mem_addr,
+                       uint8_t      mem_length,
+                       uint8_t*     rx_data,
+                       uint16_t     length,
+                       I2C_xfer_cb  cb,
+                       void*        ctx);
+
+
+/**
+ * @brief transfer data to/ from a device on i2c bus and wait to complete
+ * @attention Do NOT call from an interrupt
+ *
+ * @return true if added to queue succesfully
+ */
+extern bool I2C_writeBlocking    (I2C_ch_e    ch,
+                                  uint16_t    addr,
+                                  uint8_t*    tx_data,
+                                  uint16_t    length);
+
+extern bool I2C_readBlocking    (I2C_ch_e    ch,
+                                 uint16_t    addr,
+                                 uint8_t*    rx_data,
+                                 uint16_t    length);
+
+extern bool I2C_readMemBlocking (I2C_ch_e     ch,
+                                 uint16_t     addr,
+                                 uint16_t     mem_addr,
+                                 uint8_t      mem_length,
+                                 uint8_t*     rx_data,
+                                 uint16_t     length);
 
 
 #ifdef __cplusplus

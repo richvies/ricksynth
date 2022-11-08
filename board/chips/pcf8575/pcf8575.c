@@ -29,9 +29,7 @@ SOFTWARE.
 
 #include "pcf8575.h"
 
-#include <stddef.h>
-
-#include "board_private.h"
+#include "config_board.h"
 
 
 typedef struct
@@ -45,7 +43,7 @@ typedef struct
 static pcf8575_t pcf8575[PCF8575_NUM_OF] = {0};
 
 
-bool PCF8575_init(uint8_t num, I2C_ch_e ch, uint8_t addr)
+bool PCF8575_init(uint8_t idx, uint8_t num, I2C_ch_e ch, uint8_t addr)
 {
   bool ret = false;
 
@@ -56,13 +54,13 @@ bool PCF8575_init(uint8_t num, I2C_ch_e ch, uint8_t addr)
   cfg.own_address   = 0;
   cfg.stretch_mode  = I2C_STRETCH_MODE_DISABLE;
 
-  pcf8575[num].ch = ch;
-  pcf8575[num].addr = addr;
-  pcf8575[num].cb = NULL;
+  pcf8575[idx].ch = ch;
+  pcf8575[idx].addr = addr;
+  pcf8575[idx].cb = NULL;
 
   if (true == I2C_init(ch, &cfg))
   {
-    while (false == write16(9, NULL));
+    while (false == I2C_writeReadBlocking(ch, ));
     ret = true;
   }
 
@@ -70,8 +68,9 @@ bool PCF8575_init(uint8_t num, I2C_ch_e ch, uint8_t addr)
 }
 
 
-bool PCF8575_read16(uint16_t *value, PCF8575_cb_t cb)
+bool PCF8575_read16(uint8_t idx, uint16_t *value, PCF8575_cb_t cb)
 {
+  I2C_write
   _i2c_xfer_info.length = 2;
   _i2c_xfer_info.data   = (uint8_t*)value;
   _i2c_xfer_info.cb     = i2cReadCb;
@@ -82,7 +81,7 @@ bool PCF8575_read16(uint16_t *value, PCF8575_cb_t cb)
   return _busy;
 }
 
-bool PCF8575_write16(uint16_t value, PCF8575_cb_t cb)
+bool PCF8575_write16(uint8_t idx, uint16_t value, PCF8575_cb_t cb)
 {
   if (true == _busy)
   {
@@ -102,20 +101,20 @@ bool PCF8575_write16(uint16_t value, PCF8575_cb_t cb)
   return _busy;
 }
 
-bool PCF8575_toggle16(uint16_t mask, PCF8575_cb_t cb)
+bool PCF8575_toggle16(uint8_t idx, uint16_t mask, PCF8575_cb_t cb)
 {
   uint16_t tmp = _write ^ mask;
   return write16(tmp, cb);
 }
 
 
-bool PCF8575_read(uint8_t pin, uint16_t *value, PCF8575_cb_t cb)
+bool PCF8575_read(uint8_t idx, uint8_t pin, uint16_t *value, PCF8575_cb_t cb)
 {
   _pin = pin;
   return read16(value, cb);
 }
 
-bool PCF8575_write(uint8_t pin, bool high, PCF8575_cb_t cb)
+bool PCF8575_write(uint8_t idx, uint8_t pin, bool high, PCF8575_cb_t cb)
 {
   uint16_t tmp;
 
@@ -131,32 +130,32 @@ bool PCF8575_write(uint8_t pin, bool high, PCF8575_cb_t cb)
   return write16(tmp, cb);
 }
 
-bool PCF8575_toggle(uint8_t pin, PCF8575_cb_t cb)
+bool PCF8575_toggle(uint8_t idx, uint8_t pin, PCF8575_cb_t cb)
 {
   return toggle16(1 << pin, cb);
 }
 
 
-bool PCF8575_shiftRight(uint8_t n, PCF8575_cb_t cb)
+bool PCF8575_shiftRight(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   uint16_t tmp = _write >> n;
   return write16(tmp, cb);
 }
 
-bool PCF8575_shiftLeft(uint8_t n, PCF8575_cb_t cb)
+bool PCF8575_shiftLeft(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   uint16_t tmp = _write << n;
   return write16(tmp, cb);
 }
 
-bool PCF8575_rotateRight(uint8_t n, PCF8575_cb_t cb)
+bool PCF8575_rotateRight(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   n &= 0xF;
   uint16_t tmp = (_write >> n) | (_write << (16 - n));
   return write16(tmp, cb);
 }
 
-bool PCF8575_rotateLeft(uint8_t n, PCF8575_cb_t cb)
+bool PCF8575_rotateLeft(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   n &= 15;
   return rotateRight(16 - n, cb);

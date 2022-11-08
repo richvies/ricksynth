@@ -22,7 +22,7 @@
 #define PRINTF_WARN(x, ...)
 #define PRINTF_ERRO(x, ...)
 
-/* Generic data queue handling macros, can use as FIFO or LIFO
+/* Generic data queue macros, can use as FIFO or LIFO
  *
  * ATTN: must follow this naming convention
  *
@@ -34,15 +34,15 @@
  * e.g. structure
  * typedef struct
  * {
- *  uint32_t  buf[10];
+ *  my_type_t buf[10];
  *  uint8_t   tail = 0;
  *  uint8_t   count = 0;
- * } some_queue_t;
+ * } my_queue_t;
  *
  *
  * e.g. usage
  *
- * some_queue_t my_q;
+ * my_queue_t my_q;
  *
  * Q_clear(my_q);
  *

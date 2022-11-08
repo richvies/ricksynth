@@ -37,75 +37,129 @@ SOFTWARE.
 #include "dma.h"
 #include "io.h"
 #include "irq.h"
+#include "merror.h"
 #include "tim.h"
 
 
 typedef enum
 {
-  WRITE,
-  READ,
-} i2c_dir_e;
+  DIR_WRITE,
+  DIR_READ,
+  DIR_READ_MEM,
+} dir_e;
 
 
 typedef struct
 {
+  /// direction of transfer
+  dir_e       dir;
+  /// address of device on bus
+  uint16_t    addr;
+  /// memory register to read
+  uint16_t    mem_addr;
+  /// length of register address
+  uint16_t    mem_length;
+  /// data buffer to write/ read
+  uint8_t*    data;
+  /// length in bytes for write/ read
+  uint16_t    length;
+  /// function to call when transaction half or done. Set to NULL if not needed
+  I2C_xfer_cb cb;
+  /// will be passed as argument to cb function
+  void*       ctx;
+} xfer_info_t;
+
+typedef struct
+{
+  xfer_info_t buf[5];
+  uint8_t count;
+  uint8_t tail;
+} xfer_queue_t;
+
+typedef struct
+{
   bool init;
-  I2C_xfer_info_t *xfer;
   I2C_HandleTypeDef hal;
   i2c_hw_info_t const *hw;
 
-  /* xfer queue */
-  I2C_xfer_info_t *q[3];
-  i2c_dir_e q_dir[3];
-  uint8_t q_n;
-  uint8_t q_tail;
-} i2c_handle_t;
+  /* current xfer */
+  xfer_info_t *xfer;
+  bool volatile busy;
+  bool volatile done;
+  bool volatile error;
+
+  /* xfer queue*/
+  xfer_queue_t queue;
+} handle_t;
 
 
-static i2c_handle_t handles[I2C_NUM_OF_CH] = {0};
+static handle_t handles[I2C_NUM_OF_CH] = {0};
 
-static const uint32_t address_mode_to_hal[I2C_NUM_OF_ADDRESS_MODES] =
+static uint32_t const address_mode_to_hal[I2C_NUM_OF_ADDRESS_MODES] =
 {
   I2C_ADDRESSINGMODE_7BIT,
   I2C_ADDRESSINGMODE_10BIT,
 };
-static const uint32_t stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
+static uint32_t const stretch_mode_to_hal[I2C_NUM_OF_STRETCH_MODES] =
 {
   I2C_NOSTRETCH_ENABLE,
   I2C_NOSTRETCH_DISABLE,
 };
 
 
-static bool writeIrq   (i2c_handle_t *h, I2C_xfer_info_t *info);
-static bool readIrq    (i2c_handle_t *h, I2C_xfer_info_t *info);
-static bool writeDma   (i2c_handle_t *h, I2C_xfer_info_t *info);
-static bool readDma    (i2c_handle_t *h, I2C_xfer_info_t *info);
+static bool xferBlocking  (dir_e       dir,
+                           I2C_ch_e    ch,
+                           uint16_t    addr,
+                           uint16_t    mem_addr,
+                           uint8_t     mem_length,
+                           uint8_t*    data,
+                           uint16_t    length);
+
+static bool xferNonblocking   (dir_e        dir,
+                               I2C_ch_e     ch,
+                               uint16_t     addr,
+                               uint16_t     mem_addr,
+                               uint8_t      mem_length,
+                               uint8_t*     data,
+                               uint16_t     length,
+                               I2C_xfer_cb  cb,
+                               void*        ctx);
+
+static void xferHandleQ       (handle_t *h);
+static bool xferStartNext     (handle_t *h);
+
+static bool writeBlocking   (handle_t *h, uint16_t addr, uint8_t *data, uint16_t len);
+static bool readBlocking    (handle_t *h, uint16_t addr, uint8_t *data, uint16_t len);
+static bool readMemBlocking (handle_t *h, uint16_t addr, uint16_t mem_addr, uint16_t mem_addr_length, uint8_t *data, uint16_t length);
+
+static bool writeIrq          (handle_t *h);
+static bool readIrq           (handle_t *h);
+static bool readMemIrq        (handle_t *h);
+static bool writeDma          (handle_t *h);
+static bool readDma           (handle_t *h);
+static bool readMemDma        (handle_t *h);
+
 
 static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch);
-static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg);
-static bool initDma(i2c_handle_t *h);
+static void configureHal(handle_t *h, I2C_cfg_t *cfg);
+static bool initDma(handle_t *h);
+
+/* required to unstick gpio pins used with i2c peripheral */
+static void HAL_I2C_ClearBusyFlagErrata_2_14_7(handle_t *h);
 
 
-static void HAL_I2C_ClearBusyFlagErrata_2_14_7(i2c_handle_t *h);
-
-
-bool I2C_init   (I2C_ch_e ch, I2C_cfg_t *cfg)
+bool I2C_init       (I2C_ch_e ch, I2C_cfg_t *cfg)
 {
   bool ret = false;
-  i2c_handle_t *h;
+  handle_t *h;
 
-  if (ch >= I2C_NUM_OF_CH)
-  {
-    return false;
-  }
+  if (ch >= I2C_NUM_OF_CH) {
+    return false; }
 
   h = &handles[ch];
 
-  if (true == h->init)
-  {
-    PRINTF_WARN("ch %u already init", ch);
-    return true;
-  }
+  if (true == h->init) {
+    return true; }
 
   /* link to hw information */
   h->hw = &i2c_hw_info[ch];
@@ -121,16 +175,20 @@ bool I2C_init   (I2C_ch_e ch, I2C_cfg_t *cfg)
 
     ret = true;
   }
+  else
+  {
+    MERR_error(MERROR_I2C_INIT, h->hw->periph);
+  }
 
   h->init = ret;
 
   return ret;
 }
 
-bool I2C_deInit (I2C_ch_e ch)
+bool I2C_deInit     (I2C_ch_e ch)
 {
   bool ret = false;
-  i2c_handle_t *h;
+  handle_t *h;
 
   if (ch >= I2C_NUM_OF_CH)
   {
@@ -164,157 +222,324 @@ bool I2C_deInit (I2C_ch_e ch)
   return ret;
 }
 
-void I2C_task   (void)
+void I2C_task       (void)
 {
   I2C_ch_e ch;
-  i2c_handle_t *h;
-  bool ret;
+  handle_t *h;
 
-  /* check if xfer on queue for each channel */
+  /* handle xfer queue of each channel */
   for (ch = I2C_CH_FIRST; ch < I2C_NUM_OF_CH; ch++)
   {
     h = &handles[ch];
 
-    if ((h->q_n)
-    &&  (false == I2C_isBusy(ch)))
-    {
-      switch (h->q_dir[h->q_tail])
-      {
-      case WRITE:
-        ret = I2C_write(ch, h->q[h->q_tail]);
-        break;
-
-      case READ:
-        ret = I2C_read(ch, h->q[h->q_tail]);
-        break;
-
-      default:
-        ret = false;
-        break;
-      }
-
-      /* increment queue if xfer started */
-      if (true == ret)
-      {
-        --h->q_n;
-        ++h->q_tail;
-        if (h->q_tail >= SIZEOF(h->q))
-        {
-          h->q_tail = 0;
-        }
-      }
-      else
-      {
-        PRINTF_WARN("task start xfer");
-      }
-    }
+    if (h->done) {
+      xferHandleQ(h); }
   }
 }
 
-bool I2C_isBusy (I2C_ch_e ch)
+bool I2C_write      (I2C_ch_e    ch,
+                     uint16_t    addr,
+                     uint8_t*    tx_data,
+                     uint16_t    length,
+                     I2C_xfer_cb cb,
+                     void*       ctx)
 {
-  return (HAL_I2C_STATE_READY != HAL_I2C_GetState(&handles[ch].hal));
+  return xferNonblocking(DIR_WRITE, ch, addr, 0, 0, tx_data, length, cb, ctx);
 }
 
-bool I2C_write    (I2C_ch_e ch, I2C_xfer_info_t *info)
+bool I2C_read       (I2C_ch_e    ch,
+                     uint16_t    addr,
+                     uint8_t*    rx_data,
+                     uint16_t    length,
+                     I2C_xfer_cb cb,
+                     void*       ctx)
+{
+  return xferNonblocking(DIR_READ, ch, addr, 0, 0, rx_data, length, cb, ctx);
+}
+
+bool I2C_readMem    (I2C_ch_e     ch,
+                     uint16_t     addr,
+                     uint16_t     mem_addr,
+                     uint8_t      mem_length,
+                     uint8_t*     rx_data,
+                     uint16_t     length,
+                     I2C_xfer_cb  cb,
+                     void*        ctx)
+{
+  return xferNonblocking(DIR_READ_MEM, ch, addr, mem_addr, mem_length, rx_data, length, cb, ctx);
+}
+
+bool I2C_writeBlocking    (I2C_ch_e    ch,
+                           uint16_t    addr,
+                           uint8_t*    tx_data,
+                           uint16_t    length)
+{
+  return xferNonblocking(DIR_WRITE, ch, addr, 0, 0, tx_data, length, NULL, NULL);
+}
+
+bool I2C_readBlocking     (I2C_ch_e    ch,
+                           uint16_t    addr,
+                           uint8_t*    rx_data,
+                           uint16_t    length)
+{
+  return xferNonblocking(DIR_READ, ch, addr, 0, 0, rx_data, length, NULL, NULL);
+}
+
+bool I2C_readMemBlocking  (I2C_ch_e     ch,
+                           uint16_t     addr,
+                           uint16_t     mem_addr,
+                           uint8_t      mem_length,
+                           uint8_t*     rx_data,
+                           uint16_t     length)
+{
+  return xferNonblocking(DIR_READ_MEM, ch, addr, mem_addr, mem_length, rx_data, length, NULL, NULL);
+}
+
+
+/* Transfer functions */
+
+static bool xferBlocking  (dir_e       dir,
+                           I2C_ch_e    ch,
+                           uint16_t    addr,
+                           uint16_t    mem_addr,
+                           uint8_t     mem_length,
+                           uint8_t*    data,
+                           uint16_t    length)
 {
   bool ret = false;
-  i2c_handle_t *h = &handles[ch];
+  handle_t *h = &handles[ch];
 
-  /* if busy, add to queue */
-  if (true == I2C_isBusy(ch))
+  /* if busy - wait until current xfer done */
+  if (h->busy)
   {
-    if (h->q_n < SIZEOF(h->q))
-    {
-      h->q_dir[h->q_tail + h->q_n] = WRITE;
-      h->q[h->q_tail + h->q_n++] = info;
-      ret = true;
-    }
+    TIMEOUT(false == h->done,
+            100,
+            EMPTY,
+            EMPTY,
+            {
+              MERR_error(MERROR_I2C_BUSY_TIMEOUT, h->hw->periph);
+              return false;
+            });
   }
-  /* otherwise send now */
+
+  switch (dir)
+  {
+  case DIR_WRITE:
+      ret = writeBlocking(h, addr, data, length);
+    break;
+  case DIR_READ:
+      ret = readBlocking(h, addr, data, length);
+    break;
+
+  case DIR_READ_MEM:
+      ret = readMemBlocking(h, addr, mem_addr, mem_length, data, length);
+    break;
+
+  default:
+    break;
+  }
+
+  if (false == ret) {
+    MERR_error(MERROR_I2C_XFER_START, h->hw->periph); }
+
+  return ret;
+}
+
+static bool xferNonblocking (dir_e        dir,
+                             I2C_ch_e     ch,
+                             uint16_t     addr,
+                             uint16_t     mem_addr,
+                             uint8_t      mem_length,
+                             uint8_t*     data,
+                             uint16_t     length,
+                             I2C_xfer_cb  cb,
+                             void*        ctx)
+{
+  bool ret = false;
+  handle_t *h = &handles[ch];
+  xfer_info_t *info;
+
+  /* add to q and try start next xfer */
+
+  if (Q_isFull(h->queue)) {
+    MERR_error(MERROR_I2C_XFER_Q_OVERFLOW, h->hw->periph); }
   else
   {
-    h->xfer = info;
-    if (h->hw->dma_tx_stream)
-    {
-      ret = writeDma(h, info);
-    }
-    else
-    {
-      ret = writeIrq(h, info);
-    }
-  }
+    ret = true;
 
-  if (false == ret)
-  {
-    PRINTF_WARN("write");
+    info = &Q_getHead(h->queue);
+
+    info->dir = dir;
+    info->addr = addr;
+    info->mem_addr = mem_addr;
+    info->mem_length = mem_length;
+    info->data = data;
+    info->length = length;
+    info->cb = cb;
+    info->ctx = ctx;
+
+    Q_incHead(h->queue);
+
+    xferHandleQ(h);
   }
 
   return ret;
 }
 
-bool I2C_read     (I2C_ch_e ch, I2C_xfer_info_t *info)
+static void xferHandleQ   (handle_t *h)
+{
+  /* if current xfer done -
+  * record error, update queue, reset for next xfer */
+  if (h->done)
+  {
+    if (h->error) {
+      MERR_error(MERROR_I2C_XFER_ERROR, h->hw->periph); }
+
+    Q_incTail(h->queue);
+
+    h->busy = false;
+    h->done = false;
+    h->error = false;
+  }
+
+  /* try start next xfer, if fails - callback with error and try next... */
+  if (false == h->busy)
+  {
+    while ((true == Q_pending(h->queue)) && (false == xferStartNext(h)))
+    {
+      if (h->xfer->cb) {
+        h->xfer->cb(true, h->xfer->ctx); }
+
+      Q_incTail(h->queue);
+    }
+  }
+}
+
+static bool xferStartNext   (handle_t *h)
 {
   bool ret = false;
-  i2c_handle_t *h = &handles[ch];
 
-  /* if busy, add to queue */
-  if (true == I2C_isBusy(ch))
+  h->xfer = &Q_getTail(h->queue);
+
+  switch (h->xfer->dir)
   {
-    if (h->q_n < SIZEOF(h->q))
-    {
-      h->q_dir[h->q_tail + h->q_n] = READ;
-      h->q[h->q_tail + h->q_n++] = info;
-      ret = true;
-    }
+  case DIR_WRITE:
+    if (h->hw->dma_tx_stream) {
+      ret = writeDma(h); }
+    else {
+      ret = writeIrq(h); }
+    break;
+
+  case DIR_READ:
+    if (h->hw->dma_rx_stream) {
+      ret = readDma(h); }
+    else {
+      ret = readIrq(h); }
+    break;
+
+  case DIR_READ_MEM:
+    if (h->hw->dma_tx_stream && h->hw->dma_rx_stream) {
+      ret = readMemDma(h); }
+    else {
+      ret = readMemIrq(h); }
+    break;
+
+  default:
+    break;
   }
-  /* otherwise send now */
-  else
-  {
-    h->xfer = info;
-    if (h->hw->dma_rx_stream)
-    {
-      ret = readDma(h, info);
-    }
-    else
-    {
-      ret = readIrq(h, info);
-    }
-  }
+
+  /* busy if xfer started successfully */
+  h->busy = ret;
 
   if (false == ret)
   {
-    PRINTF_WARN("read");
+    MERR_error(MERROR_I2C_XFER_START, h->hw->periph);
   }
 
   return ret;
 }
 
 
-static bool writeIrq   (i2c_handle_t *h, I2C_xfer_info_t *info)
+/* Blocking low level */
+
+static bool writeBlocking   (handle_t *h, uint16_t addr, uint8_t *data, uint16_t len)
+{
+  return (HAL_OK == HAL_I2C_Master_Transmit(&h->hal,
+                                            addr,
+                                            data,
+                                            len,
+                                            100));
+}
+
+static bool readBlocking    (handle_t *h, uint16_t addr, uint8_t *data, uint16_t len)
+{
+  return (HAL_OK == HAL_I2C_Master_Receive(&h->hal,
+                                           addr,
+                                           data,
+                                           len,
+                                           100));
+}
+
+static bool readMemBlocking (handle_t *h, uint16_t addr, uint16_t mem_addr, uint16_t mem_addr_length, uint8_t *data, uint16_t length)
+{
+  return (HAL_OK == HAL_I2C_Mem_Read(&h->hal,
+                                     addr,
+                                     mem_addr,
+                                     mem_addr_length,
+                                     data,
+                                     length,
+                                     100));
+}
+
+
+/* Non-Blocking low level */
+
+static bool writeIrq    (handle_t *h)
 {
   return (HAL_OK == HAL_I2C_Master_Transmit_IT(
-    &h->hal, info->addr, info->data, info->length));
+    &h->hal, h->xfer->addr, h->xfer->data, h->xfer->length));
 }
 
-static bool readIrq    (i2c_handle_t *h, I2C_xfer_info_t *info)
+static bool readIrq     (handle_t *h)
 {
   return (HAL_OK == HAL_I2C_Master_Receive_IT(
-    &h->hal, info->addr, info->data, info->length));
+    &h->hal, h->xfer->addr, h->xfer->data, h->xfer->length));
 }
 
-static bool writeDma   (i2c_handle_t *h, I2C_xfer_info_t *info)
+static bool readMemIrq  (handle_t *h)
+{
+  return (HAL_OK == HAL_I2C_Mem_Read_IT(&h->hal,
+                                          h->xfer->mem_addr,
+                                          h->xfer->mem_length,
+                                          h->xfer->addr,
+                                          h->xfer->data,
+                                          h->xfer->length));
+}
+
+static bool writeDma    (handle_t *h)
 {
   return (HAL_OK == HAL_I2C_Master_Transmit_DMA(
-    &h->hal, info->addr, info->data, info->length));
+    &h->hal, h->xfer->addr, h->xfer->data, h->xfer->length));
 }
 
-static bool readDma    (i2c_handle_t *h, I2C_xfer_info_t *info)
+static bool readDma     (handle_t *h)
 {
   return (HAL_OK == HAL_I2C_Master_Receive_DMA(
-    &h->hal, info->addr, info->data, info->length));
+    &h->hal, h->xfer->addr, h->xfer->data, h->xfer->length));
 }
 
+static bool readMemDma  (handle_t *h)
+{
+  return (HAL_OK == HAL_I2C_Mem_Read_DMA(&h->hal,
+                                          h->xfer->mem_addr,
+                                          h->xfer->mem_length,
+                                          h->xfer->addr,
+                                          h->xfer->data,
+                                          h->xfer->length));
+}
+
+
+/* Util functions */
 
 static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
 {
@@ -334,7 +559,7 @@ static bool channelFromHal(I2C_HandleTypeDef *hi2c, I2C_ch_e *ch)
   return ret;
 }
 
-static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
+static void configureHal(handle_t *h, I2C_cfg_t *cfg)
 {
   h->hal.Instance             = h->hw->inst;
   h->hal.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -347,7 +572,7 @@ static void configureHal(i2c_handle_t *h, I2C_cfg_t *cfg)
   h->hal.Init.NoStretchMode   = stretch_mode_to_hal[cfg->stretch_mode];
 }
 
-static bool initDma(i2c_handle_t *h)
+static bool initDma(handle_t *h)
 {
   bool ret = true;
   dma_cfg_t dma_cfg;
@@ -379,16 +604,17 @@ static bool initDma(i2c_handle_t *h)
   return ret;
 }
 
+
+/* STM32 Library functions */
+
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
   I2C_ch_e ch;
-  i2c_handle_t *h;
+  handle_t *h;
   IO_cfg_t io_cfg;
 
-  if (false == channelFromHal(hi2c, &ch))
-  {
-    return;
-  }
+  if (false == channelFromHal(hi2c, &ch)) {
+    return; }
 
   h  = &handles[ch];
 
@@ -414,12 +640,10 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 {
   I2C_ch_e ch;
-  i2c_handle_t *h;
+  handle_t *h;
 
-  if (false == channelFromHal(hi2c, &ch))
-  {
-    return;
-  }
+  if (false == channelFromHal(hi2c, &ch)) {
+    return; }
 
   h  = &handles[ch];
 
@@ -433,38 +657,38 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 }
 
 
+/* Interrupt handling */
+
 void i2c_event_irq_handler(void)
 {
-  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
+  handle_t *h = (handle_t*)irq_get_context(irq_get_current());
 
-  if (h)
-  {
-    HAL_I2C_EV_IRQHandler(&h->hal);
-  }
+  if (h) {
+    HAL_I2C_EV_IRQHandler(&h->hal); }
 }
 
 void i2c_error_irq_handler(void)
 {
-  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
+  handle_t *h = (handle_t*)irq_get_context(irq_get_current());
 
-  if (h)
-  {
-    HAL_I2C_ER_IRQHandler(&h->hal);
-  }
+  if (h) {
+    HAL_I2C_ER_IRQHandler(&h->hal); }
 }
 
 static void irq_end_call_callback(bool error)
 {
-  i2c_handle_t *h = (i2c_handle_t*)irq_get_context(irq_get_current());
+  handle_t *h = (handle_t*)irq_get_context(irq_get_current());
 
   if (h)
   {
-    if (h->xfer->cb)
-    {
-      h->xfer->cb(error, h->xfer->ctx);
-    }
+    h->error = error;
+    h->done = true;
+
+    if (h->xfer->cb) {
+      h->xfer->cb(error, h->xfer->ctx); }
   }
 }
+
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
@@ -487,7 +711,6 @@ void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
 }
 
 
-
 /* Errata */
 static void HAL_GPIO_WRITE_ODR(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 {
@@ -497,88 +720,94 @@ static void HAL_GPIO_WRITE_ODR(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
   GPIOx->ODR |= GPIO_Pin;
 }
 
-static void HAL_I2C_ClearBusyFlagErrata_2_14_7(i2c_handle_t *h)
+static void HAL_I2C_ClearBusyFlagErrata_2_14_7(handle_t *h)
 {
   I2C_HandleTypeDef *hi2c = &h->hal;
 
-  uint32_t SDA_PIN = IO_TO_PIN(h->hw->sda_pin);
-  uint32_t SCL_PIN = IO_TO_PIN(h->hw->scl_pin);
+  uint32_t sda_pin = IO_TO_PIN(h->hw->sda_pin);
+  uint32_t scl_pin = IO_TO_PIN(h->hw->scl_pin);
   GPIO_InitTypeDef GPIO_InitStruct;
 
   // 1
   __HAL_I2C_DISABLE(hi2c);
 
   // 2
-  GPIO_InitStruct.Pin = SDA_PIN|SCL_PIN;
+  GPIO_InitStruct.Pin = sda_pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(IO_TO_GPIO_INST(sda_pin), &GPIO_InitStruct);
 
-  HAL_GPIO_WRITE_ODR(GPIOB, SDA_PIN);
-  HAL_GPIO_WRITE_ODR(GPIOB, SCL_PIN);
+  GPIO_InitStruct.Pin = scl_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(scl_pin), &GPIO_InitStruct);
+
+  HAL_GPIO_WRITE_ODR(IO_TO_GPIO_INST(sda_pin), sda_pin);
+  HAL_GPIO_WRITE_ODR(IO_TO_GPIO_INST(scl_pin), scl_pin);
 
   // 3
   GPIO_PinState pinState;
-  if (HAL_GPIO_ReadPin(GPIOB, SDA_PIN) == GPIO_PIN_RESET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(sda_pin), sda_pin) == GPIO_PIN_RESET) {
       for(;;){}
   }
-  if (HAL_GPIO_ReadPin(GPIOB, SCL_PIN) == GPIO_PIN_RESET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(scl_pin), scl_pin) == GPIO_PIN_RESET) {
       for(;;){}
   }
 
   // 4
-  GPIO_InitStruct.Pin = SDA_PIN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = sda_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(sda_pin), &GPIO_InitStruct);
 
-  HAL_GPIO_TogglePin(GPIOB, SDA_PIN);
+  HAL_GPIO_TogglePin(IO_TO_GPIO_INST(sda_pin), sda_pin);
 
   // 5
-  if (HAL_GPIO_ReadPin(GPIOB, SDA_PIN) == GPIO_PIN_SET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(sda_pin), sda_pin) == GPIO_PIN_SET) {
       for(;;){}
   }
 
   // 6
-  GPIO_InitStruct.Pin = SCL_PIN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = scl_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(scl_pin), &GPIO_InitStruct);
 
-  HAL_GPIO_TogglePin(GPIOB, SCL_PIN);
+  HAL_GPIO_TogglePin(IO_TO_GPIO_INST(scl_pin), scl_pin);
 
   // 7
-  if (HAL_GPIO_ReadPin(GPIOB, SCL_PIN) == GPIO_PIN_SET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(scl_pin), scl_pin) == GPIO_PIN_SET) {
       for(;;){}
   }
 
   // 8
-  GPIO_InitStruct.Pin = SDA_PIN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = sda_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(sda_pin), &GPIO_InitStruct);
 
-  HAL_GPIO_WRITE_ODR(GPIOB, SDA_PIN);
+  HAL_GPIO_WRITE_ODR(IO_TO_GPIO_INST(sda_pin), sda_pin);
   TIM_delayMs(1);
 
   // 9
-  if (HAL_GPIO_ReadPin(GPIOB, SDA_PIN) == GPIO_PIN_RESET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(sda_pin), sda_pin) == GPIO_PIN_RESET) {
       for(;;){}
   }
 
   // 10
-  GPIO_InitStruct.Pin = SCL_PIN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = scl_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(scl_pin), &GPIO_InitStruct);
 
-  HAL_GPIO_WRITE_ODR(GPIOB, SCL_PIN);
+  HAL_GPIO_WRITE_ODR(IO_TO_GPIO_INST(scl_pin), scl_pin);
   TIM_delayMs(1);
 
   // 11
-  if (HAL_GPIO_ReadPin(GPIOB, SCL_PIN) == GPIO_PIN_RESET) {
+  if (HAL_GPIO_ReadPin(IO_TO_GPIO_INST(scl_pin), scl_pin) == GPIO_PIN_RESET) {
       for(;;){}
   }
 
   // 12
-  GPIO_InitStruct.Pin = SDA_PIN|SCL_PIN;
+  GPIO_InitStruct.Pin = sda_pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
   GPIO_InitStruct.Alternate = h->hw->io_cfg_ext.af_value;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(IO_TO_GPIO_INST(sda_pin), &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = scl_pin;
+  HAL_GPIO_Init(IO_TO_GPIO_INST(scl_pin), &GPIO_InitStruct);
+  ;
   // 13
   hi2c->Instance->CR1 |= I2C_CR1_SWRST;
 
@@ -587,5 +816,4 @@ static void HAL_I2C_ClearBusyFlagErrata_2_14_7(i2c_handle_t *h)
 
   // 15
   __HAL_I2C_ENABLE(hi2c);
-
 }

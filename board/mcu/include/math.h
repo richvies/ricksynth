@@ -29,8 +29,16 @@ SOFTWARE.
 #ifndef MATH_H
 #define MATH_H
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 
 #include "common.h"
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
