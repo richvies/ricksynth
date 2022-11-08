@@ -60,19 +60,26 @@ static void runFiniArray(void);
 
 void start_resetHandler(void)
 {
+  /* reset to basic clock config for startup */
   hw_initEarly();
 
+  /* copy data from flash to ram */
   initData(&_data_start_internal, &_data_start, &_data_end);
   initBss(&_bss_start, &_bss_end);
 
+  /* init clocks fully */
   hw_init();
 
+  /* run constructors */
   runInitArray();
 
+  /* run main program */
   main();
 
+  /* run deconstructors */
   runFiniArray();
 
+  /* shouldn't ever get here so reboot device */
   hw_reset();
 
   while (1){};
