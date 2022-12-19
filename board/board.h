@@ -40,7 +40,6 @@ SOFTWARE.
 #include <stdbool.h>
 
 
-
 #ifdef __cplusplus
 }
 #endif

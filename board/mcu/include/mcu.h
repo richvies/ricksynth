@@ -59,23 +59,28 @@ SOFTWARE.
 /* for use with clk module */
 typedef enum
 {
-  periph_GPIO_A,
-  periph_GPIO_B,
-  periph_GPIO_C,
-  periph_USART_1,
-  periph_USART_2,
-  periph_USART_3,
-  periph_I2C_1,
-  periph_I2C_2,
-  periph_I2C_3,
-  periph_SPI_1,
-  periph_SPI_2,
-  periph_SPI_3,
-  periph_SPI_4,
-  periph_DMA_1,
-  periph_DMA_2,
-  periph_ADC_1,
-} periph_e;
+  PERIPH_GPIO_A,
+  PERIPH_GPIO_B,
+  PERIPH_GPIO_C,
+  PERIPH_GPIO_H,
+  PERIPH_DMA_1,
+  PERIPH_DMA_2,
+  PERIPH_TIM_5,
+  PERIPH_WWDG,
+  PERIPH_SPI_2,
+  PERIPH_USART_2,
+  PERIPH_I2C_1,
+  PERIPH_I2C_2,
+  PERIPH_PWR,
+  PERIPH_TIM_1,
+  PERIPH_USART_1,
+  PERIPH_USART_6,
+  PERIPH_ADC_1,
+  PERIPH_SPI_1,
+  PERIPH_SYSCFG,
+  PERIPH_TIM_9,
+  PERIPH_TIM_11,
+} PERIPH_e;
 
 
 #ifdef __cplusplus

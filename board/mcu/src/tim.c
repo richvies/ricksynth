@@ -66,7 +66,7 @@ void TIM_initSystemTimer(void)
 {
   /* 1ms systick */
   SysTick_Config(SystemCoreClock / 1000);
-  irq_config(SysTick_IRQn, priority_VERY_LOW);
+  irq_config(SysTick_IRQn, PRIORITY_VERY_LOW);
   irq_enable(SysTick_IRQn);
 }
 

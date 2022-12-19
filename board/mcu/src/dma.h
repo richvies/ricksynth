@@ -55,9 +55,6 @@ typedef enum
 
 typedef struct
 {
-  void *parent_handle;
-  irq_priority_e priority;
-
   DMA_ch_e        channel;
   dma_dir_e       dir;
   bool            inc_periph_addr;
@@ -65,6 +62,8 @@ typedef struct
   dma_data_size_e periph_data_size;
   dma_data_size_e mem_data_size;
   bool            circular_mode;
+  IRQ_priority_e  priority;
+  void*           parent_handle;
 } dma_cfg_t;
 
 

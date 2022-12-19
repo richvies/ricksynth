@@ -71,6 +71,7 @@
 			"cmath": "cpp",
 			"random": "c"
 		},
-		"cortex-debug.variableUseNaturalFormat": false
+		"cortex-debug.variableUseNaturalFormat": true,
+		"cortex-debug.showRTOS": false
 	}
 }

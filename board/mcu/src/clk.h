@@ -36,10 +36,10 @@ SOFTWARE.
 
 extern void clk_init(void);
 extern void clk_update(void);
-extern void clk_periphEnable(periph_e periph);
-extern void clk_periphReset(periph_e periph);
+extern void clk_periphEnable(PERIPH_e periph);
+extern void clk_periphReset(PERIPH_e periph);
 extern void clk_periphResetAll(void);
-extern uint32_t clk_getPeriphBaseClkHz(periph_e periph);
+extern uint32_t clk_getPeriphBaseClkHz(PERIPH_e periph);
 
 
 #endif

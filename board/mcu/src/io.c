@@ -35,6 +35,14 @@ SOFTWARE.
 #include "irq.h"
 
 
+#define IO_numToPort(num)     ((IO_port_e)(num >> 8))
+#define IO_numToPin(num)      ((uint8_t)num)
+
+#define IO_numToHalPin(num)   ((uint32_t)1 << IO_numToPin(num))
+#define IO_numToHalPort(num)  (io_ports_hw_info[IO_numToPort(num)].inst)
+#define IO_numToPeriph(num)   ((PERIPH_e)io_ports_hw_info[IO_numToPort(num)].periph)
+
+
 typedef struct
 {
   io_ext_irq_hw_info_t const * hw;
@@ -74,7 +82,6 @@ static const uint32_t speed_to_hal[IO_NUM_OF_SPEEDS] =
 };
 
 
-static void handleExtIrq(void);
 static bool ioToExt(IO_num_e num, IO_ext_irq_e *ext_irq);
 
 
@@ -92,9 +99,9 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
 {
   GPIO_InitTypeDef init;
 
-  clk_periphEnable(io_ports_hw_info[IO_TO_PORT(num)].periph);
+  clk_periphEnable(IO_numToPeriph(num));
 
-  init.Pin   = IO_TO_PIN(num);
+  init.Pin   = IO_numToHalPin(num);
   init.Pull  = pullup_to_hal[cfg->pullup];
   init.Speed = speed_to_hal[cfg->speed];
   init.Mode  = (dir_to_hal[cfg->dir] | mode_to_hal[cfg->mode]);
@@ -104,35 +111,35 @@ void IO_configure(IO_num_e num, IO_cfg_t *cfg)
     init.Alternate = ((io_cfg_extend_t const *)cfg->extend)->af_value;
   }
 
-  HAL_GPIO_Init(IO_TO_GPIO_INST(num), &init);
+  HAL_GPIO_Init(IO_numToHalPort(num), &init);
 }
 
 void IO_deinit(IO_num_e num)
 {
-  HAL_GPIO_DeInit(IO_TO_GPIO_INST(num), IO_TO_PIN(num));
+  HAL_GPIO_DeInit(IO_numToHalPort(num), IO_numToHalPin(num));
 }
 
 
 void IO_set(IO_num_e num)
 {
-  HAL_GPIO_WritePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num), GPIO_PIN_SET);
+  HAL_GPIO_WritePin(IO_numToHalPort(num), IO_numToHalPin(num), GPIO_PIN_SET);
 }
 
 void IO_clear(IO_num_e num)
 {
-  HAL_GPIO_WritePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num), GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(IO_numToHalPort(num), IO_numToHalPin(num), GPIO_PIN_RESET);
 }
 
 void IO_toggle(IO_num_e num)
 {
-  HAL_GPIO_TogglePin(IO_TO_GPIO_INST(num), IO_TO_PIN(num));
+  HAL_GPIO_TogglePin(IO_numToHalPort(num), IO_numToHalPin(num));
 }
 
 bool IO_isHigh(IO_num_e num)
 {
   bool ret = false;
 
-  if (GPIO_PIN_SET == HAL_GPIO_ReadPin(IO_TO_GPIO_INST(num), IO_TO_PIN(num)))
+  if (GPIO_PIN_SET == HAL_GPIO_ReadPin(IO_numToHalPort(num), IO_numToHalPin(num)))
   {
     ret = true;
   }
@@ -140,6 +147,8 @@ bool IO_isHigh(IO_num_e num)
   return ret;
 }
 
+
+/* External interrupt */
 
 bool IO_enableExtIrq(IO_num_e num)
 {
@@ -152,6 +161,23 @@ bool IO_enableExtIrq(IO_num_e num)
     info = &ext_irq_info[ext_irq];
     irq_config(info->hw->irq_num, info->hw->priority);
     irq_enable(info->hw->irq_num);
+    irq_set_context(info->hw->irq_num, info);
+    ret = true;
+  }
+
+  return ret;
+}
+
+bool IO_disableExtIrq(IO_num_e num)
+{
+  bool ret = false;
+  IO_ext_irq_e ext_irq;
+  ext_irq_info_t *info;
+
+  if (true == ioToExt(num, &ext_irq))
+  {
+    info = &ext_irq_info[ext_irq];
+    irq_disable(info->hw->irq_num);
     ret = true;
   }
 
@@ -173,29 +199,7 @@ bool IO_setExtIrqCallback(IO_num_e num, IO_ext_irq_cb fn)
 }
 
 
-static void handleExtIrq(void)
-{
-  uint8_t i;
-  IO_num_e io_num;
-  uint16_t hal_pin;
-
-  for (i = 0; i < IO_NUM_OF_EXT_IRQ; i++)
-  {
-    io_num = ext_irq_info[i].hw->io_num;
-    hal_pin = IO_TO_PIN(io_num);
-
-    if (__HAL_GPIO_EXTI_GET_FLAG(hal_pin))
-    {
-      HAL_GPIO_EXTI_IRQHandler(hal_pin);
-
-      if (ext_irq_info[i].cb != NULL)
-      {
-        // TODO get edge
-        ext_irq_info[i].cb(IO_IRQ_EDGE_POS);
-      }
-    }
-  }
-}
+/* Util */
 
 static bool ioToExt(IO_num_e num, IO_ext_irq_e *ext_irq)
 {
@@ -204,7 +208,7 @@ static bool ioToExt(IO_num_e num, IO_ext_irq_e *ext_irq)
 
   for (i = IO_EXT_IRQ_FIRST; i < IO_NUM_OF_EXT_IRQ; i++)
   {
-    if (ext_irq_info[i].hw->io_num == num)
+    if (num == ext_irq_info[i].hw->io_num)
     {
       *ext_irq = i;
       ret = true;
@@ -215,18 +219,27 @@ static bool ioToExt(IO_num_e num, IO_ext_irq_e *ext_irq)
 }
 
 
-void EXTI1_IRQHandler(void)
-{
-  handleExtIrq();
-}
+/* Interrupt handling */
 
-void EXTI9_5_IRQHandler(void)
+void io_ext_irq_handler(void)
 {
-  handleExtIrq();
-}
+  uint8_t i;
+  IO_num_e io_num;
+  uint16_t hal_pin;
+  IO_irq_edge_e edge;
 
-void EXTI15_10_IRQHandler(void)
-{
-  handleExtIrq();
-}
+  ext_irq_info_t *info = (ext_irq_info_t*)irq_get_context(irq_get_current());
 
+  if (info)
+  {
+    if (IO_isHigh(info->hw->io_num)) {
+      edge = IO_IRQ_EDGE_POS; }
+    else {
+      edge = IO_IRQ_EDGE_NEG; }
+
+    HAL_GPIO_EXTI_IRQHandler(IO_numToHalPin(info->hw->io_num));
+
+    if (info->cb) {
+      info->cb(edge); }
+  }
+}

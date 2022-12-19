@@ -32,11 +32,10 @@ SOFTWARE.
 #include "_hw_info.h"
 
 
-/** see @ref IRQn_Type */
 #define IRQ_NUM_OF                  (85)
 
 
-static uint8_t const irq_to_nvic[priority_NUM_OF] =
+static uint8_t const irq_to_nvic[PRIORITY_NUM_OF] =
 {
   1,
   4,
@@ -47,24 +46,24 @@ static uint8_t const irq_to_nvic[priority_NUM_OF] =
 
 static void* irq_contexts[IRQ_NUM_OF] = {NULL};
 
-void irq_config(irq_num_e irq, irq_priority_e priority)
+void irq_config(IRQ_num_e irq, IRQ_priority_e priority)
 {
   HAL_NVIC_SetPriority(irq, 0, irq_to_nvic[priority]);
 }
 
-void irq_enable(irq_num_e irq)
+void irq_enable(IRQ_num_e irq)
 {
   HAL_NVIC_EnableIRQ(irq);
 }
 
-void irq_disable(irq_num_e irq)
+void irq_disable(IRQ_num_e irq)
 {
   HAL_NVIC_DisableIRQ(irq);
 }
 
 void irq_disableAll(void)
 {
-  irq_num_e irq;
+  IRQ_num_e irq;
 
   for (irq = 0; irq < 0x7f; irq++)
   {
@@ -73,22 +72,21 @@ void irq_disableAll(void)
 }
 
 
-irq_num_e irq_get_current(void)
+IRQ_num_e irq_get_current(void)
 {
-  irq_num_e irq =
+  IRQ_num_e irq =
     (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) >> SCB_ICSR_VECTACTIVE_Pos;
 
   /* takeaway cortex core irq */
   return (irq - 16);
 }
 
-void      irq_set_context(irq_num_e irq, void *context)
+void      irq_set_context(IRQ_num_e irq, void *context)
 {
   irq_contexts[irq] = context;
 }
 
-void*     irq_get_context(irq_num_e irq)
+void*     irq_get_context(IRQ_num_e irq)
 {
   return irq_contexts[irq];
 }
-

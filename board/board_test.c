@@ -49,8 +49,13 @@ bool BRD_TST_test_onboard_led(void)
 
   while (1)
   {
-    IO_toggle(BUILTIN_LED_PIN);
-    TIM_delayMs(500);
+    for (uint8_t i = 0; i < 5; i++)
+    {
+      IO_set(BUILTIN_LED_PIN);
+      TIM_delayMs((i+1)*100);
+      IO_clear(BUILTIN_LED_PIN);
+      TIM_delayMs((i+1)*100);
+    }
   }
 }
 

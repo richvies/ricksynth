@@ -34,28 +34,28 @@ SOFTWARE.
 #include "mcu.h"
 
 
-typedef int16_t irq_num_e;
+typedef int16_t IRQ_num_e;
 
 
 typedef enum
 {
-  priority_VERY_HIGH,
-  priority_HIGH,
-  priority_MEDIUM,
-  priority_LOW,
-  priority_VERY_LOW,
-  priority_NUM_OF,
-} irq_priority_e;
+  PRIORITY_VERY_HIGH,
+  PRIORITY_HIGH,
+  PRIORITY_MEDIUM,
+  PRIORITY_LOW,
+  PRIORITY_VERY_LOW,
+  PRIORITY_NUM_OF,
+} IRQ_priority_e;
 
 
-extern void irq_config(irq_num_e irq, irq_priority_e priority);
-extern void irq_enable(irq_num_e irq);
-extern void irq_disable(irq_num_e irq);
+extern void irq_config(IRQ_num_e irq, IRQ_priority_e priority);
+extern void irq_enable(IRQ_num_e irq);
+extern void irq_disable(IRQ_num_e irq);
 extern void irq_disableAll(void);
 
-extern irq_num_e    irq_get_current(void);
-extern void         irq_set_context(irq_num_e irq, void *context);
-extern void*        irq_get_context(irq_num_e irq);
+extern IRQ_num_e    irq_get_current(void);
+extern void         irq_set_context(IRQ_num_e irq, void *context);
+extern void*        irq_get_context(IRQ_num_e irq);
 
 
 #endif

@@ -39,8 +39,17 @@ SOFTWARE.
 #include "mcu.h"
 
 
+/* io pins represented as 16 bit number (8 for port, 8 for pin number):
+ *
+ *    port no.  pin no.
+ * 0b|00000001|00000011|  = port 1, pin 3
+ *    -------- --------
+ */
+#define IO_portPinToNum(port, pin)  (((IO_num_e)port << 8) | (uint8_t)pin)
+
+/* to represent that no pin is used
+ * e.g. if spi cs or usart cts pin is not used */
 #define IO_NULL_PIN                 (0)
-#define PORT_PIN_TO_IO(port, pin)   (((IO_num_e)port << 8) | (uint8_t)pin)
 
 
 typedef uint16_t IO_num_e;
@@ -106,13 +115,14 @@ extern void IO_init(void);
 extern void IO_configure(IO_num_e num, IO_cfg_t *cfg);
 extern void IO_deinit(IO_num_e num);
 
-// num must be > 0
+/* num must be > 0 */
 extern void IO_set(IO_num_e num);
 extern void IO_clear(IO_num_e num);
 extern void IO_toggle(IO_num_e num);
 extern bool IO_isHigh(IO_num_e num);
 
 extern bool IO_enableExtIrq(IO_num_e num);
+extern bool IO_disableExtIrq(IO_num_e num);
 extern bool IO_setExtIrqCallback(IO_num_e num, IO_ext_irq_cb fn);
 
 

@@ -40,11 +40,11 @@ typedef struct
   bool init;
   DMA_HandleTypeDef hal;
   const dma_hw_info_t *hw;
-  irq_priority_e irq_priority;
-} dma_handle_t;
+  IRQ_priority_e irq_priority;
+} handle_t;
 
 
-static dma_handle_t handles[DMA_NUM_OF_STREAM] = {0};
+static handle_t handles[DMA_NUM_OF_STREAM] = {0};
 
 static const uint32_t dir_to_hal[DMA_DIR_NUM_OF] =
 {
@@ -69,7 +69,7 @@ static const uint32_t ch_to_dma_ch[DMA_NUM_OF_CH] =
   DMA_CHANNEL_6,
   DMA_CHANNEL_7,
 };
-static const uint32_t priority_to_dma_priority[priority_NUM_OF] =
+static const uint32_t priority_to_dma_priority[PRIORITY_NUM_OF] =
 {
   DMA_PRIORITY_VERY_HIGH,
   DMA_PRIORITY_HIGH,
@@ -79,14 +79,13 @@ static const uint32_t priority_to_dma_priority[priority_NUM_OF] =
 };
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch);
-static void configureHal(dma_handle_t *h, dma_cfg_t *cfg);
+static void configureHal(handle_t *h, dma_cfg_t *cfg);
 
 
 bool dma_init(DMA_stream_e stream, dma_cfg_t *cfg)
 {
   bool ret = false;
-  dma_handle_t *h;
+  handle_t *h;
 
   if (stream >= DMA_NUM_OF_STREAM)
   {
@@ -118,6 +117,7 @@ bool dma_init(DMA_stream_e stream, dma_cfg_t *cfg)
 
   irq_config(h->hw->irq_num, h->irq_priority);
   irq_enable(h->hw->irq_num);
+  irq_set_context(h->hw->irq_num, h);
 
   return ret;
 }
@@ -135,7 +135,7 @@ void* dma_getHandle(DMA_stream_e stream)
 bool dma_deinit(DMA_stream_e stream)
 {
   bool ret = false;
-  dma_handle_t *h;
+  handle_t *h;
 
   if (stream >= DMA_NUM_OF_STREAM)
   {
@@ -157,25 +157,7 @@ bool dma_deinit(DMA_stream_e stream)
 }
 
 
-static bool streamFromHal(DMA_HandleTypeDef *hdma, DMA_stream_e *ch)
-{
-  bool ret = false;
-  DMA_stream_e i;
-
-  for (i = DMA_STREAM_FIRST; i < DMA_NUM_OF_STREAM; i++)
-  {
-    if (hdma == &handles[i].hal)
-    {
-      *ch = i;
-      ret = true;
-      break;
-    }
-  }
-
-  return ret;
-}
-
-static void configureHal(dma_handle_t *h, dma_cfg_t *cfg)
+static void configureHal(handle_t *h, dma_cfg_t *cfg)
 {
   h->hal.Instance = h->hw->inst;
   h->hal.Parent   = cfg->parent_handle;
@@ -193,22 +175,10 @@ static void configureHal(dma_handle_t *h, dma_cfg_t *cfg)
 }
 
 
-void DMA1_Stream0_IRQHandler( void )
+static void dma_irq_hanlder(void)
 {
-  HAL_DMA_IRQHandler(&handles[DMA_1_STREAM_0].hal);
-}
+  handle_t *h = (handle_t*)irq_get_context(irq_get_current());
 
-void DMA1_Stream6_IRQHandler( void )
-{
-  HAL_DMA_IRQHandler(&handles[DMA_1_STREAM_6].hal);
-}
-
-void DMA2_Stream0_IRQHandler( void )
-{
-  HAL_DMA_IRQHandler(&handles[DMA_2_STREAM_0].hal);
-}
-
-void DMA2_Stream3_IRQHandler( void )
-{
-  HAL_DMA_IRQHandler(&handles[DMA_2_STREAM_3].hal);
+  if (h) {
+    HAL_DMA_IRQHandler(&h->hal); }
 }

@@ -42,10 +42,11 @@ SOFTWARE.
 /* IO */
 typedef enum
 {
-  IO_port_NULL,
-  IO_port_A,
-  IO_port_B,
-  IO_port_C,
+  IO_PORT_NULL,
+  IO_PORT_A,
+  IO_PORT_B,
+  IO_PORT_C,
+  IO_PORT_H,
   IO_NUM_OF_PORT,
 } IO_port_e;
 
@@ -123,6 +124,9 @@ typedef enum
 {
   TIM_SUB_CH_FIRST,
   TIM_SUB_CH_1 = TIM_SUB_CH_FIRST,
+  TIM_SUB_CH_2 = TIM_SUB_CH_FIRST,
+  TIM_SUB_CH_3 = TIM_SUB_CH_FIRST,
+  TIM_SUB_CH_4 = TIM_SUB_CH_FIRST,
   TIM_NUM_OF_SUB_CH,
 } TIM_sub_ch_e;
 
@@ -135,14 +139,14 @@ typedef enum
 
 
 /* ADC */
+#define ADC_NUM_OF_PERIPH           (1)
+
 typedef enum
 {
   ADC_CH_FIRST,
   ADC_1_CH_1 = ADC_CH_FIRST,
   ADC_NUM_OF_CH,
 } ADC_ch_e;
-
-#define ADC_NUM_OF_PERIPH           (1)
 
 
 #ifdef __cplusplus

@@ -45,12 +45,12 @@ typedef struct
   bool init;
   ADC_HandleTypeDef hal;
   const adc_hw_info_t *hw;
-} adc_handle_t;
+} handle_t;
 
-adc_handle_t handles[ADC_NUM_OF_PERIPH] = {0};
+handle_t handles[ADC_NUM_OF_PERIPH] = {0};
 static uint16_t vals[ADC_NUM_OF_CH] = {0};
 
-static bool initDma(adc_handle_t *h);
+static bool initDma(handle_t *h);
 
 
 bool ADC_init   (void)
@@ -59,7 +59,7 @@ bool ADC_init   (void)
   bool ret = false;
   uint8_t rank = 1;
   ADC_ChannelConfTypeDef cfg;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   h->hw                               = &adc_hw_info[0];
   h->hal.Instance                     = h->hw->inst;
@@ -98,7 +98,7 @@ bool ADC_init   (void)
 bool ADC_deInit (void)
 {
   bool ret = false;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   if (HAL_OK == HAL_ADC_DeInit(&h->hal))
   {
@@ -117,7 +117,7 @@ bool ADC_deInit (void)
 bool ADC_start  (void)
 {
   bool ret;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   if (h->hw->dma_stream)
   {
@@ -134,7 +134,7 @@ bool ADC_start  (void)
 bool ADC_stop   (void)
 {
   bool ret;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   if (h->hw->dma_stream)
   {
@@ -149,7 +149,7 @@ bool ADC_stop   (void)
 }
 
 
-static bool initDma(adc_handle_t *h)
+static bool initDma(handle_t *h)
 {
   bool ret = true;
   dma_cfg_t dma_cfg;
@@ -178,7 +178,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 {
   ADC_ch_e ch;
   IO_cfg_t io_cfg;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   for (ch = ADC_CH_FIRST; ch < ADC_NUM_OF_CH; ch++)
   {
@@ -201,7 +201,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
 {
   ADC_ch_e ch;
-  adc_handle_t *h = &handles[0];
+  handle_t *h = &handles[0];
 
   irq_disable(h->hw->irq_num);
 

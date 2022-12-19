@@ -45,6 +45,7 @@ const uint8_t  APBPrescTable[8] =
 
 
 static void configClocks(void);
+static uint32_t getAhbFreqHz(void);
 static uint32_t getApb1FreqHz(void);
 static uint32_t getApb2FreqHz(void);
 
@@ -104,42 +105,94 @@ void clk_update(void)
   SystemCoreClock >>= tmp;
 }
 
-void clk_periphEnable(periph_e periph)
+void clk_periphEnable(PERIPH_e periph)
 {
   PRINTF_INFO("enable %u", periph);
 
   switch (periph)
   {
-    case periph_GPIO_A:
+    case PERIPH_GPIO_A:
       __HAL_RCC_GPIOA_CLK_ENABLE();
       break;
 
-    case periph_GPIO_B:
+    case PERIPH_GPIO_B:
       __HAL_RCC_GPIOB_CLK_ENABLE();
       break;
 
-    case periph_GPIO_C:
+    case PERIPH_GPIO_C:
       __HAL_RCC_GPIOC_CLK_ENABLE();
       break;
 
-    case periph_I2C_1:
-      __HAL_RCC_I2C1_CLK_ENABLE();
+    case PERIPH_GPIO_H:
+      __HAL_RCC_GPIOH_CLK_ENABLE();
       break;
 
-    case periph_DMA_1:
+    case PERIPH_DMA_1:
       __HAL_RCC_DMA1_CLK_ENABLE();
       break;
 
-    case periph_DMA_2:
+    case PERIPH_DMA_2:
       __HAL_RCC_DMA2_CLK_ENABLE();
       break;
 
-    case periph_SPI_1:
+    case PERIPH_TIM_5:
+      __HAL_RCC_TIM5_CLK_ENABLE();
+      break;
+
+    case PERIPH_WWDG:
+      __HAL_RCC_WWDG_CLK_ENABLE();
+      break;
+
+    case PERIPH_SPI_2:
+      __HAL_RCC_SPI2_CLK_ENABLE();
+      break;
+
+    case PERIPH_USART_2:
+      __HAL_RCC_USART2_CLK_ENABLE();
+      break;
+
+    case PERIPH_I2C_1:
+      __HAL_RCC_I2C1_CLK_ENABLE();
+      break;
+
+    case PERIPH_I2C_2:
+      __HAL_RCC_I2C2_CLK_ENABLE();
+      break;
+
+    case PERIPH_PWR:
+      __HAL_RCC_PWR_CLK_ENABLE();
+      break;
+
+    case PERIPH_TIM_1:
+      __HAL_RCC_TIM1_CLK_ENABLE();
+      break;
+
+    case PERIPH_USART_1:
+      __HAL_RCC_USART1_CLK_ENABLE();
+      break;
+
+    case PERIPH_USART_6:
+      __HAL_RCC_USART6_CLK_ENABLE();
+      break;
+
+    case PERIPH_ADC_1:
+      __HAL_RCC_ADC1_CLK_ENABLE();
+      break;
+
+    case PERIPH_SPI_1:
       __HAL_RCC_SPI1_CLK_ENABLE();
       break;
 
-    case periph_ADC_1:
-      __HAL_RCC_ADC1_CLK_ENABLE();
+    case PERIPH_SYSCFG:
+      __HAL_RCC_SYSCFG_CLK_ENABLE();
+      break;
+
+    case PERIPH_TIM_9:
+      __HAL_RCC_TIM9_CLK_ENABLE();
+      break;
+
+    case PERIPH_TIM_11:
+      __HAL_RCC_TIM11_CLK_ENABLE();
       break;
 
     default:
@@ -148,35 +201,140 @@ void clk_periphEnable(periph_e periph)
   }
 }
 
-void clk_periphReset(periph_e periph)
+void clk_periphReset(PERIPH_e periph)
 {
   PRINTF_INFO("reset %u", periph);
 
   switch (periph)
   {
-    case periph_GPIO_A:
+    case PERIPH_GPIO_A:
+      __HAL_RCC_GPIOA_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_GPIOA_RELEASE_RESET();
       break;
 
-    case periph_GPIO_B:
+    case PERIPH_GPIO_B:
+      __HAL_RCC_GPIOB_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_GPIOB_RELEASE_RESET();
       break;
 
-    case periph_GPIO_C:
+    case PERIPH_GPIO_C:
+      __HAL_RCC_GPIOC_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_GPIOC_RELEASE_RESET();
       break;
 
-    case periph_I2C_1:
+    case PERIPH_GPIO_H:
+      __HAL_RCC_GPIOH_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_GPIOH_RELEASE_RESET();
+      break;
+
+    case PERIPH_DMA_1:
+      __HAL_RCC_DMA1_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_DMA1_RELEASE_RESET();
+      break;
+
+    case PERIPH_DMA_2:
+      __HAL_RCC_DMA2_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_DMA2_RELEASE_RESET();
+      break;
+
+    case PERIPH_TIM_5:
+      __HAL_RCC_TIM5_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_TIM5_RELEASE_RESET();
+      break;
+
+    case PERIPH_WWDG:
+      __HAL_RCC_WWDG_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_WWDG_RELEASE_RESET();
+      break;
+
+    case PERIPH_SPI_2:
+      __HAL_RCC_SPI2_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_SPI2_RELEASE_RESET();
+      break;
+
+    case PERIPH_USART_2:
+      __HAL_RCC_USART2_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_USART2_RELEASE_RESET();
+      break;
+
+    case PERIPH_I2C_1:
       __HAL_RCC_I2C1_FORCE_RESET();
-      TIM_delayMs(100);
+      TIM_delayMs(10);
       __HAL_RCC_I2C1_RELEASE_RESET();
       break;
 
-    case periph_ADC_1:
+    case PERIPH_I2C_2:
+      __HAL_RCC_I2C2_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_I2C2_RELEASE_RESET();
+      break;
+
+    case PERIPH_PWR:
+      __HAL_RCC_PWR_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_PWR_RELEASE_RESET();
+      break;
+
+    case PERIPH_TIM_1:
+      __HAL_RCC_TIM1_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_TIM1_RELEASE_RESET();
+      break;
+
+    case PERIPH_USART_1:
+      __HAL_RCC_USART1_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_USART1_RELEASE_RESET();
+      break;
+
+    case PERIPH_USART_6:
+      __HAL_RCC_USART6_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_USART6_RELEASE_RESET();
+      break;
+
+    case PERIPH_ADC_1:
       __HAL_RCC_ADC_FORCE_RESET();
-      TIM_delayMs(100);
+      TIM_delayMs(10);
       __HAL_RCC_ADC_RELEASE_RESET();
       break;
 
+    case PERIPH_SPI_1:
+      __HAL_RCC_SPI1_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_SPI1_RELEASE_RESET();
+      break;
+
+    case PERIPH_SYSCFG:
+      __HAL_RCC_SYSCFG_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_SYSCFG_RELEASE_RESET();
+      break;
+
+    case PERIPH_TIM_9:
+      __HAL_RCC_TIM9_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_TIM9_RELEASE_RESET();
+      break;
+
+    case PERIPH_TIM_11:
+      __HAL_RCC_TIM11_FORCE_RESET();
+      TIM_delayMs(10);
+      __HAL_RCC_TIM11_RELEASE_RESET();
+      break;
+
     default:
-      PRINTF_WARN("%u reset", periph);
+      PRINTF_WARN("%u unknown", periph);
       break;
   }
 }
@@ -186,13 +344,39 @@ void clk_periphResetAll(void)
   HAL_DeInit();
 }
 
-uint32_t clk_getPeriphBaseClkHz(periph_e periph)
+uint32_t clk_getPeriphBaseClkHz(PERIPH_e periph)
 {
   uint32_t ret = 0;
 
   switch (periph)
   {
-    case periph_SPI_1:
+    case PERIPH_GPIO_A:
+    case PERIPH_GPIO_B:
+    case PERIPH_GPIO_C:
+    case PERIPH_GPIO_H:
+    case PERIPH_DMA_1:
+    case PERIPH_DMA_2:
+      ret = getAhbFreqHz();
+      break;
+
+    case PERIPH_TIM_5:
+    case PERIPH_WWDG:
+    case PERIPH_SPI_2:
+    case PERIPH_USART_2:
+    case PERIPH_I2C_1:
+    case PERIPH_I2C_2:
+    case PERIPH_PWR:
+      ret = getApb1FreqHz();
+      break;
+
+    case PERIPH_TIM_1:
+    case PERIPH_USART_1:
+    case PERIPH_USART_6:
+    case PERIPH_ADC_1:
+    case PERIPH_SPI_1:
+    case PERIPH_SYSCFG:
+    case PERIPH_TIM_9:
+    case PERIPH_TIM_11:
       ret = getApb2FreqHz();
       break;
 
@@ -266,12 +450,23 @@ static void configClocks(void)
   }
 }
 
+static uint32_t getAhbFreqHz(void)
+{
+  uint8_t idx = ((RCC->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos);
+
+  return SystemCoreClock >> AHBPrescTable[idx];
+}
+
 static uint32_t getApb1FreqHz(void)
 {
-  return SystemCoreClock >> APBPrescTable[((RCC->CFGR & RCC_CFGR_PPRE1) >> 4)];
+  uint8_t idx = ((RCC->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos);
+
+  return SystemCoreClock >> APBPrescTable[idx];
 }
 
 static uint32_t getApb2FreqHz(void)
 {
-  return SystemCoreClock >> APBPrescTable[((RCC->CFGR & RCC_CFGR_PPRE2) >> 4)];
+  uint8_t idx = ((RCC->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos);
+
+  return SystemCoreClock >> APBPrescTable[idx];
 }

@@ -54,11 +54,6 @@ SOFTWARE.
 #include "irq.h"
 
 
-#define IO_TO_PIN(io)               ((uint16_t)(1 << ((uint8_t)io)))
-#define IO_TO_PORT(io)              ((uint8_t)(io >> 8))
-#define IO_TO_GPIO_INST(io)         (io_ports_hw_info[IO_TO_PORT(io)].inst)
-
-
 typedef struct
 {
   uint8_t const af_value;
@@ -66,7 +61,7 @@ typedef struct
 
 typedef struct
 {
-  periph_e       const periph;
+  PERIPH_e       const periph;
   GPIO_TypeDef * const inst;
 } io_port_hw_info_t;
 
@@ -75,32 +70,32 @@ typedef struct
 typedef struct
 {
   IO_num_e       const io_num;
-  irq_num_e      const irq_num;
-  irq_priority_e const priority;
+  IRQ_num_e      const irq_num;
+  IRQ_priority_e const priority;
 } io_ext_irq_hw_info_t;
 
 
 /* DMA */
 typedef struct
 {
-  periph_e            const periph;
+  PERIPH_e            const periph;
   DMA_Stream_TypeDef* const inst;
-  irq_num_e           const irq_num;
+  IRQ_num_e           const irq_num;
 } dma_hw_info_t;
 
 
 /* USART */
 typedef struct
 {
-  periph_e              const periph;
+  PERIPH_e              const periph;
   USART_TypeDef *       const inst;
   IO_num_e              const tx_pin;
   IO_num_e              const rx_pin;
   IO_num_e              const rts_pin;
   IO_num_e              const cts_pin;
   io_cfg_extend_t       const io_cfg_ext;
-  irq_num_e             const irq_num;
-  irq_priority_e        const irq_priority;
+  IRQ_num_e             const irq_num;
+  IRQ_priority_e        const irq_priority;
   DMA_stream_e          const dma_tx_stream;
   DMA_ch_e              const dma_tx_ch;
   DMA_stream_e          const dma_rx_stream;
@@ -111,14 +106,14 @@ typedef struct
 /* I2C */
 typedef struct
 {
-  periph_e              const periph;
+  PERIPH_e              const periph;
   I2C_TypeDef *         const inst;
   IO_num_e              const sda_pin;
   IO_num_e              const scl_pin;
   io_cfg_extend_t       const io_cfg_ext;
-  irq_num_e             const event_irq_num;
-  irq_num_e             const error_irq_num;
-  irq_priority_e        const irq_priority;
+  IRQ_num_e             const event_irq_num;
+  IRQ_num_e             const error_irq_num;
+  IRQ_priority_e        const irq_priority;
   DMA_stream_e          const dma_tx_stream;
   DMA_ch_e              const dma_tx_ch;
   DMA_stream_e          const dma_rx_stream;
@@ -129,14 +124,14 @@ typedef struct
 /* SPI */
 typedef struct
 {
-  periph_e              const periph;
+  PERIPH_e              const periph;
   SPI_TypeDef *         const inst;
   IO_num_e              const miso_pin;
   IO_num_e              const mosi_pin;
   IO_num_e              const sck_pin;
   io_cfg_extend_t       const io_cfg_ext;
-  irq_num_e             const irq_num;
-  irq_priority_e        const irq_priority;
+  IRQ_num_e             const irq_num;
+  IRQ_priority_e        const irq_priority;
   DMA_stream_e          const dma_tx_stream;
   DMA_ch_e              const dma_tx_ch;
   DMA_stream_e          const dma_rx_stream;
@@ -147,7 +142,7 @@ typedef struct
 /* Timer */
 typedef struct
 {
-  periph_e        const periph;
+  PERIPH_e        const periph;
   TIM_TypeDef *   const inst;
 } tim_hw_info_t;
 
@@ -155,19 +150,19 @@ typedef struct
 /* ADC */
 typedef struct
 {
-  IO_num_e            const io_pin;
-  uint32_t            const channel;
-} adc_ch_info_t;
-
-typedef struct
-{
-  periph_e        const periph;
+  PERIPH_e        const periph;
   ADC_TypeDef *   const inst;
-  irq_num_e       const irq_num;
-  irq_priority_e  const irq_priority;
+  IRQ_num_e       const irq_num;
+  IRQ_priority_e  const irq_priority;
   DMA_stream_e    const dma_stream;
   DMA_ch_e        const dma_ch;
 } adc_hw_info_t;
+
+typedef struct
+{
+  IO_num_e            const io_pin;
+  uint32_t            const channel;
+} adc_ch_info_t;
 
 
 extern io_port_hw_info_t    const io_ports_hw_info[IO_NUM_OF_PORT];

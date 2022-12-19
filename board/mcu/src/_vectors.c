@@ -61,20 +61,7 @@ void TAMP_STAMP_IRQHandler            (void) WEAK_REF_ATTRIBUTE;
 void RTC_WKUP_IRQHandler              (void) WEAK_REF_ATTRIBUTE;
 void FLASH_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
 void RCC_IRQHandler                   (void) WEAK_REF_ATTRIBUTE;
-void EXTI0_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
-void EXTI1_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
-void EXTI2_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
-void EXTI3_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
-void EXTI4_IRQHandler                 (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream0_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream1_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream2_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream3_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream4_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream5_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream6_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void ADC_IRQHandler                   (void) WEAK_REF_ATTRIBUTE;
-void EXTI9_5_IRQHandler               (void) WEAK_REF_ATTRIBUTE;
 void TIM1_BRK_TIM9_IRQHandler         (void) WEAK_REF_ATTRIBUTE;
 void TIM1_UP_TIM10_IRQHandler         (void) WEAK_REF_ATTRIBUTE;
 void TIM1_TRG_COM_TIM11_IRQHandler    (void) WEAK_REF_ATTRIBUTE;
@@ -84,21 +71,11 @@ void TIM3_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void TIM4_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void USART1_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
 void USART2_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
-void EXTI15_10_IRQHandler             (void) WEAK_REF_ATTRIBUTE;
 void RTC_Alarm_IRQHandler             (void) WEAK_REF_ATTRIBUTE;
 void OTG_FS_WKUP_IRQHandler           (void) WEAK_REF_ATTRIBUTE;
-void DMA1_Stream7_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void SDIO_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
 void TIM5_IRQHandler                  (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream0_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream1_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream2_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream3_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream4_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void OTG_FS_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream5_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream6_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
-void DMA2_Stream7_IRQHandler          (void) WEAK_REF_ATTRIBUTE;
 void USART6_IRQHandler                (void) WEAK_REF_ATTRIBUTE;
 void FPU_IRQHandler                   (void) WEAK_REF_ATTRIBUTE;
 
@@ -106,6 +83,8 @@ void FPU_IRQHandler                   (void) WEAK_REF_ATTRIBUTE;
 void i2c_event_irq_handler            (void) WEAK_REF_ATTRIBUTE;
 void i2c_error_irq_handler            (void) WEAK_REF_ATTRIBUTE;
 void spi_irq_handler                  (void) WEAK_REF_ATTRIBUTE;
+void io_ext_irq_handler               (void) WEAK_REF_ATTRIBUTE;
+void dma_irq_hanlder                  (void) WEAK_REF_ATTRIBUTE;
 
 
 irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
@@ -132,24 +111,24 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   RTC_WKUP_IRQHandler,            /* RTC Wakeup through  EXTI line  */
   FLASH_IRQHandler,               /* FLASH                          */
   RCC_IRQHandler,                 /* RCC                            */
-  EXTI0_IRQHandler,               /* EXTI Line0                     */
-  EXTI1_IRQHandler,               /* EXTI Line1                     */
-  EXTI2_IRQHandler,               /* EXTI Line2                     */
-  EXTI3_IRQHandler,               /* EXTI Line3                     */
-  EXTI4_IRQHandler,               /* EXTI Line4                     */
-  DMA1_Stream0_IRQHandler,        /* DMA1 Stream 0                  */
-  DMA1_Stream1_IRQHandler,        /* DMA1 Stream 1                  */
-  DMA1_Stream2_IRQHandler,        /* DMA1 Stream 2                  */
-  DMA1_Stream3_IRQHandler,        /* DMA1 Stream 3                  */
-  DMA1_Stream4_IRQHandler,        /* DMA1 Stream 4                  */
-  DMA1_Stream5_IRQHandler,        /* DMA1 Stream 5                  */
-  DMA1_Stream6_IRQHandler,        /* DMA1 Stream 6                  */
+  io_ext_irq_handler,             /* EXTI Line0                     */
+  io_ext_irq_handler,             /* EXTI Line1                     */
+  io_ext_irq_handler,             /* EXTI Line2                     */
+  io_ext_irq_handler,             /* EXTI Line3                     */
+  io_ext_irq_handler,             /* EXTI Line4                     */
+  dma_irq_hanlder,                /* DMA1 Stream 0                  */
+  dma_irq_hanlder,                /* DMA1 Stream 1                  */
+  dma_irq_hanlder,                /* DMA1 Stream 2                  */
+  dma_irq_hanlder,                /* DMA1 Stream 3                  */
+  dma_irq_hanlder,                /* DMA1 Stream 4                  */
+  dma_irq_hanlder,                /* DMA1 Stream 5                  */
+  dma_irq_hanlder,                /* DMA1 Stream 6                  */
   ADC_IRQHandler,                 /* ADC1                           */
   0,                              /* Reserved                       */
   0,              	              /* Reserved                       */
   0,                              /* Reserved                       */
   0,                              /* Reserved                       */
-  EXTI9_5_IRQHandler,             /* External Line[9:5]s            */
+  io_ext_irq_handler,             /* External Line[9:5]s            */
   TIM1_BRK_TIM9_IRQHandler,       /* TIM1 Break and TIM9            */
   TIM1_UP_TIM10_IRQHandler,       /* TIM1 Update and TIM10          */
   TIM1_TRG_COM_TIM11_IRQHandler,  /* TIM1 Trigger & Commutation & TIM11 */
@@ -166,14 +145,14 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   USART1_IRQHandler,              /* USART1                       */
   USART2_IRQHandler,              /* USART2                       */
   0,                              /* Reserved                     */
-  EXTI15_10_IRQHandler,           /* External Line[15:10]s        */
+  io_ext_irq_handler,             /* External Line[15:10]s        */
   RTC_Alarm_IRQHandler,           /* RTC Alarm (A and B) through EXTI Line */
   OTG_FS_WKUP_IRQHandler,         /* USB OTG FS Wakeup through EXTI line */
   0,                              /* Reserved     				        */
   0,                              /* Reserved       			        */
   0,                              /* Reserved 					          */
   0,                              /* Reserved                     */
-  DMA1_Stream7_IRQHandler,        /* DMA1 Stream7                 */
+  dma_irq_hanlder,                /* DMA1 Stream7                 */
   0,                              /* Reserved                     */
   SDIO_IRQHandler,                /* SDIO                         */
   TIM5_IRQHandler,                /* TIM5                         */
@@ -182,11 +161,11 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   0,                              /* Reserved                     */
   0,                              /* Reserved                     */
   0,                              /* Reserved                     */
-  DMA2_Stream0_IRQHandler,        /* DMA2 Stream 0                */
-  DMA2_Stream1_IRQHandler,        /* DMA2 Stream 1                */
-  DMA2_Stream2_IRQHandler,        /* DMA2 Stream 2                */
-  DMA2_Stream3_IRQHandler,        /* DMA2 Stream 3                */
-  DMA2_Stream4_IRQHandler,        /* DMA2 Stream 4                */
+  dma_irq_hanlder,                /* DMA2 Stream 0                */
+  dma_irq_hanlder,                /* DMA2 Stream 1                */
+  dma_irq_hanlder,                /* DMA2 Stream 2                */
+  dma_irq_hanlder,                /* DMA2 Stream 3                */
+  dma_irq_hanlder,                /* DMA2 Stream 4                */
   0,                    			    /* Reserved                     */
   0,              					      /* Reserved                     */
   0,              					      /* Reserved                     */
@@ -194,9 +173,9 @@ irq_vector_t _vectors[] __attribute__ ((section(".irq_vectors"),used)) =
   0,              					      /* Reserved                     */
   0,              					      /* Reserved                     */
   OTG_FS_IRQHandler,              /* USB OTG FS                   */
-  DMA2_Stream5_IRQHandler,        /* DMA2 Stream 5                */
-  DMA2_Stream6_IRQHandler,        /* DMA2 Stream 6                */
-  DMA2_Stream7_IRQHandler,        /* DMA2 Stream 7                */
+  dma_irq_hanlder,                /* DMA2 Stream 5                */
+  dma_irq_hanlder,                /* DMA2 Stream 6                */
+  dma_irq_hanlder,                /* DMA2 Stream 7                */
   USART6_IRQHandler,              /* USART6                       */
   i2c_event_irq_handler,          /* I2C3 event                   */
   i2c_error_irq_handler,          /* I2C3 error                   */

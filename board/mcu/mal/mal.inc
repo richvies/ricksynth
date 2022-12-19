@@ -103,23 +103,27 @@ OBJCOPY             := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy'
 SIZE                := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-size'
 
 # Useful commands
-ST_CMD            := STM32_Programmer_CLI -c port=SWD
-MCU_ERASE         := $(ST_CMD) -e all
-MCU_READ          := $(ST_CMD) -r
-MCU_WRITE         := $(ST_CMD) -w
-MCU_WRITE_SUFFIX  := .elf
-MCU_VERIFY        := -v -rst
+# ST_CMD            := STM32_Programmer_CLI -c port=SWD
+# MCU_ERASE         := $(ST_CMD) -e all
+# MCU_READ          := $(ST_CMD) -r
+# MCU_WRITE         := $(ST_CMD) -w
+# MCU_WRITE_SUFFIX  := .elf
+# MCU_VERIFY        := -v -rst
 
-# JLINK             := JLinkExe
-# MCU_ERASE         := $(JLINK) -CommandFile $(MCU_MAKE_DIR)jlink/erase.jlink
-# MCU_READ          := $(JLINK)
-# MCU_WRITE         := printf "device STM32F401CC\nsi swd\nspeed 4000\nloadbin
-# MCU_VERIFY        := ,0x0\nr\ng\nexit" > $(MCU_MAKE_DIR)jlink/flash.jlink; \
-#                      $(JLINK) -CommandFile $(MCU_MAKE_DIR)jlink/flash.jlink; \
-#                      rm $(MCU_MAKE_DIR)jlink/flash.jlink
-# MCU_WRITE_SUFFIX  := .hex
+JLINK             := JLinkExe
+MCU_ERASE         := $(JLINK) -CommandFile $(MCU_MAKE_DIR)jlink/erase.jlink
+MCU_READ          := $(JLINK)
+MCU_WRITE_SUFFIX  := .hex
 
 .PHONY: phony
+
+flash_file: phony
+	@echo
+	@echo Flashing: $(file) at $(addr)
+	@$(RM) $(MAL_MAKE_DIR)jlink/flash_tmp.jlink
+	@sed "s&^loadbin.*&loadbin $(file),$(addr)&" $(MAL_MAKE_DIR)jlink/flash.jlink > $(MAL_MAKE_DIR)jlink/flash_tmp.jlink
+	$(JLINK) -CommandFile $(MAL_MAKE_DIR)jlink/flash_tmp.jlink
+	@$(RM) $(MAL_MAKE_DIR)jlink/flash_tmp.jlink
 
 $(MAL_LIB): makemal
 

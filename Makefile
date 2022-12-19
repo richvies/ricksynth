@@ -171,9 +171,14 @@ version: phony
 	@echo id = $(commit_id)
 	@echo log = $(commit_log)
 
+flash_boot: phony
+	$(MAKE) flash_file file= addr=
+
+flash_app: phony
+	$(MAKE) flash_file file= addr=
+
 flash: phony
-	@echo Flashing: $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX)
-	$(MCU_WRITE) $(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX) $(MCU_VERIFY)
+	$(MAKE) flash_file file='$(BIN_DIR)$(TARGET)$(MCU_WRITE_SUFFIX)' addr=0x0
 
 erase: phony
 	@echo Erasing device...

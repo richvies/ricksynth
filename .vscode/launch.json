@@ -24,6 +24,36 @@
       "runToEntryPoint": "Reset_Handler",
       "showDevDebugOutput": "both",
       "svdFile": "${workspaceRoot}/board/mcu/mal/CMSIS/STM32F40x.svd",
+      "interface": "swd",
+      // "rttConfig": {
+      //   "enabled": true,
+      //   "address": "auto",
+      //   "decoders": [
+      //     {
+      //       "label": "RTT",
+      //       "port": 0,
+      //       "type": "console",
+      //       "encoding": "float",
+      //     }
+      //   ]
+      // },
+      // "swoConfig": {
+      //   "enabled": true,
+      //   "cpuFrequency": 84000000,
+      //   "source": "probe",
+      //   "swoFrequency": 4000000,
+      //   "decoders": [
+      //     {
+      //       "port": 0,
+      //       "type": "console",
+      //       "label": "ITM",
+      //       "showOnStartup": true,
+      //       "timestamp": true,
+      //       "logfile": "log.txt",
+      //       "encoding": "ascii"
+      //     }
+      //   ],
+      // },
       "serverArgs": [
         "-select","USB",
         "-endian","little",
