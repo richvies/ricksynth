@@ -618,8 +618,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 
   h  = &handles[ch];
 
-  io_cfg.dir     = IO_DIR_OUT_OD;
-  io_cfg.mode    = IO_MODE_PERIPH;
+  io_cfg.mode    = IO_MODE_PERIPH_OUT_OD;
   io_cfg.pullup  = IO_PULL_UP;
   io_cfg.speed   = IO_SPEED_FAST;
   io_cfg.extend  = &h->hw->io_cfg_ext;

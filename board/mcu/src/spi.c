@@ -650,15 +650,14 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 
   h  = &handles[ch];
 
-  io_cfg.dir     = IO_DIR_OUT_PP;
-  io_cfg.mode    = IO_MODE_PERIPH;
+  io_cfg.mode    = IO_MODE_PERIPH_OUT_PP;
   io_cfg.pullup  = IO_PULL_NONE;
   io_cfg.speed   = IO_SPEED_FAST;
   io_cfg.extend  = &h->hw->io_cfg_ext;
   IO_configure(h->hw->mosi_pin, &io_cfg);
   IO_configure(h->hw->sck_pin, &io_cfg);
 
-  io_cfg.dir     = IO_DIR_IN;
+  io_cfg.mode     = IO_MODE_PERIPH_IN;
   IO_configure(h->hw->miso_pin, &io_cfg);
 
   clk_periphEnable(h->hw->periph);

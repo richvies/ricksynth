@@ -39,6 +39,8 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "board_test.h"
+
 
 #ifdef __cplusplus
 }

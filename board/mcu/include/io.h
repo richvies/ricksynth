@@ -57,17 +57,13 @@ typedef uint16_t IO_num_e;
 
 typedef enum
 {
-  IO_DIR_IN,
-  IO_DIR_OUT_PP,
-  IO_DIR_OUT_OD,
-  IO_NUM_OF_DIRECTIONS,
-} IO_direction_e;
-
-typedef enum
-{
-  IO_MODE_GPIO,
+  IO_MODE_GPIO_IN,
+  IO_MODE_GPIO_OUT_PP,
+  IO_MODE_GPIO_OUT_OD,
+  IO_MODE_PERIPH_IN,
+  IO_MODE_PERIPH_OUT_PP,
+  IO_MODE_PERIPH_OUT_OD,
   IO_MODE_ANALOG,
-  IO_MODE_PERIPH,
   IO_MODE_IRQ_POS,
   IO_MODE_IRQ_NEG,
   IO_MODE_IRQ_BOTH,
@@ -100,7 +96,6 @@ typedef enum
 
 typedef struct
 {
-  IO_direction_e  dir;
   IO_mode_e       mode;
   IO_speed_e      speed;
   IO_pull_res_e   pullup;

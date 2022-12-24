@@ -52,17 +52,15 @@ typedef struct
 
 static ext_irq_info_t ext_irq_info[IO_NUM_OF_EXT_IRQ];
 
-static const uint32_t dir_to_hal[IO_NUM_OF_DIRECTIONS] =
+static const uint32_t mode_to_hal[IO_NUM_OF_MODES] =
 {
   GPIO_MODE_INPUT,
   GPIO_MODE_OUTPUT_PP,
   GPIO_MODE_OUTPUT_OD,
-};
-static const uint32_t mode_to_hal[IO_NUM_OF_MODES] =
-{
-  0,
-  MODE_ANALOG,
   MODE_AF,
+  GPIO_MODE_AF_PP,
+  GPIO_MODE_AF_OD,
+  GPIO_MODE_ANALOG,
   GPIO_MODE_IT_RISING,
   GPIO_MODE_IT_FALLING,
   GPIO_MODE_IT_RISING_FALLING,
@@ -98,14 +96,18 @@ void IO_init(void)
 void IO_configure(IO_num_e num, IO_cfg_t *cfg)
 {
   GPIO_InitTypeDef init;
+  bool peripheral = (IO_MODE_PERIPH_IN == cfg->mode)      ||
+                    (IO_MODE_PERIPH_OUT_OD == cfg->mode)  ||
+                    (IO_MODE_PERIPH_OUT_PP == cfg->mode);
 
   clk_periphEnable(IO_numToPeriph(num));
 
   init.Pin   = IO_numToHalPin(num);
   init.Pull  = pullup_to_hal[cfg->pullup];
   init.Speed = speed_to_hal[cfg->speed];
-  init.Mode  = (dir_to_hal[cfg->dir] | mode_to_hal[cfg->mode]);
-  if ((IO_MODE_PERIPH == cfg->mode)
+  init.Mode  = mode_to_hal[cfg->mode];
+
+  if ((true == peripheral)
   &&  (NULL != cfg->extend))
   {
     init.Alternate = ((io_cfg_extend_t const *)cfg->extend)->af_value;

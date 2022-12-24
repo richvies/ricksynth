@@ -182,7 +182,6 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 
   for (ch = ADC_CH_FIRST; ch < ADC_NUM_OF_CH; ch++)
   {
-    io_cfg.dir     = IO_DIR_IN;
     io_cfg.mode    = IO_MODE_ANALOG;
     io_cfg.pullup  = IO_PULL_NONE;
     io_cfg.speed   = IO_SPEED_FAST;

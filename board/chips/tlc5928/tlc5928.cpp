@@ -47,8 +47,7 @@ bool TLC5928::init(void)
   bool ret = false;
 
   IO_cfg_t io_cfg;
-  io_cfg.mode     = IO_MODE_GPIO;
-  io_cfg.dir      = IO_DIR_OUT_PP;
+  io_cfg.mode     = IO_MODE_GPIO_OUT_PP;
   io_cfg.pullup   = IO_PULL_NONE;
   io_cfg.speed    = IO_SPEED_FAST;
   IO_configure(_spi_xfer_info.cs_pin, &io_cfg);

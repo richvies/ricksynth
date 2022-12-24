@@ -102,12 +102,6 @@ extern bool I2C_init    (I2C_ch_e ch, I2C_cfg_t *cfg);
 extern bool I2C_deInit  (I2C_ch_e ch);
 
 /**
- * @brief checks if ready for a new transaction
- */
-extern bool I2C_isBusy  (I2C_ch_e ch);
-
-
-/**
  * @brief Call this function periodically if using i2c peripheral
  * Checks queue for each channel and starts next tranaction
  * @attention Do NOT call from an interrupt

@@ -38,8 +38,7 @@ bool BRD_TST_test_onboard_led(void)
 {
   IO_cfg_t cfg =
   {
-    .dir = IO_DIR_OUT_PP,
-    .mode = IO_MODE_GPIO,
+    .mode = IO_MODE_GPIO_OUT_PP,
     .speed = IO_SPEED_SLOW,
     .pullup = IO_PULL_NONE,
     .extend = NULL,

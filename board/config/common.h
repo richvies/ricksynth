@@ -22,6 +22,9 @@
 #define PRINTF_WARN(x, ...)
 #define PRINTF_ERRO(x, ...)
 
+#define MIN(x,y)  (a < b ? a : b)
+#define MAX(x,y)  (a > b ? a : b)
+
 /* Generic data queue macros, can use as FIFO or LIFO
  *
  * ATTN: must follow this naming convention

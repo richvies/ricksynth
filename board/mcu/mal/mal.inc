@@ -111,7 +111,7 @@ SIZE                := '$(TOOLCHAIN_BIN_PATH)$(TOOLCHAIN_PREFIX)-size'
 # MCU_VERIFY        := -v -rst
 
 JLINK             := JLinkExe
-MCU_ERASE         := $(JLINK) -CommandFile $(MCU_MAKE_DIR)jlink/erase.jlink
+MCU_ERASE         := $(JLINK) -CommandFile $(MAL_MAKE_DIR)jlink/erase.jlink
 MCU_READ          := $(JLINK)
 MCU_WRITE_SUFFIX  := .hex
 

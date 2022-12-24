@@ -29,12 +29,10 @@ SOFTWARE.
 
 
 #include "board.h"
-#include "board_test.h"
 
-#include <stdio.h>
 
 int main()
 {
-  BRD_TST_test_onboard_led();
+  BRD_TST_W25Q();
   return 0;
 }
