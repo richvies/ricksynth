@@ -42,6 +42,9 @@ SOFTWARE.
 #include "board_test.h"
 
 
+extern bool BRD_init();
+
+
 #ifdef __cplusplus
 }
 #endif

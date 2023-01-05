@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_TEST_H
-#define __BOARD_TEST_H
+#ifndef __FLASH_H
+#define __FLASH_H
 
 
 #ifdef __cplusplus
@@ -36,12 +36,20 @@ SOFTWARE.
 #endif
 
 
-#include <stdbool.h>
+#include "mcu.h"
 
 
-extern bool BTST_W25Q(void);
-extern bool BTST_test_lights(void);
-extern bool BTST_test_onboard_led(void);
+extern bool FLASH_init(void);
+
+extern bool FLASH_eraseSector(uint32_t sector);
+extern bool FLASH_programSector(uint32_t sector,
+															  uint32_t offset,
+															  void *data,
+															  uint32_t len);
+extern bool FLASH_readSector(uint32_t sector,
+														 uint32_t offset,
+														 void *data,
+														 uint32_t len);
 
 
 #ifdef __cplusplus

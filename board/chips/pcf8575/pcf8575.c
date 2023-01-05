@@ -37,15 +37,22 @@ typedef struct
   I2C_ch_e ch;
   uint8_t  addr;
   PCF8575_cb_t cb;
+  bool lock;
+  uint8_t reg[2];
 } pcf8575_t;
 
 
 static pcf8575_t pcf8575[PCF8575_NUM_OF] = {0};
 
+static uint16_t getReg(pcf8575_t *p);
+static void setReg(pcf8575_t *p, uint16_t val);
+static void i2cCb(bool error, void *ctx);
 
-bool PCF8575_init(uint8_t idx, uint8_t num, I2C_ch_e ch, uint8_t addr)
+
+bool PCF8575_init(uint8_t idx, I2C_ch_e ch, uint8_t addr)
 {
   bool ret = false;
+  pcf8575_t *p = &pcf8575[idx];
 
   I2C_cfg_t cfg;
   cfg.master_mode   = I2C_MASTER_MODE;
@@ -54,142 +61,117 @@ bool PCF8575_init(uint8_t idx, uint8_t num, I2C_ch_e ch, uint8_t addr)
   cfg.own_address   = 0;
   cfg.stretch_mode  = I2C_STRETCH_MODE_DISABLE;
 
-  pcf8575[idx].ch = ch;
-  pcf8575[idx].addr = addr;
-  pcf8575[idx].cb = NULL;
+  p->ch = ch;
+  p->addr = addr;
+  p->cb = NULL;
+  p->lock = false;
 
   if (true == I2C_init(ch, &cfg))
   {
-    while (false == I2C_writeReadBlocking(ch, ));
+    while (false == PCF8575_write16(idx, 1, NULL));
     ret = true;
   }
 
   return ret;
 }
 
-
-bool PCF8575_read16(uint8_t idx, uint16_t *value, PCF8575_cb_t cb)
-{
-  I2C_write
-  _i2c_xfer_info.length = 2;
-  _i2c_xfer_info.data   = (uint8_t*)value;
-  _i2c_xfer_info.cb     = i2cReadCb;
-  _i2c_xfer_info.ctx    = this;
-
-  _busy = I2C_read(i2c_ch, &_i2c_xfer_info);
-
-  return _busy;
-}
-
 bool PCF8575_write16(uint8_t idx, uint16_t value, PCF8575_cb_t cb)
 {
-  if (true == _busy)
+  bool ret = false;
+  pcf8575_t *p = &pcf8575[idx];
+  uint16_t tmp = getReg(p);
+
+  if (false == p->lock)
   {
-    return false;
+    p->lock = true;
+    p->cb = cb;
+    setReg(p, value);
+
+    if (true == I2C_write(p->ch, p->addr, p->reg, 2, i2cCb, p)) {
+      ret = true; }
+    else
+    {
+      setReg(p, tmp);
+      p->lock = false;
+    }
   }
 
-  _write = value;
-  _xferCb = cb;
-
-  _i2c_xfer_info.length = 2;
-  _i2c_xfer_info.data   = (uint8_t*)&_write;
-  _i2c_xfer_info.cb     = i2cWriteCb;
-  _i2c_xfer_info.ctx    = this;
-
-  _busy = I2C_write(i2c_ch, &_i2c_xfer_info);
-
-  return _busy;
-}
-
-bool PCF8575_toggle16(uint8_t idx, uint16_t mask, PCF8575_cb_t cb)
-{
-  uint16_t tmp = _write ^ mask;
-  return write16(tmp, cb);
-}
-
-
-bool PCF8575_read(uint8_t idx, uint8_t pin, uint16_t *value, PCF8575_cb_t cb)
-{
-  _pin = pin;
-  return read16(value, cb);
+  return ret;
 }
 
 bool PCF8575_write(uint8_t idx, uint8_t pin, bool high, PCF8575_cb_t cb)
 {
-  uint16_t tmp;
+  pcf8575_t *p = &pcf8575[idx];
+  uint16_t tmp = getReg(p);
 
-  if (high)
-  {
-    tmp = _write | (1 << pin);
-  }
-  else
-  {
-    tmp = _write & ~(1 << pin);
-  }
+  if (high) {
+    tmp |= (1 << pin); }
+  else {
+    tmp &= ~(1 << pin); }
 
-  return write16(tmp, cb);
+  return PCF8575_write16(idx, tmp, cb);
+}
+
+bool PCF8575_toggle16(uint8_t idx, uint16_t mask, PCF8575_cb_t cb)
+{
+  pcf8575_t *p = &pcf8575[idx];
+
+  return PCF8575_write16(idx, getReg(p) ^ mask, cb);
 }
 
 bool PCF8575_toggle(uint8_t idx, uint8_t pin, PCF8575_cb_t cb)
 {
-  return toggle16(1 << pin, cb);
+  return PCF8575_toggle16(idx, 1 << pin, cb);
 }
 
 
 bool PCF8575_shiftRight(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
-  uint16_t tmp = _write >> n;
-  return write16(tmp, cb);
+  pcf8575_t *p = &pcf8575[idx];
+  uint16_t tmp = getReg(p) >> n;
+  return PCF8575_write16(idx, tmp, cb);
 }
 
 bool PCF8575_shiftLeft(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
-  uint16_t tmp = _write << n;
-  return write16(tmp, cb);
+  pcf8575_t *p = &pcf8575[idx];
+  uint16_t tmp = getReg(p) << n;
+  return PCF8575_write16(idx, tmp, cb);
 }
 
 bool PCF8575_rotateRight(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   n &= 0xF;
-  uint16_t tmp = (_write >> n) | (_write << (16 - n));
-  return write16(tmp, cb);
+  pcf8575_t *p = &pcf8575[idx];
+  uint16_t tmp = (getReg(p) >> n) | (getReg(p) << (16 - n));
+  return PCF8575_write16(idx, tmp, cb);
 }
 
 bool PCF8575_rotateLeft(uint8_t idx, uint8_t n, PCF8575_cb_t cb)
 {
   n &= 15;
-  return rotateRight(16 - n, cb);
+  return PCF8575_rotateRight(idx, 16 - n, cb);
 }
 
 
-static void i2cWriteCb(bool error, void *ctx)
+static uint16_t getReg(pcf8575_t *p)
 {
-  PCF8575 *t = (PCF8575*)ctx;
-
-  t->_busy = false;
-  if (t->_xferCb)
-  {
-    t->_xferCb(error);
-  }
+  return ((uint16_t)p->reg[1] << 8) + p->reg[0];
 }
 
-static void i2cReadCb(bool error, void *ctx)
+static void setReg(pcf8575_t *p, uint16_t val)
 {
-  PCF8575 *t = (PCF8575*)ctx;
-  uint16_t val;
+  p->reg[0] = (uint8_t)val;
+  p->reg[1] = (uint8_t)(val >> 8);
+}
 
-  /* get value of specified pin from entire 16 bit read */
-  if ((0xff != t->_pin)
-  &&  (false == error))
-  {
-    val = (t->_i2c_xfer_info.data[0] << 8) | t->_i2c_xfer_info.data[1];
-    t->_i2c_xfer_info.data[0] = val & (1 << t->_pin);
-    t->_pin = 0xff;
-  }
+static void i2cCb(bool error, void *ctx)
+{
+  pcf8575_t *p = (pcf8575_t*)ctx;
 
-  t->_busy = false;
-  if (t->_xferCb)
+  if (p->cb)
   {
-    t->_xferCb(error);
+    p->cb(error);
   }
+  p->lock = false;
 }

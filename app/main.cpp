@@ -33,6 +33,11 @@ SOFTWARE.
 
 int main()
 {
-  BRD_TST_W25Q();
+  BRD_init();
+
+  BTST_W25Q();
+  BTST_test_lights();
+
+  while(1);
   return 0;
 }

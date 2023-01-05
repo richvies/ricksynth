@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_TEST_H
-#define __BOARD_TEST_H
+#ifndef __STORAGE_H
+#define __STORAGE_H
 
 
 #ifdef __cplusplus
@@ -36,12 +36,28 @@ SOFTWARE.
 #endif
 
 
-#include <stdbool.h>
+#include "mcu.h"
 
 
-extern bool BTST_W25Q(void);
-extern bool BTST_test_lights(void);
-extern bool BTST_test_onboard_led(void);
+typedef enum
+{
+  STG_FIRST,
+  STG_EXTERNAL = STG_FIRST,
+  STG_NUM_OF,
+} stg_e;
+
+
+extern bool     STG_init(bool first_boot);
+extern bool     STG_newFile(stg_e idx, char *fname);
+extern bool     STG_openFile(stg_e idx, char *fname);
+extern bool     STG_writeFile(stg_e idx,
+                              char *fname,
+                              void *buf,
+                              uint16_t len,
+                              uint16_t offset);
+extern bool     STG_appendFile(stg_e idx, char *fname, void *buf, uint16_t len);
+extern uint16_t STG_readFile(stg_e idx, char *fname, void *buf, uint16_t len);
+extern bool     STG_closeFile(stg_e idx, char *fname);
 
 
 #ifdef __cplusplus

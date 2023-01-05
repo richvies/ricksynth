@@ -173,9 +173,20 @@ bool SPI_init       (SPI_ch_e ch, SPI_cfg_t *cfg)
 {
   bool ret = false;
   handle_t *h;
+  IO_cfg_t io_cfg;
 
   if (ch >= SPI_NUM_OF_CH) {
     return false; }
+
+  if (cfg->cs_pin)
+  {
+    io_cfg.mode = IO_MODE_GPIO_OUT_PP;
+    io_cfg.pullup = IO_PULL_NONE;
+    io_cfg.speed = IO_SPEED_FAST;
+    io_cfg.extend = NULL;
+    IO_configure(cfg->cs_pin, &io_cfg);
+    IO_set(cfg->cs_pin);
+  }
 
   h = &handles[ch];
 

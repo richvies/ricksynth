@@ -11,6 +11,12 @@ extern "C"
 #include "spi.h"
 
 
+#define W25Q_READ_SIZE			(1)
+#define W25Q_PROG_SIZE			(256)
+#define W25Q_SECTOR_SIZE		(4096)
+#define W25Q_SECTOR_COUNT		(256*16)
+
+
 typedef enum
 {
 	W25Q10 = 1,

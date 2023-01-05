@@ -28,7 +28,25 @@ SOFTWARE.
 
 
 #include "board.h"
-
-#include "board_test.h"
 #include "config_board.h"
+
 #include "chips.h"
+
+#include "io.h"
+
+
+bool BRD_init()
+{
+  bool ret = true;
+
+  IO_cfg_t io_cfg;
+
+  IO_init();
+
+  io_cfg.mode = IO_MODE_GPIO_OUT_PP;
+  io_cfg.pullup = IO_PULL_NONE;
+  io_cfg.speed = IO_SPEED_FAST;
+  IO_configure(BUILTIN_LED_PIN, &io_cfg);
+
+  return ret;
+}

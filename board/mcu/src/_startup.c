@@ -80,10 +80,7 @@ void start_resetHandler(void)
   /* run deconstructors */
   runFiniArray();
 
-  /* shouldn't ever get here so reboot device */
-  TIM_delayMs(1000);
-  hw_reset();
-
+  /* shouldn't ever get here so let watchdog reboot */
   while (1){};
 }
 

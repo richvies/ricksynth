@@ -27,26 +27,6 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_TEST_H
-#define __BOARD_TEST_H
+#include "flash.h"
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-
-#include <stdbool.h>
-
-
-extern bool BTST_W25Q(void);
-extern bool BTST_test_lights(void);
-extern bool BTST_test_onboard_led(void);
-
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif

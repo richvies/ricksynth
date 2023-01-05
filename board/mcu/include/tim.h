@@ -40,26 +40,25 @@ SOFTWARE.
 
 
 #define EMPTY
-#define TIMEOUT(cond, ms, task, pass, fail)   \
+#define TIMEOUT(wait_condition, ms, task, pass, fail)   \
 {                                             \
-  if (cond)                                   \
+  bool p = true;                              \
+  uint32_t tim = TIM_millis();                \
+                                              \
+  task;                                       \
+  while(wait_condition)                       \
   {                                           \
-    bool p = true;                            \
-    uint32_t tim = TIM_millis();              \
-    while(cond)                               \
+    task;                                     \
+    if ((TIM_millis() - tim) > ms)            \
     {                                         \
-      task;                                   \
-      if ((TIM_millis() - tim) > ms)          \
-      {                                       \
-        p = false;                            \
-        break;                                \
-      }                                       \
+      p = false;                              \
+      break;                                  \
     }                                         \
-    if (p) {                                  \
-      pass; }                                 \
-    else {                                    \
-      fail; }                                 \
   }                                           \
+  if (p) {                                    \
+    pass; }                                   \
+  else {                                      \
+    fail; }                                   \
 }
 
 

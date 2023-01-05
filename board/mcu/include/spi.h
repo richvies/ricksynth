@@ -76,6 +76,7 @@ typedef enum
 
 typedef struct
 {
+  IO_num_e            cs_pin;
   SPI_master_mode_e   master_mode;
   SPI_clk_polarity_e  clk_polarity;
   SPI_clk_phase_e     clk_phase;

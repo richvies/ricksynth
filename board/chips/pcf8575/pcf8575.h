@@ -42,7 +42,7 @@ SOFTWARE.
 typedef void (*PCF8575_cb_t)(bool error);
 
 
-extern bool PCF8575_init(uint8_t idx, uint8_t num, I2C_ch_e ch, uint8_t addr);
+extern bool PCF8575_init(uint8_t idx, I2C_ch_e ch, uint8_t addr);
 
 extern bool PCF8575_read16(uint8_t idx, uint16_t *value, PCF8575_cb_t cb);
 extern bool PCF8575_write16(uint8_t idx, uint16_t value, PCF8575_cb_t cb);

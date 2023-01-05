@@ -7,7 +7,9 @@ include chips/chips.inc
 
 SOURCE_DIR = \
   . \
-	chips
+	chips \
+	storage \
+	storage/littlefs \
 
 C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
@@ -19,7 +21,9 @@ C_INCLUDES =  \
   $(BRD_INCLUDES) \
   $(MCU_INCLUDES) \
   -Iconfig \
-  -Ichips
+  -Ichips \
+  -Istorage \
+  -Istorage/littlefs \
 
 C_FLAGS = \
   $(MCU_C_FLAGS)

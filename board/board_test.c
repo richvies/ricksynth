@@ -34,7 +34,7 @@ SOFTWARE.
 #include "chips.h"
 
 
-bool BRD_TST_test_onboard_led(void)
+bool BTST_test_onboard_led(void)
 {
   IO_cfg_t cfg =
   {
@@ -58,7 +58,7 @@ bool BRD_TST_test_onboard_led(void)
   }
 }
 
-bool BRD_TST_W25Q(void)
+bool BTST_W25Q(void)
 {
   bool ret = false;
   char *data = "hello there how are you?";
@@ -68,7 +68,7 @@ bool BRD_TST_W25Q(void)
     if (W25Q_eraseSector(0))
       if (W25Q_programSector(0, 0, (uint8_t*)data, strlen(data) + 1))
         if (W25Q_readSector(0, 0, (uint8_t*)read, sizeof(read)))
-          if (strncmp(data, read, strlen(data)))
+          if (0 == strncmp(data, read, strlen(data)))
           {
             ret = true;
           }
@@ -76,30 +76,18 @@ bool BRD_TST_W25Q(void)
   return ret;
 }
 
-bool BRD_TST_test_lights(void)
+bool BTST_test_lights(void)
 {
-  // IO_cfg_t cfg;
-  // PCF8575 io_exp(I2C_CH_1, 0x40);
-  // TLC5928 leds(SPI_CH_1, TLC5928_SPI_NSS_PIN);
+  uint16_t i;
 
-  // IO_init();
+  PCF8575_init(0, PCF8575_0_CH, PCF8575_0_ADDR);
 
-  // io_exp.init();
-  // leds.init();
-
-  // cfg.dir = IO_DIR_OUT_PP;
-  // cfg.mode = IO_MODE_GPIO;
-  // cfg.pullup = IO_PULL_NONE;
-  // cfg.speed = IO_SPEED_FAST;
-  // IO_configure(BUILTIN_LED_PIN, &cfg);
-
-  // while(1)
-  // {
-  //   IO_toggle(BUILTIN_LED_PIN);
-  //   io_exp.rotateRight(1, NULL);
-  //   leds.rotateRight(1, NULL);
-  //   TIM_delayMs(100);
-  // }
+  for (i = 0; i < 10; i++)
+  {
+    IO_toggle(BUILTIN_LED_PIN);
+    PCF8575_rotateRight(0, 1, NULL);
+    TIM_delayMs(100);
+  }
 
   return true;
 }

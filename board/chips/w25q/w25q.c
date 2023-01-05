@@ -5,9 +5,6 @@
 #include "io.h"
 
 
-#define PAGE_SIZE							(256)
-#define SECTOR_SIZE						(4096)
-
 typedef struct
 {
 	W25Q_id_e id;
@@ -48,8 +45,9 @@ bool W25Q_init(void)
 	uint32_t block_count;
 
 	/* try to start spi peripheral */
+	cfg.cs_pin = W25_CS_PIN;
 	cfg.master_mode = SPI_MASTER_MODE;
-	cfg.clk_speed_hz = 1000000;
+	cfg.clk_speed_hz = 100000;
 	cfg.bit_order = SPI_BIT_ORDER_MSB_FIRST;
 	cfg.clk_phase = SPI_CLK_PHASE_SAMPLE_FIRST_EDGE;
 	cfg.clk_polarity = SPI_CLK_POLARITY_IDLE_LOW;
@@ -110,7 +108,7 @@ bool W25Q_eraseSector(uint32_t sector)
 	if (false == writeEnable()) {
 		return false; }
 
-	addr = sector * SECTOR_SIZE;
+	addr = sector * W25Q_SECTOR_SIZE;
 
 	spi_tx_buf[i++] = CMD_ERASE_SECTOR;
 	spi_tx_buf[i++] = (addr & 0xFF0000) >> 16;
@@ -126,16 +124,19 @@ bool W25Q_eraseSector(uint32_t sector)
 	return ret;
 }
 
-bool W25Q_programSector(uint32_t sector, uint32_t offset, void *data, uint32_t len)
+bool W25Q_programSector(uint32_t sector,
+											  uint32_t offset,
+												void *data,
+												uint32_t len)
 {
 	uint32_t addr = 0;
-	uint32_t prog_size = PAGE_SIZE - offset;
+	uint32_t prog_size = W25Q_PROG_SIZE - offset;
 	bool ret = true;
 
 	if (false == writeEnable()) {
 		return false; }
 
-	addr = (sector * SECTOR_SIZE) + offset;
+	addr = (sector * W25Q_SECTOR_SIZE) + offset;
 
 	spi_tx_buf[0] = CMD_PAGE_PROGRAM;
 
@@ -161,7 +162,7 @@ bool W25Q_programSector(uint32_t sector, uint32_t offset, void *data, uint32_t l
 		data += prog_size;
 		len  -= prog_size;
 		addr += prog_size;
-		prog_size = PAGE_SIZE;
+		prog_size = W25Q_PROG_SIZE;
 	}
 
 	return ret;
@@ -176,18 +177,21 @@ bool W25Q_readSector(uint32_t sector, uint32_t offset, void *data, uint32_t len)
 	if (false == writeEnable()) {
 		return false; }
 
-	addr = (sector * SECTOR_SIZE) + offset;
+	addr = (sector * W25Q_SECTOR_SIZE) + offset;
 
 	spi_tx_buf[i++] = CMD_READ;
 	spi_tx_buf[i++] = (addr & 0xFF0000) >> 16;
 	spi_tx_buf[i++] = (addr & 0xFF00) >> 8;
 	spi_tx_buf[i++] = addr & 0xFF;
 
-	if ((true == TXRX(spi_tx_buf, data, i + len))
+	IO_clear(W25_CS_PIN);
+	if ((true == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, i))
+	&&  (true == SPI_readBlocking(W25_SPI_CH, SPI_NO_CS_PIN, data, len))
 	&&  (true == waitForWriteEnd()))
 	{
 		ret = true;
 	}
+	IO_set(W25_CS_PIN);
 
 	return ret;
 }
