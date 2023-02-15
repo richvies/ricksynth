@@ -41,9 +41,10 @@ SOFTWARE.
 
 typedef enum
 {
-  STG_FIRST,
-  STG_EXTERNAL = STG_FIRST,
+  STG_EXTERNAL,
+
   STG_NUM_OF,
+  STG_FIRST = 0,
 } stg_e;
 
 

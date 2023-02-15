@@ -54,6 +54,9 @@ SOFTWARE.
 #include "irq.h"
 
 
+#define ADC_NUM_OF_PERIPH     (1)
+
+
 typedef struct
 {
   uint8_t const af_value;
@@ -137,7 +140,6 @@ typedef struct
   DMA_stream_e          const dma_rx_stream;
   DMA_ch_e              const dma_rx_ch;
 } spi_hw_info_t;
-
 
 /* Timer */
 typedef struct

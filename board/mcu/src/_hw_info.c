@@ -31,28 +31,54 @@ SOFTWARE.
 #include "_hw_info.h"
 
 
-/* Board layout configuration */
-#define USART_2_PRIORITY      PRIORITY_MEDIUM
-#define USART_2_RX_DMA_STREAM DMA_STREAM_NONE
-#define USART_2_RX_DMA_CH     0
-#define USART_2_TX_DMA_STREAM DMA_STREAM_NONE
-#define USART_2_TX_DMA_CH     0
+#define SPI_1_HW_INFO \
+{ \
+  .periph         = PERIPH_SPI_1, \
+  .inst           = SPI1, \
+  .mosi_pin       = SPI_1_MOSI_PIN, \
+  .miso_pin       = SPI_1_MISO_PIN, \
+  .sck_pin        = SPI_1_SCK_PIN, \
+  .io_cfg_ext     = SPI_1_IO_CFG_EXT, \
+  .irq_num        = SPI1_IRQn, \
+  .irq_priority   = SPI_1_PRIORITY, \
+  .dma_tx_stream  = SPI_1_TX_DMA_STREAM, \
+  .dma_tx_ch      = SPI_1_TX_DMA_CH, \
+  .dma_rx_stream  = SPI_1_RX_DMA_STREAM, \
+  .dma_rx_ch      = SPI_1_RX_DMA_CH, \
+}
 
-#define I2C_1_PRIORITY        PRIORITY_MEDIUM
-#define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
-#define I2C_1_RX_DMA_CH       DMA_CH_1
-#define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
-#define I2C_1_TX_DMA_CH       DMA_CH_1
+#define I2C_1_HW_INFO \
+{ \
+  .periph         = PERIPH_I2C_1, \
+  .inst           = I2C1, \
+  .sda_pin        = I2C_1_SDA_PIN, \
+  .scl_pin        = I2C_1_SCL_PIN, \
+  .io_cfg_ext     = I2C_1_IO_CFG_EXT, \
+  .event_irq_num  = I2C1_EV_IRQn, \
+  .error_irq_num  = I2C1_ER_IRQn, \
+  .irq_priority   = I2C_1_PRIORITY, \
+  .dma_tx_stream  = I2C_1_TX_DMA_STREAM, \
+  .dma_tx_ch      = I2C_1_TX_DMA_CH, \
+  .dma_rx_stream  = I2C_1_RX_DMA_STREAM, \
+  .dma_rx_ch      = I2C_1_RX_DMA_CH, \
+}
 
-#define SPI_1_PRIORITY        PRIORITY_MEDIUM
-#define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
-#define SPI_1_RX_DMA_CH       DMA_CH_3
-#define SPI_1_TX_DMA_STREAM   DMA_STREAM_NONE
-#define SPI_1_TX_DMA_CH       DMA_CH_3
-
-#define IO_EXT_1_PIN          (1)
-
-#define ADC_1_DMA_STREAM      DMA_1_STREAM_0
+#define USART_2_HW_INFO \
+{ \
+  .periph         = PERIPH_USART_2, \
+  .inst           = USART2, \
+  .tx_pin         = USART_2_TX_PIN, \
+  .rx_pin         = USART_2_RX_PIN, \
+  .rts_pin        = USART_2_RTS_PIN, \
+  .cts_pin        = USART_2_CTS_PIN, \
+  .io_cfg_ext     = USART_2_IO_CFG_EXT, \
+  .irq_num        = USART2_IRQn, \
+  .irq_priority   = USART_2_PRIORITY, \
+  .dma_tx_stream  = USART_2_TX_DMA_STREAM, \
+  .dma_tx_ch      = USART_2_TX_DMA_CH, \
+  .dma_rx_stream  = USART_2_RX_DMA_STREAM, \
+  .dma_rx_ch      = USART_2_RX_DMA_CH, \
+  }
 
 
 /* IO Ports */
@@ -99,62 +125,37 @@ dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
 /* USART */
 usart_hw_info_t const usart_hw_info[USART_NUM_OF_CH] =
 {
-  /* USART_CH_2 */
-  {
-    .periph         = PERIPH_USART_2,
-    .inst           = USART2,
-    .tx_pin         = IO_portPinToNum(IO_PORT_A, 2),
-    .rx_pin         = IO_portPinToNum(IO_PORT_A, 3),
-    .rts_pin        = IO_NULL_PIN,
-    .cts_pin        = IO_NULL_PIN,
-    .io_cfg_ext     = {GPIO_AF7_USART2},
-    .irq_num        = USART2_IRQn,
-    .irq_priority   = USART_2_PRIORITY,
-    .dma_tx_stream  = USART_2_TX_DMA_STREAM,
-    .dma_tx_ch      = USART_2_TX_DMA_CH,
-    .dma_rx_stream  = USART_2_RX_DMA_STREAM,
-    .dma_rx_ch      = USART_2_RX_DMA_CH,
-  },
+#ifdef USART_1
+  USART_1_HW_INFO,
+#endif
+
+#ifdef USART_2
+  USART_2_HW_INFO,
+#endif
 };
 
 
 /* I2C */
 i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
 {
-  /* I2C_CH_1 */
-  {
-    .periph         = PERIPH_I2C_1,
-    .inst           = I2C1,
-    .sda_pin        = IO_portPinToNum(IO_PORT_B, 7),
-    .scl_pin        = IO_portPinToNum(IO_PORT_B, 6),
-    .io_cfg_ext     = {GPIO_AF4_I2C1},
-    .event_irq_num  = I2C1_EV_IRQn,
-    .error_irq_num  = I2C1_ER_IRQn,
-    .irq_priority   = I2C_1_PRIORITY,
-    .dma_tx_stream  = I2C_1_TX_DMA_STREAM,
-    .dma_tx_ch      = I2C_1_TX_DMA_CH,
-    .dma_rx_stream  = I2C_1_RX_DMA_STREAM,
-    .dma_rx_ch      = I2C_1_RX_DMA_CH,
-  },
+#ifdef I2C_1
+  I2C_1_HW_INFO,
+#endif
 };
 
 
 /* SPI */
 spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH] =
 {
-  /* SPI_CH_1 */
-  {
-    .periph         = PERIPH_SPI_1,
-    .inst           = SPI1,
-    .mosi_pin       = IO_portPinToNum(IO_PORT_A, 7),
-    .miso_pin       = IO_portPinToNum(IO_PORT_A, 6),
-    .sck_pin        = IO_portPinToNum(IO_PORT_A, 5),
-    .io_cfg_ext     = {GPIO_AF5_SPI1},
-    .irq_num        = SPI1_IRQn,
-    .irq_priority   = SPI_1_PRIORITY,
-    .dma_tx_stream  = SPI_1_TX_DMA_STREAM,
-    .dma_tx_ch      = SPI_1_TX_DMA_CH,
-    .dma_rx_stream  = SPI_1_RX_DMA_STREAM,
-    .dma_rx_ch      = SPI_1_RX_DMA_CH,
-  },
+#ifdef SPI_1
+  SPI_1_HW_INFO,
+#endif
+
+#ifdef SPI_2
+  SPI_2_HW_INFO,
+#endif
+
+#ifdef SPI_3
+  SPI_3_HW_INFO,
+#endif
 };

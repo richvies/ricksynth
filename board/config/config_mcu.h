@@ -36,117 +36,42 @@ SOFTWARE.
 #endif
 
 
-#include "common.h"
+#define SPI_1
+#define SPI_1_IO_CFG_EXT      {GPIO_AF5_SPI1}
+#define SPI_1_MOSI_PIN        IO_portPinToNum(IO_PORT_A, 7)
+#define SPI_1_MISO_PIN        IO_portPinToNum(IO_PORT_A, 6)
+#define SPI_1_SCK_PIN         IO_portPinToNum(IO_PORT_A, 5)
+#define SPI_1_PRIORITY        PRIORITY_MEDIUM
+#define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
+#define SPI_1_RX_DMA_CH       DMA_CH_3
+#define SPI_1_TX_DMA_STREAM   DMA_STREAM_NONE
+#define SPI_1_TX_DMA_CH       DMA_CH_3
 
+#define I2C_1
+#define I2C_1_SDA_PIN         IO_portPinToNum(IO_PORT_B, 7)
+#define I2C_1_SCL_PIN         IO_portPinToNum(IO_PORT_B, 6)
+#define I2C_1_IO_CFG_EXT      {GPIO_AF4_I2C1}
+#define I2C_1_PRIORITY        PRIORITY_MEDIUM
+#define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
+#define I2C_1_RX_DMA_CH       DMA_CH_1
+#define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
+#define I2C_1_TX_DMA_CH       DMA_CH_1
 
-/* IO */
-typedef enum
-{
-  IO_PORT_NULL,
-  IO_PORT_A,
-  IO_PORT_B,
-  IO_PORT_C,
-  IO_PORT_H,
-  IO_NUM_OF_PORT,
-} IO_port_e;
+#define USART_2
+#define USART_2_TX_PIN        IO_portPinToNum(IO_PORT_A, 2)
+#define USART_2_RX_PIN        IO_portPinToNum(IO_PORT_A, 3)
+#define USART_2_RTS_PIN       IO_NULL_PIN
+#define USART_2_CTS_PIN       IO_NULL_PIN
+#define USART_2_IO_CFG_EXT    {GPIO_AF7_USART2}
+#define USART_2_PRIORITY      PRIORITY_MEDIUM
+#define USART_2_RX_DMA_STREAM DMA_STREAM_NONE
+#define USART_2_RX_DMA_CH     0
+#define USART_2_TX_DMA_STREAM DMA_STREAM_NONE
+#define USART_2_TX_DMA_CH     0
 
-/* IO External interrupt */
-typedef enum
-{
-  IO_EXT_IRQ_FIRST = 0,
-  IO_EXT_IRQ_1 = IO_EXT_IRQ_FIRST,
-  IO_NUM_OF_EXT_IRQ,
-} IO_ext_irq_e;
+#define IO_EXT_1_PIN          (1)
 
-
-/* USART */
-typedef enum
-{
-  USART_CH_FIRST = 0,
-  USART_CH_2 = USART_CH_FIRST,
-  USART_NUM_OF_CH,
-} USART_ch_e;
-
-/* I2C */
-typedef enum
-{
-  I2C_CH_FIRST = 0,
-  I2C_CH_1 = I2C_CH_FIRST,
-  I2C_NUM_OF_CH,
-} I2C_ch_e;
-
-
-/* DMA */
-typedef enum
-{
-  DMA_STREAM_NONE  = 0,
-  DMA_STREAM_FIRST = 1,
-  DMA_1_STREAM_0 = DMA_STREAM_FIRST,
-  DMA_1_STREAM_6,
-  DMA_2_STREAM_0,
-  DMA_2_STREAM_3,
-  DMA_NUM_OF_STREAM,
-} DMA_stream_e;
-
-typedef enum
-{
-  DMA_CH_FIRST = 0,
-  DMA_CH_0 = DMA_CH_FIRST,
-  DMA_CH_1,
-  DMA_CH_2,
-  DMA_CH_3,
-  DMA_CH_4,
-  DMA_CH_5,
-  DMA_CH_6,
-  DMA_CH_7,
-  DMA_NUM_OF_CH,
-} DMA_ch_e;
-
-
-/* SPI */
-typedef enum
-{
-  SPI_CH_FIRST = 0,
-  SPI_CH_1 = SPI_CH_FIRST,
-  SPI_NUM_OF_CH,
-} SPI_ch_e;
-
-
-/* Timers */
-typedef enum
-{
-  TIM_CH_FIRST,
-  TIM_CH_1 = TIM_CH_FIRST,
-  TIM_NUM_OF_CH,
-} TIM_ch_e;
-
-typedef enum
-{
-  TIM_SUB_CH_FIRST,
-  TIM_SUB_CH_1 = TIM_SUB_CH_FIRST,
-  TIM_SUB_CH_2 = TIM_SUB_CH_FIRST,
-  TIM_SUB_CH_3 = TIM_SUB_CH_FIRST,
-  TIM_SUB_CH_4 = TIM_SUB_CH_FIRST,
-  TIM_NUM_OF_SUB_CH,
-} TIM_sub_ch_e;
-
-typedef enum
-{
-  ALARM_CH_FIRST,
-  ALARM_CH_1 = ALARM_CH_FIRST,
-  ALARM_NUM_OF_CH,
-} ALARM_ch_e;
-
-
-/* ADC */
-#define ADC_NUM_OF_PERIPH           (1)
-
-typedef enum
-{
-  ADC_CH_FIRST,
-  ADC_1_CH_1 = ADC_CH_FIRST,
-  ADC_NUM_OF_CH,
-} ADC_ch_e;
+#define ADC_1_DMA_STREAM      DMA_1_STREAM_0
 
 
 #ifdef __cplusplus

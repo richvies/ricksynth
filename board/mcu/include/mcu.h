@@ -56,6 +56,140 @@ SOFTWARE.
 #include "config_mcu.h"
 
 
+/* IO */
+typedef enum
+{
+  IO_PORT_NULL,
+  IO_PORT_A,
+  IO_PORT_B,
+  IO_PORT_C,
+  IO_PORT_H,
+
+  IO_NUM_OF_PORT,
+  IO_PORT_FIRST = 1,
+} IO_port_e;
+
+/* IO External interrupt */
+typedef enum
+{
+  IO_EXT_IRQ_1,
+
+  IO_NUM_OF_EXT_IRQ,
+  IO_EXT_IRQ_FIRST = 0,
+} IO_ext_irq_e;
+
+/* USART */
+typedef enum
+{
+  USART_CH_2,
+
+  USART_NUM_OF_CH,
+  USART_CH_FIRST = 0,
+} USART_ch_e;
+
+/* I2C */
+#if (defined I2C_1)
+  #define I2C_USED
+#endif
+
+typedef enum
+{
+#ifdef I2C_1
+  I2C_CH_1,
+#endif
+
+  I2C_NUM_OF_CH,
+  I2C_CH_FIRST = 0,
+} I2C_ch_e;
+
+/* DMA */
+typedef enum
+{
+  DMA_STREAM_NONE  = 0,
+  DMA_1_STREAM_0,
+  DMA_1_STREAM_6,
+  DMA_2_STREAM_0,
+  DMA_2_STREAM_3,
+
+  DMA_NUM_OF_STREAM,
+  DMA_STREAM_FIRST = 1,
+} DMA_stream_e;
+
+typedef enum
+{
+  DMA_CH_0,
+  DMA_CH_1,
+  DMA_CH_2,
+  DMA_CH_3,
+  DMA_CH_4,
+  DMA_CH_5,
+  DMA_CH_6,
+  DMA_CH_7,
+
+  DMA_NUM_OF_CH,
+  DMA_CH_FIRST = 0,
+} DMA_ch_e;
+
+/* SPI */
+#if (defined SPI_1 || defined SPI_2)
+  #define SPI_USED
+#endif
+
+typedef enum
+{
+#ifdef SPI_1
+  SPI_CH_1,
+#endif
+
+#ifdef SPI_2
+  SPI_CH_2,
+#endif
+
+#ifdef SPI_3
+  SPI_CH_3,
+#endif
+
+  SPI_NUM_OF_CH,
+  SPI_CH_FIRST = 0,
+} SPI_ch_e;
+
+/* Timers */
+typedef enum
+{
+  TIM_CH_1,
+
+  TIM_NUM_OF_CH,
+  TIM_CH_FIRST = 0,
+} TIM_ch_e;
+
+typedef enum
+{
+  TIM_SUB_CH_1,
+  TIM_SUB_CH_2,
+  TIM_SUB_CH_3,
+  TIM_SUB_CH_4,
+
+  TIM_NUM_OF_SUB_CH,
+  TIM_SUB_CH_FIRST = 0,
+} TIM_sub_ch_e;
+
+typedef enum
+{
+  ALARM_CH_1,
+
+  ALARM_NUM_OF_CH,
+  ALARM_CH_FIRST,
+} ALARM_ch_e;
+
+/* ADC */
+typedef enum
+{
+  ADC_1_CH_1,
+
+  ADC_NUM_OF_CH,
+  ADC_CH_FIRST,
+} ADC_ch_e;
+
 /* for use with clk module */
 typedef enum
 {

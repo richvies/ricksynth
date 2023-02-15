@@ -29,6 +29,10 @@ SOFTWARE.
 
 #include "spi.h"
 
+
+#ifdef SPI_USED
+
+
 #include "_hw_info.h"
 
 #include "common.h"
@@ -769,3 +773,6 @@ void HAL_SPI_AbortCpltCallback(SPI_HandleTypeDef *hspi)
 {
   irq_end_callback(true, true);
 }
+
+
+#endif

@@ -38,6 +38,7 @@ SOFTWARE.
 
 #include "mcu.h"
 
+
 #include "io.h"
 
 
@@ -163,9 +164,10 @@ extern bool SPI_writeReadBlocking (SPI_ch_e    ch,
                                    uint16_t    length);
 
 
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif

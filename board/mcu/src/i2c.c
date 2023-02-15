@@ -29,6 +29,10 @@ SOFTWARE.
 
 #include "i2c.h"
 
+
+#ifdef I2C_USED
+
+
 #include "_hw_info.h"
 
 #include "common.h"
@@ -820,3 +824,6 @@ static void HAL_I2C_ClearBusyFlagErrata_2_14_7(handle_t *h)
   // 15
   __HAL_I2C_ENABLE(hi2c);
 }
+
+
+#endif

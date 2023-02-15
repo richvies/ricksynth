@@ -11,8 +11,7 @@ C_SOURCES = \
   $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
 
 C_OBJS := \
-  $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o))) \
-  $(BUILD_DIR)config/config_mcu_$(config).o
+  $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
 
 
 C_INCLUDES =  \

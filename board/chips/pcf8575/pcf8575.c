@@ -29,7 +29,8 @@ SOFTWARE.
 
 #include "pcf8575.h"
 
-#include "config_board.h"
+
+#ifdef PCF8575_NUM_OF
 
 
 typedef struct
@@ -175,3 +176,6 @@ static void i2cCb(bool error, void *ctx)
   }
   p->lock = false;
 }
+
+
+#endif
