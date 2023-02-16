@@ -32,7 +32,12 @@ SOFTWARE.
 #include "_hw_info.h"
 
 
-void  MERR_error  (merror_e err, uint32_t arg)
+void  MERR_error     (merror_e err, uint32_t arg)
+{
+  return;
+}
+
+void  MERR_errorExt  (merror_e err, uint32_t* arg, uint8_t n_arg)
 {
   return;
 }

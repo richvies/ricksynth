@@ -56,10 +56,17 @@ typedef enum
   MERROR_STG_MOUNT_FAIL,
   MERROR_STG_UNMOUNT_FAIL,
   MERROR_STG_FORMAT_FAIL,
+  MERROR_STG_NEW_FILE,
+  MERROR_STG_OPEN_FILE,
+  MERROR_STG_WRITE_FILE,
+  MERROR_STG_APPEND_FILE,
+  MERROR_STG_READ_FILE,
+  MERROR_STG_CLOSE_FILE,
 } merror_e;
 
 
-extern void  MERR_error  (merror_e err, uint32_t arg);
+extern void  MERR_error     (merror_e err, uint32_t arg);
+extern void  MERR_errorExt  (merror_e err, uint32_t* arg, uint8_t n_arg);
 
 
 #ifdef __cplusplus

@@ -56,6 +56,7 @@ static int external_prog(const struct lfs_config *c,
                          lfs_size_t size);
 static int external_erase(const struct lfs_config *c, lfs_block_t block);
 static int external_sync(const struct lfs_config *c);
+static void logError(stg_e idx, merror_e type, int err);
 
 
 static stg_t stgs[STG_NUM_OF] =
@@ -70,10 +71,10 @@ static stg_t stgs[STG_NUM_OF] =
       .sync  = external_sync,
 
       // block device configuration
-      .read_size = W25Q_READ_SIZE,
-      .prog_size = W25Q_PROG_SIZE,
-      .block_size = W25Q_SECTOR_SIZE,
-      .block_count = W25Q_SECTOR_COUNT,
+      .read_size = STG_0_READ_SIZE,
+      .prog_size = STG_0_PROG_SIZE,
+      .block_size = STG_0_SECTOR_SIZE,
+      .block_count = STG_0_SECTOR_COUNT,
       .cache_size = 128,
       .lookahead_size = 16,
       .block_cycles = 500,
@@ -135,8 +136,17 @@ bool     STG_newFile(stg_e idx, char *fname)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
 
-  lfs_file_open(&stg->lfs, &stg->file, fname, LFS_O_CREAT);
+  err = lfs_file_open(&stg->lfs,
+                      &stg->file,
+                      fname,
+                      LFS_O_CREAT | LFS_O_RDWR | LFS_O_EXCL);
+
+  if (err < 0) {
+    logError(idx, MERROR_STG_NEW_FILE, err); }
+  else {
+    ret = STG_closeFile(idx); }
 
   return ret;
 }
@@ -145,46 +155,114 @@ bool     STG_openFile(stg_e idx, char *fname)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
+
+  err = lfs_file_open(&stg->lfs,
+                      &stg->file,
+                      fname,
+                      LFS_O_CREAT | LFS_O_RDWR);
+
+  if (err < 0) {
+    logError(idx, MERROR_STG_OPEN_FILE, err); }
+  else {
+    ret = true; }
 
   return ret;
 }
 
 bool     STG_writeFile(stg_e idx,
-                       char *fname,
                        void *buf,
                        uint16_t len,
                        uint16_t offset)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
+
+  err = lfs_file_seek(&stg->lfs,
+                      &stg->file,
+                      offset,
+                      LFS_SEEK_SET);
+
+  if (err < 0) {
+    goto end; }
+
+  err = lfs_file_write(&stg->lfs,
+                       &stg->file,
+                       buf,
+                       len);
+
+end:
+  if (err < 0) {
+    logError(idx, MERROR_STG_WRITE_FILE, err); }
+  else {
+    ret = true; }
 
   return ret;
 }
 
-bool     STG_appendFile(stg_e idx, char *fname, void *buf, uint16_t len)
+bool     STG_appendFile(stg_e idx, void *buf, uint16_t len)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
+
+  err = lfs_file_seek(&stg->lfs,
+                      &stg->file,
+                      0,
+                      LFS_SEEK_END);
+
+  if (err < 0) {
+    goto end; }
+
+  err = lfs_file_write(&stg->lfs,
+                       &stg->file,
+                       buf,
+                       len);
+
+end:
+  if (err < 0) {
+    logError(idx, MERROR_STG_APPEND_FILE, err); }
+  else {
+    ret = true; }
 
   return ret;
 }
 
-uint16_t STG_readFile(stg_e idx, char *fname, void *buf, uint16_t len)
+uint16_t STG_readFile(stg_e idx, void *buf, uint16_t len)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
+
+  err = lfs_file_read(&stg->lfs,
+                      &stg->file,
+                      buf,
+                      len);
+
+  if (err < 0) {
+    logError(idx, MERROR_STG_READ_FILE, err); }
+  else {
+    ret = true; }
 
   return ret;
 }
 
-bool     STG_closeFile(stg_e idx, char *fname)
+bool     STG_closeFile(stg_e idx)
 {
   bool ret = false;
   stg_t *stg = &stgs[idx];
+  int err;
+
+  err = lfs_file_close(&stg->lfs, &stg->file);
+
+  if (err < 0) {
+    logError(idx, MERROR_STG_CLOSE_FILE, err); }
+  else {
+    ret = true; }
 
   return ret;
 }
-
 
 
 static int external_read(const struct lfs_config *c,
@@ -242,4 +320,10 @@ static int external_sync(const struct lfs_config *c)
   (void)c;
 
   return LFS_ERR_OK;
+}
+
+static void logError(stg_e idx, merror_e type, int err)
+{
+  uint32_t arg[] = {idx, err};
+  MERR_errorExt(type, arg, SIZEOF(arg));
 }

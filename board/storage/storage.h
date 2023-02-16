@@ -52,13 +52,12 @@ extern bool     STG_init(bool first_boot);
 extern bool     STG_newFile(stg_e idx, char *fname);
 extern bool     STG_openFile(stg_e idx, char *fname);
 extern bool     STG_writeFile(stg_e idx,
-                              char *fname,
                               void *buf,
                               uint16_t len,
                               uint16_t offset);
-extern bool     STG_appendFile(stg_e idx, char *fname, void *buf, uint16_t len);
-extern uint16_t STG_readFile(stg_e idx, char *fname, void *buf, uint16_t len);
-extern bool     STG_closeFile(stg_e idx, char *fname);
+extern bool     STG_appendFile(stg_e idx, void *buf, uint16_t len);
+extern uint16_t STG_readFile(stg_e idx, void *buf, uint16_t len);
+extern bool     STG_closeFile(stg_e idx);
 
 
 #ifdef __cplusplus

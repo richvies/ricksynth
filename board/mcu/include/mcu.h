@@ -79,9 +79,15 @@ typedef enum
 } IO_ext_irq_e;
 
 /* USART */
+#if (defined USART_2)
+  #define USART_USED
+#endif
+
 typedef enum
 {
+#ifdef USART_2
   USART_CH_2,
+#endif
 
   USART_NUM_OF_CH,
   USART_CH_FIRST = 0,
@@ -101,6 +107,29 @@ typedef enum
   I2C_NUM_OF_CH,
   I2C_CH_FIRST = 0,
 } I2C_ch_e;
+
+/* SPI */
+#if (defined SPI_1 || defined SPI_2)
+  #define SPI_USED
+#endif
+
+typedef enum
+{
+#ifdef SPI_1
+  SPI_CH_1,
+#endif
+
+#ifdef SPI_2
+  SPI_CH_2,
+#endif
+
+#ifdef SPI_3
+  SPI_CH_3,
+#endif
+
+  SPI_NUM_OF_CH,
+  SPI_CH_FIRST = 0,
+} SPI_ch_e;
 
 /* DMA */
 typedef enum
@@ -129,29 +158,6 @@ typedef enum
   DMA_NUM_OF_CH,
   DMA_CH_FIRST = 0,
 } DMA_ch_e;
-
-/* SPI */
-#if (defined SPI_1 || defined SPI_2)
-  #define SPI_USED
-#endif
-
-typedef enum
-{
-#ifdef SPI_1
-  SPI_CH_1,
-#endif
-
-#ifdef SPI_2
-  SPI_CH_2,
-#endif
-
-#ifdef SPI_3
-  SPI_CH_3,
-#endif
-
-  SPI_NUM_OF_CH,
-  SPI_CH_FIRST = 0,
-} SPI_ch_e;
 
 /* Timers */
 typedef enum
