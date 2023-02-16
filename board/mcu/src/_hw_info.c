@@ -78,7 +78,49 @@ SOFTWARE.
   .dma_tx_ch      = USART_2_TX_DMA_CH, \
   .dma_rx_stream  = USART_2_RX_DMA_STREAM, \
   .dma_rx_ch      = USART_2_RX_DMA_CH, \
-  }
+}
+
+#define IO_EXT_IRQ_1_HW_INFO \
+{ \
+  .io_num   = IO_EXT_IRQ_1_PIN, \
+  .irq_num  = EXTI1_IRQn, \
+  .priority = IO_EXT_IRQ_1_PRIORITY \
+}
+
+
+/* USART */
+usart_hw_info_t const usart_hw_info[USART_NUM_OF_CH] =
+{
+#ifdef USART_2_ENABLED
+  USART_2_HW_INFO,
+#endif
+};
+
+
+/* I2C */
+i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
+{
+#ifdef I2C_1_ENABLED
+  I2C_1_HW_INFO,
+#endif
+};
+
+
+/* SPI */
+spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH] =
+{
+#ifdef SPI_1_ENABLED
+  SPI_1_HW_INFO,
+#endif
+};
+
+/* IO External interrupt */
+io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
+{
+#ifdef IO_EXT_IRQ_1_ENABLED
+  IO_EXT_IRQ_1_HW_INFO,
+#endif
+};
 
 
 /* IO Ports */
@@ -95,17 +137,6 @@ io_port_hw_info_t const io_ports_hw_info[IO_NUM_OF_PORT] =
   {PERIPH_GPIO_H, GPIOH},
 };
 
-/* IO External interrupt */
-io_ext_irq_hw_info_t const io_ext_irq_hw_info[IO_NUM_OF_EXT_IRQ] =
-{
-  /* IO_EXT_IRQ_1 */
-  {
-    .io_num   = IO_portPinToNum(IO_PORT_NULL, IO_NULL_PIN),
-    .irq_num  = EXTI1_IRQn,
-    .priority = PRIORITY_MEDIUM
-  },
-};
-
 
 /* DMA */
 dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
@@ -119,43 +150,4 @@ dma_hw_info_t const dma_hw_info[DMA_NUM_OF_STREAM] =
   {PERIPH_DMA_1,  DMA1_Stream6, DMA1_Stream6_IRQn},
   {PERIPH_DMA_2,  DMA2_Stream0, DMA2_Stream0_IRQn},
   {PERIPH_DMA_2,  DMA2_Stream3, DMA2_Stream3_IRQn},
-};
-
-
-/* USART */
-usart_hw_info_t const usart_hw_info[USART_NUM_OF_CH] =
-{
-#ifdef USART_1
-  USART_1_HW_INFO,
-#endif
-
-#ifdef USART_2
-  USART_2_HW_INFO,
-#endif
-};
-
-
-/* I2C */
-i2c_hw_info_t const i2c_hw_info[I2C_NUM_OF_CH] =
-{
-#ifdef I2C_1
-  I2C_1_HW_INFO,
-#endif
-};
-
-
-/* SPI */
-spi_hw_info_t const spi_hw_info[SPI_NUM_OF_CH] =
-{
-#ifdef SPI_1
-  SPI_1_HW_INFO,
-#endif
-
-#ifdef SPI_2
-  SPI_2_HW_INFO,
-#endif
-
-#ifdef SPI_3
-  SPI_3_HW_INFO,
-#endif
 };

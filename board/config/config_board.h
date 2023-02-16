@@ -42,9 +42,9 @@ SOFTWARE.
 #include "tim.h"
 
 
-#define W25_NUM_OF        1
-#define W25_SPI_CH        SPI_CH_1
-#define W25_CS_PIN        IO_portPinToNum(IO_PORT_B, 8)
+#define W25Q_NUM_OF        1
+#define W25Q_SPI_CH        SPI_CH_1
+#define W25Q_CS_PIN        IO_portPinToNum(IO_PORT_B, 8)
 
 #define STG_0
 #define STG_0_READ_SIZE     W25Q_READ_SIZE

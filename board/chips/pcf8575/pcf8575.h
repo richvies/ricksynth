@@ -36,12 +36,6 @@ SOFTWARE.
 #endif
 
 
-#include "config_board.h"
-
-
-#ifdef PCF8575_NUM_OF
-
-
 #include "i2c.h"
 
 
@@ -69,7 +63,4 @@ extern bool PCF8575_rotateLeft(uint8_t idx, uint8_t n, PCF8575_cb_t cb);
 
 #ifdef __cplusplus
 }
-#endif
-
-
 #endif

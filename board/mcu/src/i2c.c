@@ -30,7 +30,7 @@ SOFTWARE.
 #include "i2c.h"
 
 
-#ifdef I2C_USED
+#ifdef I2C_ENABLED
 
 
 #include "_hw_info.h"

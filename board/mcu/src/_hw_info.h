@@ -54,9 +54,6 @@ SOFTWARE.
 #include "irq.h"
 
 
-#define ADC_NUM_OF_PERIPH     (1)
-
-
 typedef struct
 {
   uint8_t const af_value;
@@ -173,7 +170,7 @@ extern dma_hw_info_t        const dma_hw_info[DMA_NUM_OF_STREAM];
 extern i2c_hw_info_t        const i2c_hw_info[I2C_NUM_OF_CH];
 extern spi_hw_info_t        const spi_hw_info[SPI_NUM_OF_CH];
 extern tim_hw_info_t        const tim_hw_info[TIM_NUM_OF_CH];
-extern adc_hw_info_t        const adc_hw_info[ADC_NUM_OF_PERIPH];
+extern adc_hw_info_t        const adc_hw_info[ADC_PERIPH_NUM_OF];
 extern adc_ch_info_t        const adc_ch_info[ADC_NUM_OF_CH];
 
 

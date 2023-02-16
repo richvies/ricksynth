@@ -47,7 +47,7 @@ typedef struct
   const adc_hw_info_t *hw;
 } handle_t;
 
-handle_t handles[ADC_NUM_OF_PERIPH] = {0};
+handle_t handles[ADC_PERIPH_NUM_OF] = {0};
 static uint16_t vals[ADC_NUM_OF_CH] = {0};
 
 static bool initDma(handle_t *h);

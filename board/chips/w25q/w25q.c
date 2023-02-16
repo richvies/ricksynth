@@ -1,7 +1,39 @@
-#include "w25q.h"
+/****************************************************************************
+
+RickSynth
+----------
+
+MIT License
+
+Copyright (c) [2021] [Richard Davies]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+****************************************************************************/
+
 
 #include "config_board.h"
 
+
+#ifdef W25Q_NUM_OF
+
+
+#include "w25q.h"
 #include "io.h"
 
 
@@ -23,9 +55,9 @@ typedef struct
 #define STATUS_REG_1_BUSY_FLAG	(1 << 0)
 
 
-#define TX(d, l) 				({ SPI_writeBlocking(W25_SPI_CH, W25_CS_PIN, d, l); })
-#define RX(d, l) 				({ SPI_readBlocking(W25_SPI_CH, W25_CS_PIN, d, l); })
-#define TXRX(td, rd, l) ({ SPI_writeReadBlocking(W25_SPI_CH, W25_CS_PIN, td, rd, l); })
+#define TX(d, l) 				({ SPI_writeBlocking(W25Q_SPI_CH, W25Q_CS_PIN, d, l); })
+#define RX(d, l) 				({ SPI_readBlocking(W25Q_SPI_CH, W25Q_CS_PIN, d, l); })
+#define TXRX(td, rd, l) ({ SPI_writeReadBlocking(W25Q_SPI_CH, W25Q_CS_PIN, td, rd, l); })
 
 
 static W25Q_t w25q;
@@ -45,13 +77,13 @@ bool W25Q_init(void)
 	uint32_t block_count;
 
 	/* try to start spi peripheral */
-	cfg.cs_pin = W25_CS_PIN;
+	cfg.cs_pin = W25Q_CS_PIN;
 	cfg.master_mode = SPI_MASTER_MODE;
 	cfg.clk_speed_hz = 100000;
 	cfg.bit_order = SPI_BIT_ORDER_MSB_FIRST;
 	cfg.clk_phase = SPI_CLK_PHASE_SAMPLE_FIRST_EDGE;
 	cfg.clk_polarity = SPI_CLK_POLARITY_IDLE_LOW;
-	if (false == SPI_init(W25_SPI_CH, &cfg)) {
+	if (false == SPI_init(W25Q_SPI_CH, &cfg)) {
 		return false; }
 
 	switch (readCapacity())
@@ -149,15 +181,15 @@ bool W25Q_programSector(uint32_t sector,
 		if (prog_size > len) {
 			prog_size = len; }
 
-		IO_clear(W25_CS_PIN);
-		if ((false == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, 4))
-		||  (false == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, data, prog_size))
+		IO_clear(W25Q_CS_PIN);
+		if ((false == SPI_writeBlocking(W25Q_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, 4))
+		||  (false == SPI_writeBlocking(W25Q_SPI_CH, SPI_NO_CS_PIN, data, prog_size))
 		||  (false == waitForWriteEnd()))
 		{
 			ret = false;
 			break;
 		}
-		IO_set(W25_CS_PIN);
+		IO_set(W25Q_CS_PIN);
 
 		data += prog_size;
 		len  -= prog_size;
@@ -184,14 +216,14 @@ bool W25Q_readSector(uint32_t sector, uint32_t offset, void *data, uint32_t len)
 	spi_tx_buf[i++] = (addr & 0xFF00) >> 8;
 	spi_tx_buf[i++] = addr & 0xFF;
 
-	IO_clear(W25_CS_PIN);
-	if ((true == SPI_writeBlocking(W25_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, i))
-	&&  (true == SPI_readBlocking(W25_SPI_CH, SPI_NO_CS_PIN, data, len))
+	IO_clear(W25Q_CS_PIN);
+	if ((true == SPI_writeBlocking(W25Q_SPI_CH, SPI_NO_CS_PIN, spi_tx_buf, i))
+	&&  (true == SPI_readBlocking(W25Q_SPI_CH, SPI_NO_CS_PIN, data, len))
 	&&  (true == waitForWriteEnd()))
 	{
 		ret = true;
 	}
-	IO_set(W25_CS_PIN);
+	IO_set(W25Q_CS_PIN);
 
 	return ret;
 }
@@ -266,3 +298,6 @@ static bool waitForWriteEnd(void)
 
 	return ret;
 }
+
+
+#endif

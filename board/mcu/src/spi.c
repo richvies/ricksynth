@@ -30,7 +30,7 @@ SOFTWARE.
 #include "spi.h"
 
 
-#ifdef SPI_USED
+#ifdef SPI_ENABLED
 
 
 #include "_hw_info.h"

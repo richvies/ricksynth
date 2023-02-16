@@ -45,11 +45,5 @@ $(BUILD_DIR)%_$(config).o: %.c
 	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<
 	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -Wno-unused -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
 
-$(BUILD_DIR)config/config_mcu_$(config).o: $(MCU_MAKE_DIR)../config/config_mcu.c
-	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(MKDIR) -p $(@D)
-	$(NO_ECHO)$(CC) -E $(C_FLAGS) $(C_INCLUDES) -Wno-unused -c -o $(@:%.o=%.i) $<
-	$(NO_ECHO)$(CC) $(C_FLAGS) $(C_INCLUDES) -Wno-unused -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" $< -o $@ -c
-
 # include header dependencies
 -include $(C_OBJS:.o=.d)

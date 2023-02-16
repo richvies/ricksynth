@@ -13,7 +13,7 @@
   #include "pcf8575/pcf8575.h"
 #endif
 
-#ifdef W25_NUM_OF
+#ifdef W25Q_NUM_OF
   #include "w25q/w25q.h"
 #endif
 

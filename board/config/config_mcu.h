@@ -36,42 +36,57 @@ SOFTWARE.
 #endif
 
 
-#define SPI_1
-#define SPI_1_IO_CFG_EXT      {GPIO_AF5_SPI1}
-#define SPI_1_MOSI_PIN        IO_portPinToNum(IO_PORT_A, 7)
-#define SPI_1_MISO_PIN        IO_portPinToNum(IO_PORT_A, 6)
-#define SPI_1_SCK_PIN         IO_portPinToNum(IO_PORT_A, 5)
-#define SPI_1_PRIORITY        PRIORITY_MEDIUM
-#define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
-#define SPI_1_RX_DMA_CH       DMA_CH_3
-#define SPI_1_TX_DMA_STREAM   DMA_STREAM_NONE
-#define SPI_1_TX_DMA_CH       DMA_CH_3
+#define SPI_1_ENABLED
+#define I2C_1_ENABLED
+#define USART_2_ENABLED
+#define IO_EXT_IRQ_1_ENABLED
+#define ADC_1_ENABLED
 
-#define I2C_1
-#define I2C_1_SDA_PIN         IO_portPinToNum(IO_PORT_B, 7)
-#define I2C_1_SCL_PIN         IO_portPinToNum(IO_PORT_B, 6)
-#define I2C_1_IO_CFG_EXT      {GPIO_AF4_I2C1}
-#define I2C_1_PRIORITY        PRIORITY_MEDIUM
-#define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
-#define I2C_1_RX_DMA_CH       DMA_CH_1
-#define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
-#define I2C_1_TX_DMA_CH       DMA_CH_1
 
-#define USART_2
-#define USART_2_TX_PIN        IO_portPinToNum(IO_PORT_A, 2)
-#define USART_2_RX_PIN        IO_portPinToNum(IO_PORT_A, 3)
-#define USART_2_RTS_PIN       IO_NULL_PIN
-#define USART_2_CTS_PIN       IO_NULL_PIN
-#define USART_2_IO_CFG_EXT    {GPIO_AF7_USART2}
-#define USART_2_PRIORITY      PRIORITY_MEDIUM
-#define USART_2_RX_DMA_STREAM DMA_STREAM_NONE
-#define USART_2_RX_DMA_CH     0
-#define USART_2_TX_DMA_STREAM DMA_STREAM_NONE
-#define USART_2_TX_DMA_CH     0
+#ifdef  SPI_1_ENABLED
+  #define SPI_1_IO_CFG_EXT      {GPIO_AF5_SPI1}
+  #define SPI_1_MOSI_PIN        IO_portPinToNum(IO_PORT_A, 7)
+  #define SPI_1_MISO_PIN        IO_portPinToNum(IO_PORT_A, 6)
+  #define SPI_1_SCK_PIN         IO_portPinToNum(IO_PORT_A, 5)
+  #define SPI_1_PRIORITY        PRIORITY_MEDIUM
+  #define SPI_1_RX_DMA_STREAM   DMA_STREAM_NONE
+  #define SPI_1_RX_DMA_CH       DMA_CH_3
+  #define SPI_1_TX_DMA_STREAM   DMA_STREAM_NONE
+  #define SPI_1_TX_DMA_CH       DMA_CH_3
+#endif
 
-#define IO_EXT_1_PIN          (1)
+#ifdef  I2C_1_ENABLED
+  #define I2C_1_SDA_PIN         IO_portPinToNum(IO_PORT_B, 7)
+  #define I2C_1_SCL_PIN         IO_portPinToNum(IO_PORT_B, 6)
+  #define I2C_1_IO_CFG_EXT      {GPIO_AF4_I2C1}
+  #define I2C_1_PRIORITY        PRIORITY_MEDIUM
+  #define I2C_1_RX_DMA_STREAM   DMA_1_STREAM_0
+  #define I2C_1_RX_DMA_CH       DMA_CH_1
+  #define I2C_1_TX_DMA_STREAM   DMA_1_STREAM_6
+  #define I2C_1_TX_DMA_CH       DMA_CH_1
+#endif
 
-#define ADC_1_DMA_STREAM      DMA_1_STREAM_0
+#ifdef  USART_2_ENABLED
+  #define USART_2_TX_PIN        IO_portPinToNum(IO_PORT_A, 2)
+  #define USART_2_RX_PIN        IO_portPinToNum(IO_PORT_A, 3)
+  #define USART_2_RTS_PIN       IO_NULL_PIN
+  #define USART_2_CTS_PIN       IO_NULL_PIN
+  #define USART_2_IO_CFG_EXT    {GPIO_AF7_USART2}
+  #define USART_2_PRIORITY      PRIORITY_MEDIUM
+  #define USART_2_RX_DMA_STREAM DMA_STREAM_NONE
+  #define USART_2_RX_DMA_CH     0
+  #define USART_2_TX_DMA_STREAM DMA_STREAM_NONE
+  #define USART_2_TX_DMA_CH     0
+#endif
+
+#ifdef  IO_EXT_IRQ_1_ENABLED
+  #define IO_EXT_IRQ_1_PIN      IO_portPinToNum(IO_PORT_NULL, IO_NULL_PIN)
+  #define IO_EXT_IRQ_1_PRIORITY PRIORITY_MEDIUM
+#endif
+
+#ifdef  ADC_1_ENABLED
+  #define ADC_1_DMA_STREAM      DMA_1_STREAM_0
+#endif
 
 
 #ifdef __cplusplus

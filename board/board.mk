@@ -1,5 +1,6 @@
 include board.inc
 include chips/chips.inc
+include storage/storage.inc
 
 #############################################################
 # sources + flags
@@ -7,12 +8,11 @@ include chips/chips.inc
 
 SOURCE_DIR = \
   . \
-	chips \
-	storage \
-	storage/littlefs \
 
 C_SOURCES = \
-  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c)))
+  $(sort $(foreach dir, $(SOURCE_DIR), $(wildcard $(dir)/*.c))) \
+	$(CHIPS_SOURCES) \
+	$(STORAGE_SOURCES)
 
 C_OBJS := \
   $(subst .o,_$(config).o,$(addprefix $(BUILD_DIR), $(C_SOURCES:.c=.o)))
@@ -20,10 +20,9 @@ C_OBJS := \
 C_INCLUDES =  \
   $(BRD_INCLUDES) \
   $(MCU_INCLUDES) \
+	$(CHIPS_INCLUDES) \
+	$(STORAGE_INCLUDES) \
   -Iconfig \
-  -Ichips \
-  -Istorage \
-  -Istorage/littlefs \
 
 C_FLAGS = \
   $(MCU_C_FLAGS)

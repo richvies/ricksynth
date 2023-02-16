@@ -27,10 +27,13 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#include "pcf8575.h"
+#include "config_board.h"
 
 
 #ifdef PCF8575_NUM_OF
+
+
+#include "pcf8575.h"
 
 
 typedef struct

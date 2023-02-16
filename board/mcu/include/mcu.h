@@ -56,6 +56,36 @@ SOFTWARE.
 #include "config_mcu.h"
 
 
+#define ADC_PERIPH_NUM_OF     (1)
+
+
+/* for use with clk/ io modules */
+typedef enum
+{
+  PERIPH_GPIO_A,
+  PERIPH_GPIO_B,
+  PERIPH_GPIO_C,
+  PERIPH_GPIO_H,
+  PERIPH_DMA_1,
+  PERIPH_DMA_2,
+  PERIPH_TIM_5,
+  PERIPH_WWDG,
+  PERIPH_SPI_2,
+  PERIPH_USART_2,
+  PERIPH_I2C_1,
+  PERIPH_I2C_2,
+  PERIPH_PWR,
+  PERIPH_TIM_1,
+  PERIPH_USART_1,
+  PERIPH_USART_6,
+  PERIPH_ADC_1,
+  PERIPH_SPI_1,
+  PERIPH_SYSCFG,
+  PERIPH_TIM_9,
+  PERIPH_TIM_11,
+} PERIPH_e;
+
+
 /* IO */
 typedef enum
 {
@@ -72,20 +102,22 @@ typedef enum
 /* IO External interrupt */
 typedef enum
 {
+#ifdef IO_EXT_IRQ_1_ENABLED
   IO_EXT_IRQ_1,
+#endif
 
   IO_NUM_OF_EXT_IRQ,
   IO_EXT_IRQ_FIRST = 0,
 } IO_ext_irq_e;
 
 /* USART */
-#if (defined USART_2)
-  #define USART_USED
+#if (defined USART_2_ENABLED)
+  #define USART_ENABLED
 #endif
 
 typedef enum
 {
-#ifdef USART_2
+#ifdef USART_2_ENABLED
   USART_CH_2,
 #endif
 
@@ -94,13 +126,13 @@ typedef enum
 } USART_ch_e;
 
 /* I2C */
-#if (defined I2C_1)
-  #define I2C_USED
+#if (defined I2C_1_ENABLED)
+  #define I2C_ENABLED
 #endif
 
 typedef enum
 {
-#ifdef I2C_1
+#ifdef I2C_1_ENABLED
   I2C_CH_1,
 #endif
 
@@ -109,21 +141,21 @@ typedef enum
 } I2C_ch_e;
 
 /* SPI */
-#if (defined SPI_1 || defined SPI_2)
-  #define SPI_USED
+#if (defined SPI_1_ENABLED || defined SPI_2_ENABLED || defined SPI_3_ENABLED)
+  #define SPI_ENABLED
 #endif
 
 typedef enum
 {
-#ifdef SPI_1
+#ifdef SPI_1_ENABLED
   SPI_CH_1,
 #endif
 
-#ifdef SPI_2
+#ifdef SPI_2_ENABLED
   SPI_CH_2,
 #endif
 
-#ifdef SPI_3
+#ifdef SPI_3_ENABLED
   SPI_CH_3,
 #endif
 
@@ -195,32 +227,6 @@ typedef enum
   ADC_NUM_OF_CH,
   ADC_CH_FIRST,
 } ADC_ch_e;
-
-/* for use with clk module */
-typedef enum
-{
-  PERIPH_GPIO_A,
-  PERIPH_GPIO_B,
-  PERIPH_GPIO_C,
-  PERIPH_GPIO_H,
-  PERIPH_DMA_1,
-  PERIPH_DMA_2,
-  PERIPH_TIM_5,
-  PERIPH_WWDG,
-  PERIPH_SPI_2,
-  PERIPH_USART_2,
-  PERIPH_I2C_1,
-  PERIPH_I2C_2,
-  PERIPH_PWR,
-  PERIPH_TIM_1,
-  PERIPH_USART_1,
-  PERIPH_USART_6,
-  PERIPH_ADC_1,
-  PERIPH_SPI_1,
-  PERIPH_SYSCFG,
-  PERIPH_TIM_9,
-  PERIPH_TIM_11,
-} PERIPH_e;
 
 
 #ifdef __cplusplus
