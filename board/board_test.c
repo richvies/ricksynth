@@ -33,6 +33,8 @@ SOFTWARE.
 #include "config_board.h"
 #include "chips.h"
 
+#include "tim.h"
+
 
 bool BTST_test_onboard_led(void)
 {

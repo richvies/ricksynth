@@ -34,7 +34,9 @@ SOFTWARE.
 
 
 #include "w25q.h"
+
 #include "io.h"
+#include "tim.h"
 
 
 typedef struct

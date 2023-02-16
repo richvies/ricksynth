@@ -36,12 +36,6 @@ SOFTWARE.
 #endif
 
 
-#include "mcu.h"
-
-#include "io.h"
-#include "tim.h"
-
-
 #define W25Q_NUM_OF        1
 #define W25Q_SPI_CH        SPI_CH_1
 #define W25Q_CS_PIN        IO_portPinToNum(IO_PORT_B, 8)
@@ -52,11 +46,11 @@ SOFTWARE.
 #define STG_0_SECTOR_SIZE   W25Q_SECTOR_SIZE
 #define STG_0_SECTOR_COUNT  W25Q_SECTOR_COUNT
 
-#define PCF8575_NUM_OF    1
-#define PCF8575_0_CH      I2C_CH_1
-#define PCF8575_0_ADDR    0
+#define PCF8575_NUM_OF      1
+#define PCF8575_0_CH        I2C_CH_1
+#define PCF8575_0_ADDR      0
 
-#define BUILTIN_LED_PIN   IO_portPinToNum(IO_PORT_C, 13)
+#define BUILTIN_LED_PIN     IO_portPinToNum(IO_PORT_C, 13)
 
 
 #ifdef __cplusplus
