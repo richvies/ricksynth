@@ -42,6 +42,7 @@ SOFTWARE.
 #include "io.h"
 #include "irq.h"
 #include "merror.h"
+#include "mevent.h"
 #include "tim.h"
 
 
@@ -689,6 +690,8 @@ static void irq_end_call_callback(bool error)
 
     if (h->xfer->cb) {
       h->xfer->cb(error, h->xfer->ctx); }
+
+    MEVE_setEvent(MEVENT_I2C);
   }
 }
 

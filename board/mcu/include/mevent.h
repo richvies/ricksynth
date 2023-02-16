@@ -27,8 +27,8 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef __MEVENT_H
+#define __MEVENT_H
 
 
 #ifdef __cplusplus
@@ -36,14 +36,26 @@ SOFTWARE.
 #endif
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
-#include "board_test.h"
+#include "mcu.h"
 
 
-extern bool BRD_init();
-extern void BRD_process();
+typedef enum
+{
+  MEVENT_SPI,
+  MEVENT_USART,
+  MEVENT_I2C,
+
+  MEVENT_NUM_OF,
+  MEVENT_FIRST = 0,
+} mevent_e;
+
+
+extern void  MEVE_setEvent    (mevent_e event);
+extern bool  MEVE_isPending   (mevent_e event);
+extern void  MEVE_clearEvent  (mevent_e event);
+
+extern bool  MEVE_isGlobalPending (void);
+extern void  MEVE_clearGlobal     (void);
 
 
 #ifdef __cplusplus

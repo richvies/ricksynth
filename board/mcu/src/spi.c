@@ -43,6 +43,7 @@ SOFTWARE.
 #include "irq.h"
 #include "merror.h"
 #include "tim.h"
+#include "mevent.h"
 
 
 typedef enum
@@ -730,6 +731,8 @@ static void irq_end_callback(bool error, bool done)
 
     if (h->xfer->cb) {
       h->xfer->cb(done, error, h->xfer->ctx); }
+
+    MEVE_setEvent(MEVENT_SPI);
   }
 }
 

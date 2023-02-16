@@ -27,28 +27,36 @@ SOFTWARE.
 ****************************************************************************/
 
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#include "mevent.h"
 
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+static bool global_event = false;
+static bool events[MEVENT_NUM_OF] = {0};
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
-#include "board_test.h"
-
-
-extern bool BRD_init();
-extern void BRD_process();
-
-
-#ifdef __cplusplus
+void  MEVE_setEvent    (mevent_e event)
+{
+  global_event = true;
+  events[event] = true;
 }
-#endif
 
+bool  MEVE_isPending   (mevent_e event)
+{
+  return events[event];
+}
 
-#endif
+void  MEVE_clearEvent  (mevent_e event)
+{
+  events[event] = false;
+}
+
+bool  MEVE_isGlobalPending (void)
+{
+  return global_event;
+}
+
+void  MEVE_clearGlobal     (void)
+{
+  global_event = false;
+}
+

@@ -33,6 +33,8 @@ SOFTWARE.
 #include "chips.h"
 
 #include "io.h"
+#include "mevent.h"
+#include "spi.h"
 
 
 bool BRD_init()
@@ -49,4 +51,36 @@ bool BRD_init()
   IO_configure(BUILTIN_LED_PIN, &io_cfg);
 
   return ret;
+}
+
+void BRD_process()
+{
+  mevent_e event;
+
+  if (false == MEVE_isGlobalPending()) {
+    return; }
+
+  MEVE_clearGlobal();
+
+  for (event = MEVENT_FIRST; event < MEVENT_NUM_OF; event++)
+  {
+    if (false == MEVE_isPending(event)) {
+      continue; }
+
+    MEVE_clearEvent(event);
+
+    switch (event)
+    {
+    case MEVENT_SPI:
+      SPI_task();
+      break;
+
+    case MEVENT_I2C:
+      I2C_task();
+      break;
+
+    default:
+      break;
+    }
+  }
 }
