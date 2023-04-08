@@ -43,7 +43,7 @@ SOFTWARE.
 
 
 extern bool BRD_init();
-extern void BRD_process();
+extern void BRD_task();
 
 
 #ifdef __cplusplus

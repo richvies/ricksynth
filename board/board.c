@@ -53,7 +53,7 @@ bool BRD_init()
   return ret;
 }
 
-void BRD_process()
+void BRD_task()
 {
   mevent_e event;
 
@@ -71,10 +71,6 @@ void BRD_process()
 
     switch (event)
     {
-    case MEVENT_SPI:
-      SPI_task();
-      break;
-
     case MEVENT_I2C:
       I2C_task();
       break;

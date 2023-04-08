@@ -41,11 +41,12 @@ SOFTWARE.
 
 #define EMPTY
 #define TIMEOUT(wait_condition, ms, task, pass, fail)   \
+task;                                         \
+if (wait_condition)                           \
 {                                             \
   bool p = true;                              \
   uint32_t tim = TIM_millis();                \
                                               \
-  task;                                       \
   while(wait_condition)                       \
   {                                           \
     task;                                     \

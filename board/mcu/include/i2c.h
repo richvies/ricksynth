@@ -110,13 +110,7 @@ extern void I2C_task    (void);
 
 
 
-/**
- * @brief transfer data to/ from a device on i2c bus using interrupts or dma
- * @attention Do NOT call from an interrupt
- *
- * @return true if added to queue succesfully
- */
-extern bool I2C_write (I2C_ch_e   ch,
+extern bool I2C_write (I2C_ch_e    ch,
                        uint16_t    addr,
                        uint8_t*    tx_data,
                        uint16_t    length,

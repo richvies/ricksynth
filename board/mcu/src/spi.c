@@ -89,8 +89,7 @@ typedef struct
   /* current xfer */
   xfer_info_t *xfer;
   bool volatile busy;
-  bool volatile done;
-  bool volatile error;
+  bool volatile blocking;
 
   /* xfer queue*/
   xfer_queue_t queue;
@@ -101,7 +100,6 @@ typedef struct
   uint16_t div;
   uint32_t hal;
 } prescaler_t;
-
 
 
 static handle_t handles[SPI_NUM_OF_CH] = {0};
@@ -246,21 +244,6 @@ bool SPI_deInit     (SPI_ch_e ch)
   return ret;
 }
 
-void SPI_task       (void)
-{
-  SPI_ch_e ch;
-  handle_t *h;
-
-  /* handle xfer queue of each channel */
-  for (ch = SPI_CH_FIRST; ch < SPI_NUM_OF_CH; ch++)
-  {
-    h = &handles[ch];
-
-    if (h->done) {
-      xferHandleQ(h); }
-  }
-}
-
 bool SPI_write      (SPI_ch_e    ch,
                      IO_num_e    cs_pin,
                      uint8_t*    tx_data,
@@ -330,18 +313,17 @@ static bool xferBlocking  (dir_e dir,
   bool ret = false;
   handle_t *h = &handles[ch];
 
+  h->blocking = true;
+
   /* if busy - wait until current xfer done */
-  if (h->busy)
-  {
-    TIMEOUT(false == h->done,
-            100,
-            EMPTY,
-            EMPTY,
-            {
-              MERR_error(MERROR_SPI_BUSY_TIMEOUT, h->hw->periph);
-              return false;
-            });
-  }
+  TIMEOUT(h->busy,
+          10,
+          EMPTY,
+          EMPTY,
+          {
+            MERR_error(MERROR_SPI_BUSY_TIMEOUT, h->hw->periph);
+            goto end;
+          });
 
   if (cs_pin) {
     IO_clear(cs_pin); }
@@ -349,16 +331,14 @@ static bool xferBlocking  (dir_e dir,
   switch (dir)
   {
   case DIR_WRITE:
-      ret = writeBlocking(h, tx_data, len);
+    ret = writeBlocking(h, tx_data, len);
     break;
   case DIR_READ:
-      ret = readBlocking(h, rx_data, len);
+    ret = readBlocking(h, rx_data, len);
     break;
-
   case DIR_WRITE_READ:
-      ret = writeReadBlocking(h, tx_data, rx_data, len);
+    ret = writeReadBlocking(h, tx_data, rx_data, len);
     break;
-
   default:
     break;
   }
@@ -368,6 +348,10 @@ static bool xferBlocking  (dir_e dir,
 
   if (false == ret) {
     MERR_error(MERROR_SPI_XFER_START, h->hw->periph); }
+
+end:
+  h->blocking = false;
+  xferHandleQ(h);
 
   return ret;
 }
@@ -385,64 +369,49 @@ static bool xferNonblocking (dir_e dir,
   handle_t *h = &handles[ch];
   xfer_info_t *info;
 
-  /* add to q and try start next xfer */
+  TIMEOUT(Q_isFull(h->queue),
+        10,
+        EMPTY,
+        EMPTY,
+        {
+          MERR_error(MERROR_SPI_XFER_Q_OVERFLOW, h->hw->periph);
+          return false;
+        });
 
-  if (Q_isFull(h->queue)) {
-    MERR_error(MERROR_SPI_XFER_Q_OVERFLOW, h->hw->periph); }
-  else
-  {
-    ret = true;
+  ret = true;
 
-    info = &Q_getHead(h->queue);
+  info = &Q_getHead(h->queue);
 
-    info->dir = dir;
-    info->cs_pin = cs_pin;
-    info->tx_data = tx_data;
-    info->rx_data = rx_data;
-    info->cb = cb;
-    info->ctx = ctx;
-    info->length = len;
+  info->dir = dir;
+  info->cs_pin = cs_pin;
+  info->tx_data = tx_data;
+  info->rx_data = rx_data;
+  info->cb = cb;
+  info->ctx = ctx;
+  info->length = len;
 
-    Q_incHead(h->queue);
+  irq_disable(h->hw->irq_num);
+  Q_incHead(h->queue);
+  irq_enable(h->hw->irq_num);
 
-    xferHandleQ(h);
-  }
+  xferHandleQ(h);
 
   return ret;
 }
 
 static void xferHandleQ   (handle_t *h)
 {
-  /* if current xfer done -
-  * record error, update queue, reset for next xfer */
-  if (h->done)
+  if (!h->busy && !h->blocking)
   {
-    if (h->error) {
-      MERR_error(MERROR_SPI_XFER_ERROR, h->hw->periph); }
-
-    Q_incTail(h->queue);
-
-    h->busy = false;
-    h->done = false;
-    h->error = false;
-  }
-
-  /* try start next xfer, if fails - callback with error and try next... */
-  if (false == h->busy)
-  {
-    while ((true == Q_pending(h->queue)) && (false == xferStartNext(h)))
-    {
-      if (h->xfer->cb) {
-        h->xfer->cb(true, true, h->xfer->ctx); }
-
-      Q_incTail(h->queue);
-    }
+    while ((true == Q_pending(h->queue)) && (false == xferStartNext(h)));
   }
 }
 
 static bool xferStartNext   (handle_t *h)
 {
   bool ret = false;
+
+  h->busy = true;
 
   h->xfer = &Q_getTail(h->queue);
 
@@ -476,15 +445,18 @@ static bool xferStartNext   (handle_t *h)
     break;
   }
 
-  /* busy if xfer started successfully */
-  h->busy = ret;
-
   if (false == ret)
   {
     if (h->xfer->cs_pin) {
       IO_set(h->xfer->cs_pin); }
 
+    if (h->xfer->cb) {
+      h->xfer->cb(true, true, h->xfer->ctx); }
+
     MERR_error(MERROR_SPI_XFER_START, h->hw->periph);
+
+    h->busy = false;
+    Q_incTail(h->queue);
   }
 
   return ret;
@@ -720,19 +692,19 @@ static void irq_end_callback(bool error, bool done)
 
   if (h)
   {
-    h->error = error;
-
-    if (done)
-    {
-      h->done = true;
+    if (done) {
       if (h->xfer->cs_pin) {
-        IO_set(h->xfer->cs_pin); }
-    }
+        IO_set(h->xfer->cs_pin); }}
+
+    if (error) {
+      MERR_error(MERROR_SPI_XFER_ERROR, h->hw->periph); }
 
     if (h->xfer->cb) {
       h->xfer->cb(done, error, h->xfer->ctx); }
 
-    MEVE_setEvent(MEVENT_SPI);
+    h->busy = false;
+    Q_incTail(h->queue);
+    xferHandleQ(h);
   }
 }
 

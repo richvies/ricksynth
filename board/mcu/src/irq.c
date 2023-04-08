@@ -71,6 +71,16 @@ void irq_disableAll(void)
   }
 }
 
+void irq_disableGlobal(void)
+{
+  __disable_irq();
+}
+
+void irq_enableGlobal(void)
+{
+  __enable_irq();
+}
+
 
 IRQ_num_e irq_get_current(void)
 {

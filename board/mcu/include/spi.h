@@ -102,16 +102,6 @@ extern bool SPI_init      (SPI_ch_e ch, SPI_cfg_t *cfg);
  */
 extern bool SPI_deInit    (SPI_ch_e ch);
 
-/**
- * @brief checks if peripheral is ready for a new transaction
- */
-extern bool SPI_isBusy    (SPI_ch_e ch);
-
-/**
- * @brief Call this function periodically if using spi bus
- * @attention Do NOT call from an interrupt
- */
-extern void SPI_task      (void);
 
 /**
  * @brief transfer data to/ from a device on spi bus using interrupts or dma

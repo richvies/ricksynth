@@ -237,11 +237,17 @@ void I2C_task       (void)
   {
     h = &handles[ch];
 
-    if (h->done) {
-      xferHandleQ(h); }
+    xferHandleQ(h);
   }
 }
 
+
+/**
+ * @brief transfer data to/ from a device on i2c bus using interrupts or dma
+ * @attention Do NOT call from an interrupt
+ *
+ * @return true if added to queue succesfully
+ */
 bool I2C_write      (I2C_ch_e    ch,
                      uint16_t    addr,
                      uint8_t*    tx_data,
@@ -252,6 +258,12 @@ bool I2C_write      (I2C_ch_e    ch,
   return xferNonblocking(DIR_WRITE, ch, addr, 0, 0, tx_data, length, cb, ctx);
 }
 
+/**
+ * @brief transfer data to/ from a device on i2c bus using interrupts or dma
+ * @attention Do NOT call from an interrupt
+ *
+ * @return true if added to queue succesfully
+ */
 bool I2C_read       (I2C_ch_e    ch,
                      uint16_t    addr,
                      uint8_t*    rx_data,
@@ -262,6 +274,12 @@ bool I2C_read       (I2C_ch_e    ch,
   return xferNonblocking(DIR_READ, ch, addr, 0, 0, rx_data, length, cb, ctx);
 }
 
+/**
+ * @brief transfer data to/ from a device on i2c bus using interrupts or dma
+ * @attention Do NOT call from an interrupt
+ *
+ * @return true if added to queue succesfully
+ */
 bool I2C_readMem    (I2C_ch_e     ch,
                      uint16_t     addr,
                      uint16_t     mem_addr,
